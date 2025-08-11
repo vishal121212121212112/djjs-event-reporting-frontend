@@ -1,0 +1,112 @@
+<div class="container-fluid">
+
+  <!-- start page title -->
+  <app-page-title title="Users Grid" [breadcrumbItems]="breadCrumbItems"></app-page-title>
+  <!-- end page title -->
+
+  <div class="row">
+    <ng-template #content role="document" let-modal>
+      <div class="modal-header">
+        <h5 class="modal-title mt-0">Add Customer</h5>
+        <button type="button" class="btn-close" aria-hidden="true" (click)="modalRef?.hide()"></button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="saveUser()" [formGroup]="userForm">
+          <div class="row">
+            <div class="col-12">
+              <div class="mb-3">
+                <label class="control-label">Username</label>
+                <input class="form-control" placeholder="Enter Username" type="text" name="name" formControlName="name" [ngClass]="{'is-invalid': submitted && form.name.errors}" />
+                @if(submitted && form.name.errors){
+                <div class="invalid-feedback">
+                  @if(form.name.errors.required){
+                  <span>Username is required.</span>}
+                </div>}
+              </div>
+
+              <div class="mb-3">
+                <label class="control-label">Designation</label>
+                <input class="form-control" placeholder="Enter designation" type="text" name="designation" formControlName="designation" [ngClass]="{'is-invalid': submitted && form.designation.errors}" />
+                @if(submitted && form.designation.errors){
+                <div class="invalid-feedback">
+                  @if(form.designation.errors.required){
+                  <span>Username is required.</span>}
+                </div>}
+              </div>
+              <div class="mb-3">
+                <label class="control-label">Email</label>
+                <input class="form-control" placeholder="Enter email" type="text" name="email" formControlName="email" [ngClass]="{'is-invalid': submitted && form.email.errors}" />
+                @if(submitted && form.email.errors){
+                <div class="invalid-feedback">
+                  @if(form.email.errors.required){
+                  <span>Email is required.</span>}
+                  @if(form.email.errors.pattern){
+                  <span>This value should be a valid email.</span>}
+                </div>}
+              </div>
+              <div class="mb-3">
+                <label class="control-label">Select</label>
+                <ng-select [items]="selectValue" [multiple]="true" name="select" [ngModelOptions]="{standalone: true}" [(ngModel)]="selected"></ng-select>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success" id="btn-save-event">
+            Save
+          </button>
+        </form>
+      </div>
+    </ng-template>
+
+
+    @for(data of UserGrid;track $index){
+    <div class="col-xl-3 col-sm-6">
+      <div class="card text-center">
+        <div class="card-body">
+
+          @if(data.image){
+          <div class="mb-4">
+            <img class="rounded-circle avatar-sm" src="{{data.image}}" alt />
+          </div>
+          }@else{
+          <div class="avatar-sm mx-auto mb-4">
+            <span class="avatar-title rounded-circle bg-primary-subtle text-primary font-size-16">
+              {{data.name.charAt(0)}}
+            </span>
+          </div>}
+          <h5 class="font-size-15 mb-1"><a href="javascript: void(0);" class="text-dark">{{data.name}}</a></h5>
+          <p class="text-muted">{{data.designation}}</p>
+          <div>
+            <a href="javascript: void(0);" class="badge bg-primary font-size-11 m-1">{{data.projects[0]}}</a>
+            <a href="javascript: void(0);" class="badge bg-primary font-size-11 m-1">{{data.projects[1]}}</a>
+            <a href="javascript: void(0);" class="badge bg-primary font-size-11 m-1">{{data.projects[2]}}</a>
+          </div>
+        </div>
+        <div class="card-footer bg-transparent border-top">
+          <div class="contact-links d-flex font-size-20">
+            <div class="flex-fill">
+              <a href="javascript: void(0);" tooltip="Message"><i class="bx bx-message-square-dots"></i></a>
+            </div>
+            <div class="flex-fill">
+              <a href="javascript: void(0);" tooltip="Projects"><i class="bx bx-pie-chart-alt"></i></a>
+            </div>
+            <div class="flex-fill">
+              <a href="javascript: void(0);" tooltip="Profile"><i class="bx bx-user-circle"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+  <!-- end row -->
+
+  <div class="row">
+    <div class="col-12">
+      <div class="text-center my-3">
+        <a href="javascript:void(0);" class="text-success"><i class="bx bx-hourglass bx-spin me-1"></i> Load more </a>
+      </div>
+    </div> <!-- end col-->
+  </div>
+  <!-- end row -->
+
+</div> <!-- container-fluid -->

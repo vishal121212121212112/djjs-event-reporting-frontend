@@ -1,0 +1,168 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <input type="hidden" class="form-control" id="formAction" name="formAction" value="add">
+                    <input type="hidden" class="form-control" id="project-id-input">
+                    <div class="mb-3">
+                        <label for="projectname-input" class="form-label">Project Name</label>
+
+                        <input id="projectname-input" name="projectname-input" type="text" class="form-control" placeholder="Enter project name..." required>
+                        <div class="invalid-feedback">Please enter a project name.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Project Image</label>
+
+                        <div class="text-center">
+                            <div class="position-relative d-inline-block">
+                                <div class="position-absolute bottom-0 end-0">
+                                    <label for="project-image-input" class="mb-0" data-bs-toggle="tooltip" data-bs-placement="right" title="Select Image">
+                                        <div class="avatar-xs">
+                                            <div class="avatar-title bg-light border rounded-circle text-muted cursor-pointer shadow font-size-16">
+                                                <i class='bx bxs-image-alt'></i>
+                                            </div>
+                                        </div>
+                                    </label>
+                                    <input class="form-control d-none" value="" id="project-image-input" type="file" accept="image/png, image/gif, image/jpeg" (change)="fileChange($event)">
+                                </div>
+                                <div class="avatar-lg">
+                                    <div class="avatar-title bg-light rounded-circle">
+                                        <img src="" id="projectlogo-img" class="avatar-md h-auto rounded-circle" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="projectdesc-input" class="form-label">Project Description</label>
+                        <textarea class="form-control" id="projectdesc-input" rows="3" placeholder="Enter project description..." required></textarea>
+                        <div class="invalid-feedback">Please enter a project description.</div>
+                    </div>
+                    <div class="mb-3 position-relative">
+                        <label for="task-assign-input" class="form-label">Assigned To</label>
+                        @if(assignList){
+                        <div class="avatar-group justify-content-center" id="assignee-member">
+                            @for(data of assignList;track $index){
+                            <a href="javascript: void(0);" class="avatar-group-item mb-2" data-img="assets/images/users/avatar-1.jpg" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Shirley North" data-bs-original-title="Shirley North">
+                                <img src="{{data.avatar}}" alt="" class="rounded-circle avatar-xs">
+                            </a>
+                            }
+                        </div>}
+                        <div class="select-element" id="select-element" dropdown>
+                            <button class="btn btn-light w-100 d-flex justify-content-between" dropdownToggle type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                <span>Assigned To<b id="total-assignee" class="mx-1">{{assignList?.length}}</b>Members</span> <i class="mdi mdi-chevron-down"></i>
+                            </button>
+                            <div class="dropdown-menu w-100" *dropdownMenu>
+                                <ngx-simplebar style="max-height: 172px">
+                                    <ul class="list-unstyled mb-0 assignto-list">
+                                        @for(data of assignMember;track $index){
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center" [ngClass]="{'active':data.checked == '1'}" href="javascript:void(0);" (click)="slectMember(i)">
+                                                <div class="avatar-xs flex-shrink-0 me-2">
+                                                    <img src="{{data.avatar}}" alt="" class="img-fluid rounded-circle" />
+                                                </div>
+                                                <div class="flex-grow-1">{{data.name}}</div>
+                                            </a>
+                                        </li>}
+                                    </ul>
+                                </ngx-simplebar>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label">Attached Files</label>
+
+                        <dropzone class="dropzone" [config]="dropzoneConfig" [message]="'Drop files here or click to upload.'" (success)="onUploadSuccess($event)">
+                        </dropzone>
+                        @if(uploadedFiles){
+                        <ul class="list-unstyled mb-0" id="dropzone-preview">
+                            @for(file of uploadedFiles;track $index){
+                            <li class="mt-2" id="dropzone-preview-list">
+                                <!-- This is used as the file preview template -->
+                                <div class="border rounded">
+                                    <div class="d-flex p-2">
+                                        <div class="flex-shrink-0 me-3">
+                                            <div class="avatar-sm bg-light rounded">
+                                                @if(file.dataURL){
+                                                <img class="img-fluid rounded d-block" [src]="file.dataURL" alt="Dropzone-Image" />
+                                                }@else {
+                                                <img class="img-fluid rounded d-block" [src]="file" alt="Dropzone-Image" />
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="pt-1">
+                                                @if(file.name){
+                                                <h5 class="fs-md mb-1">{{ file.name }}</h5>
+                                                }
+                                                @if(file.size){
+                                                <p class="fs-sm text-muted mb-0">{{ file.size }}</p>
+                                                }
+                                                <strong class="error text-danger" data-dz-errormessage></strong>
+                                            </div>
+                                        </div>
+                                        <div class="flex-shrink-0 ms-3">
+                                            <button (click)="removeFile(file)" class="btn btn-sm btn-danger">Delete</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>}
+                        </ul>}
+                        <!-- end dropzon-preview -->
+                    </div>
+                </div>
+                <!-- end card body -->
+            </div>
+            <!-- end card -->
+
+        </div>
+        <!-- end col -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Publish</h5>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="project-status-input">Status</label>
+                        <select class="form-select" id="project-status-input">
+                            <option value="Completed">Completed</option>
+                            <option value="Inprogress" selected>Inprogress</option>
+                            <option value="Delay">Delay</option>
+                        </select>
+                        <div class="invalid-feedback">Please select project status.</div>
+                    </div>
+
+                    <div>
+                        <label class="form-label" for="project-visibility-input">Visibility</label>
+                        <select class="form-select" id="project-visibility-input">
+                            <option value="Private">Private</option>
+                            <option value="Public">Public</option>
+                            <option value="Team">Team</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- end card body -->
+            </div>
+            <!-- end card -->
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Due Date</h5>
+                    <input class="form-control flatpickr-input" type="text" mwlFlatpickr>
+                </div>
+                <div class="invalid-feedback">Please select due date.</div>
+            </div>
+            <!-- end card body -->
+        </div>
+        <!-- end card -->
+    </div>
+    <!-- end col -->
+
+    <div class="col-lg-8">
+        <div class="text-end mb-4">
+            <button type="submit" class="btn btn-primary">Create Project</button>
+        </div>
+    </div>
+    <!-- end row -->
+</div>
