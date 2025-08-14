@@ -36,86 +36,542 @@
       border: 1px solid #dee2e6;
       font-weight: 600;
       color: #495057;
-      padding: 0.75rem;
+      padding: 1rem 0.75rem; // Increased padding for better spacing
+      position: relative;
+      min-width: 200px; // Minimum width for columns
+      
+      // Column header with pin and filter buttons
+      .d-flex {
+        align-items: center;
+        justify-content: space-between;
+        
+        .gap-1 {
+          gap: 0.25rem;
+        }
+        
+        .btn-link {
+          color: #6c757d;
+          padding: 0.125rem;
+          border: none;
+          background: transparent;
+          
+          &:hover {
+            color: #ff6b35;
+            background-color: rgba(255, 107, 53, 0.1);
+          }
+          
+          &.text-warning {
+            color: #ffc107;
+          }
+        }
+      }
+      
+      // Sort icon styling
+      .p-sortable-column-icon {
+        color: #6c757d;
+        margin-left: 0.5rem;
+        font-size: 0.875rem;
+        
+        &.p-sortable-column-icon-active {
+          color: #ff6b35;
+        }
+      }
+      
+      // Sortable area styling
+      .sortable-area {
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 0.25rem;
+        transition: background-color 0.2s ease;
+        
+        &:hover {
+          background-color: rgba(255, 107, 53, 0.1);
+        }
+        
+        span {
+          font-weight: 600;
+          color: #495057;
+        }
+      }
+      
+      // Dropdown menu styling
+      .dropdown-container {
+        position: relative;
+        
+        .btn-link {
+          color: #6c757d;
+          padding: 0.25rem;
+          border: none;
+          background: transparent;
+          border-radius: 0.25rem;
+          
+          &:hover {
+            color: #ff6b35;
+            background-color: rgba(255, 107, 53, 0.1);
+          }
+          
+          .pi-ellipsis-v {
+            font-size: 1rem;
+          }
+        }
+        
+        .dropdown-menu {
+          position: absolute;
+          top: 100%;
+          right: 0;
+          min-width: 140px;
+          padding: 0.5rem 0;
+          margin: 0;
+          border: 1px solid #dee2e6;
+          border-radius: 0.375rem;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          background: white;
+          z-index: 1000;
+          display: none;
+          
+          &.show {
+            display: block;
+          }
+          
+          .dropdown-item {
+            padding: 0.5rem 1rem;
+            color: #495057;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;
+            
+            &:hover {
+              background-color: #f8f9fa;
+              color: #ff6b35;
+            }
+            
+            .pi {
+              font-size: 0.875rem;
+              margin-right: 0.5rem;
+            }
+            
+            &.text-warning {
+              color: #ffc107;
+            }
+          }
+        }
+      }
+      
+      // Filter input container styling
+      .mt-2 {
+        margin-top: 0.5rem;
+        
+        .form-control-sm {
+          height: 2rem;
+          font-size: 0.875rem;
+          border: 1px solid #ced4da;
+          border-radius: 0.25rem;
+          
+          &:focus {
+            border-color: #ff6b35;
+            box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
+          }
+        }
+        
+        .btn-link {
+          color: #6c757d;
+          padding: 0.125rem;
+          margin-left: 0.25rem;
+          
+          &:hover {
+            color: #dc3545;
+          }
+        }
+      }
+      
+      // Table container for proper positioning
+      .table-container {
+        position: relative;
+        width: 100%;
+      }
     }
     
     .p-datatable-tbody > tr > td {
       border: 1px solid #dee2e6;
       padding: 0.75rem;
       vertical-align: middle;
+      min-width: 120px; // Minimum width for columns
     }
     
     .p-datatable-tbody > tr:hover {
       background-color: #f8f9fa;
     }
+    
+    // Pagination styling - Improved PrimeNG style
+    .p-paginator {
+      background: white;
+      border: 1px solid #dee2e6;
+      border-top: none;
+      padding: 1rem;
+      
+      .p-paginator-pages {
+        .p-paginator-page {
+          border: 1px solid #dee2e6;
+          background: white;
+          color: #495057;
+          margin: 0 0.125rem;
+          min-width: 2.5rem;
+          height: 2.5rem;
+          border-radius: 0.375rem;
+          font-weight: 500;
+          
+          &:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+            color: #495057;
+          }
+          
+          &.p-highlight {
+            background: #495057;
+            border-color: #495057;
+            color: white;
+            font-weight: 600;
+          }
+        }
+      }
+      
+      .p-paginator-first,
+      .p-paginator-prev,
+      .p-paginator-next,
+      .p-paginator-last {
+        border: 1px solid #dee2e6;
+        background: white;
+        color: #495057;
+        margin: 0 0.125rem;
+        min-width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.375rem;
+        
+        &:hover {
+          background: #e9ecef;
+          border-color: #adb5bd;
+          color: #495057;
+        }
+        
+        &:disabled {
+          background: #f8f9fa;
+          color: #adb5bd;
+          cursor: not-allowed;
+          border-color: #e9ecef;
+        }
+      }
+      
+      .p-dropdown {
+        border: 1px solid #dee2e6;
+        background: white;
+        border-radius: 0.375rem;
+        min-width: 4rem;
+        
+        .p-dropdown-trigger {
+          color: #495057;
+        }
+        
+        .p-dropdown-label {
+          padding: 0.5rem 0.75rem;
+          font-weight: 500;
+        }
+      }
+    }
+    
+    // Column Filter styling
+    .p-columnfilter {
+      .p-columnfilter-trigger {
+        color: #6c757d;
+        padding: 0.125rem;
+        
+        &:hover {
+          color: #ff6b35;
+          background-color: rgba(255, 107, 53, 0.1);
+        }
+      }
+      
+      .p-columnfilter-overlay {
+        .p-columnfilter-row {
+          .p-columnfilter-operator {
+            .p-dropdown {
+              border: 1px solid #ced4da;
+              border-radius: 0.25rem;
+              
+              &:focus {
+                border-color: #ff6b35;
+                box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
+              }
+            }
+          }
+          
+          .p-columnfilter-constraint {
+            .p-inputtext {
+              border: 1px solid #ced4da;
+              border-radius: 0.25rem;
+              
+              &:focus {
+                border-color: #ff6b35;
+                box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
+              }
+            }
+          }
+        }
+        
+        .p-columnfilter-buttons {
+          .p-button {
+            &.p-button-secondary {
+              background: #6c757d;
+              border-color: #6c757d;
+              
+              &:hover {
+                background: #5a6268;
+                border-color: #545b62;
+              }
+            }
+            
+            &.p-button-primary {
+              background: #ff6b35;
+              border-color: #ff6b35;
+              
+              &:hover {
+                background: #e55a2b;
+                border-color: #e55a2b;
+              }
+            }
+          }
+        }
+      }
+    }
   }
   
-  // Expand/Collapse button styling
-  .p-button.p-button-text {
+  // Action buttons styling - no borders, just icons
+  .action-btn {
     color: #6c757d;
+    padding: 0.25rem;
+    border: none;
+    background: transparent;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+    
     &:hover {
       color: #ff6b35;
       background-color: rgba(255, 107, 53, 0.1);
+      transform: scale(1.1);
+    }
+    
+    .pi {
+      font-size: 1rem;
     }
   }
   
-  // Tag styling for event types
+  // Tag styling
   .p-tag {
     font-size: 0.75rem;
     font-weight: 500;
-  }
-  
-  // Nested table styling
-  .p-datatable .p-datatable {
-    .p-datatable-thead > tr > th {
-      background: #e9ecef;
-      font-size: 0.875rem;
-      padding: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    
+    &.p-tag-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
     }
     
-    .p-datatable-tbody > tr > td {
-      font-size: 0.875rem;
-      padding: 0.5rem;
+    &.p-tag-warning {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+    
+    &.p-tag-danger {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    &.p-tag-info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
     }
   }
   
-  // Action buttons styling
-  .p-button.p-button-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-  }
-  
-  // Tooltip styling
-  .p-tooltip {
+  // Tooltip styling - enhanced to match Figma design
+  // More specific selectors to override PrimeNG defaults
+  :host ::ng-deep .p-tooltip {
     .p-tooltip-text {
-      background: #495057;
-      color: white;
-      font-size: 0.75rem;
+      background: #4a5568 !important; // Dark grey background like Figma
+      color: white !important; // White text
+      padding: 0.75rem 1rem !important; // Better padding
+      border-radius: 0.5rem !important; // Rounded corners
+      font-size: 0.875rem !important;
+      font-weight: 500 !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important; // Subtle shadow
+      border: none !important; // Remove border
+      margin: 0.5rem !important;
+      max-width: 300px !important;
+      line-height: 1.4 !important;
+      text-align: left !important; // Left align text
+      
+      // Remove arrow indicator for cleaner look
+      &::before {
+        display: none !important;
+      }
     }
   }
-}
-
-// Custom styling for the expanded content
-.expanded-content {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-top: none;
   
-  h5 {
-    color: #495057;
-    margin-bottom: 1rem;
-    font-weight: 600;
+  // Additional specific override for PrimeNG tooltips
+  :host ::ng-deep .p-tooltip.p-tooltip-top .p-tooltip-text,
+  :host ::ng-deep .p-tooltip.p-tooltip-bottom .p-tooltip-text,
+  :host ::ng-deep .p-tooltip.p-tooltip-left .p-tooltip-text,
+  :host ::ng-deep .p-tooltip.p-tooltip-right .p-tooltip-text {
+    background: #4a5568 !important;
+    color: white !important;
+    border-radius: 0.5rem !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    border: none !important;
+    
+    &::before,
+    &::after {
+      display: none !important;
+    }
   }
-}
+  
+  // Enhanced action button tooltips
+  .action-btn {
+    position: relative !important;
+    
+    // Custom tooltip for action buttons
+    &::after {
+      content: attr(data-tooltip) !important;
+      position: absolute !important;
+      bottom: 100% !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      background: #4a5568 !important; // Dark grey like Figma
+      color: white !important; // White text
+      padding: 0.75rem 1rem !important;
+      border-radius: 0.5rem !important;
+      font-size: 0.875rem !important;
+      font-weight: 500 !important;
+      white-space: nowrap !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      transition: all 0.3s ease !important;
+      z-index: 1000 !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+      margin-bottom: 0.5rem !important;
+    }
+    
+    // Show tooltip on hover
+    &:hover::after {
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+  }
+  
 
-// Responsive adjustments
-@media (max-width: 768px) {
-  :host ::ng-deep {
-    .p-datatable {
-      .p-datatable-thead > tr > th,
-      .p-datatable-tbody > tr > td {
-        padding: 0.5rem;
-        font-size: 0.875rem;
+  
+  // Media links styling (for clickable media content)
+  .cursor-pointer {
+    cursor: pointer !important;
+    color: #495057 !important; // Changed from blue to black
+    text-decoration: none !important; // Removed underline
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+    
+    &:hover {
+      color: #333333 !important; // Darker black on hover
+      text-decoration: none !important; // Keep no underline on hover
+    }
+  }
+  
+  // Media content modal styling
+  .media-content-display {
+    .pi-image {
+      color: #007bff !important;
+    }
+    
+    h4 {
+      color: #495057 !important;
+      font-weight: 600 !important;
+    }
+    
+    .text-muted {
+      color: #6c757d !important;
+      font-size: 1rem !important;
+      line-height: 1.6 !important;
+    }
+  }
+  
+  // Custom modal styling
+  .modal {
+    &.show {
+      display: flex !important; // Use flexbox for centering
+      align-items: center !important; // Center vertically
+      justify-content: center !important; // Center horizontally
+      background-color: rgba(0, 0, 0, 0.5) !important;
+    }
+  }
+  
+  .modal-backdrop {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    z-index: 1040 !important;
+  }
+  
+  .modal.show {
+    z-index: 1050 !important;
+  }
+  
+  .modal-open {
+    overflow: hidden !important;
+  }
+  
+  // Ensure modal content is centered
+  .modal-dialog {
+    margin: 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    min-height: 100vh !important;
+  }
+  
+  // Pinned columns styling - only change text color of column heading
+  .p-datatable {
+    .p-datatable-thead > tr > th.pinned-column {
+      // Remove sticky positioning and right-side shifting
+      // Only change the text color of the column heading
+      
+      .sortable-area span {
+        color: #ffc107 !important; // Change text color to warning color when pinned
+        font-weight: 700 !important; // Make it slightly bolder
+      }
+      
+      // Remove the right border and positioning
+      border-right: none !important;
+      position: static !important;
+      right: auto !important;
+      
+      &::after {
+        display: none; // Remove the right border indicator
+      }
+    }
+    
+    .p-datatable-tbody > tr > td.pinned-column {
+      // Remove sticky positioning and right-side shifting
+      // Keep normal table cell styling
+      
+      position: static !important;
+      right: auto !important;
+      background: inherit !important; // Use normal background
+      border-right: none !important;
+      
+      &::after {
+        display: none; // Remove the right border indicator
       }
     }
   }
@@ -133,34 +589,70 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.pi-chevron-right:before {
-  content: "\e901";
+// Responsive adjustments
+@media (max-width: 1200px) {
+  :host ::ng-deep {
+    .p-datatable {
+      .p-datatable-thead > tr > th,
+      .p-datatable-tbody > tr > td {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+        min-width: 100px;
+      }
+    }
+  }
 }
 
-.pi-chevron-down:before {
-  content: "\e900";
+@media (max-width: 768px) {
+  :host ::ng-deep {
+    .p-datatable {
+      .p-datatable-thead > tr > th {
+        .d-flex {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.5rem;
+          
+          .gap-1 {
+            align-self: flex-end;
+          }
+        }
+      }
+    }
+  }
 }
 
 .page-title-box {
-  padding: 20px 0;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #495057;
+  margin: 0;
+}
+
+.add-event-btn {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
   
-  h4 {
-    color: #495057;
-    font-weight: 600;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
   }
   
-  .btn-primary {
-    background: linear-gradient(135deg, #ff6b35, #f7931e);
-    border: none;
-    padding: 10px 20px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    
-    &:hover {
-      background: linear-gradient(135deg, #e55a2b, #e0851a);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
-    }
+  .pi {
+    margin-right: 0.5rem;
   }
 }
 
@@ -244,3 +736,4 @@
     }
   }
 }
+

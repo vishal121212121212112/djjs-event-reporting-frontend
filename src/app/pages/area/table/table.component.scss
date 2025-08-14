@@ -1,0 +1,380 @@
+.branch-header {
+  transition: all 0.3s ease;
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  }
+
+  .branch-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+  }
+}
+
+// PrimeNG Table Customization
+:host ::ng-deep {
+  .p-datatable {
+    .p-datatable-header {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+    }
+
+    .p-datatable-thead > tr > th {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      font-weight: 600;
+      color: #495057;
+      padding: 0.75rem;
+    }
+
+    .p-datatable-tbody > tr > td {
+      border: 1px solid #dee2e6;
+      padding: 0.75rem;
+      vertical-align: middle;
+    }
+
+    .p-datatable-tbody > tr:hover {
+      background-color: #f8f9fa;
+    }
+  }
+
+  // Expand/Collapse button styling
+  .p-button.p-button-text {
+    color: #6c757d;
+    &:hover {
+      color: #ff6b35;
+      background-color: rgba(255, 107, 53, 0.1);
+    }
+  }
+
+  // Tag styling for event types
+  .p-tag {
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  // Nested table styling
+  .p-datatable .p-datatable {
+    .p-datatable-thead > tr > th {
+      background: #e9ecef;
+      font-size: 0.875rem;
+      padding: 0.5rem;
+    }
+
+    .p-datatable-tbody > tr > td {
+      font-size: 0.875rem;
+      padding: 0.5rem;
+    }
+  }
+
+  // Action buttons styling
+  .p-button.p-button-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  // Tooltip styling
+  .p-tooltip {
+    .p-tooltip-text {
+      background: #495057;
+      color: white;
+      font-size: 0.75rem;
+    }
+  }
+}
+
+// Custom styling for the expanded content
+.expanded-content {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-top: none;
+
+  h5 {
+    color: #495057;
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  :host ::ng-deep {
+    .p-datatable {
+      .p-datatable-thead > tr > th,
+      .p-datatable-tbody > tr > td {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+      }
+    }
+  }
+}
+
+// Ensure PrimeNG icons are visible
+.pi {
+  font-family: "PrimeIcons" !important;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.pi-chevron-right:before {
+  content: "\e901";
+}
+
+.pi-chevron-down:before {
+  content: "\e900";
+}
+
+.page-title-box {
+  padding: 20px 0;
+
+  h4 {
+    color: #495057;
+    font-weight: 600;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    border: none;
+    padding: 10px 20px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: linear-gradient(135deg, #e55a2b, #e0851a);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+    }
+  }
+}
+
+.form-label {
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 8px;
+}
+
+.form-select,
+.form-control {
+  border-color: #dee2e6;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+
+  &:focus {
+    border-color: #ff6b35;
+    box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
+  }
+}
+
+.input-group-text {
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
+  color: #6c757d;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+
+  .card-body {
+    padding: 25px;
+  }
+}
+
+// Enhanced button styles to match the orange theme
+.btn {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &.btn-outline-secondary:hover {
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+  }
+}
+
+// Info icon styling
+.fa-info-circle {
+  cursor: help;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #ff6b35 !important;
+  }
+}
+
+// Dropdown menu styling
+.dropdown-menu {
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+
+  .dropdown-item {
+    padding: 8px 16px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: rgba(255, 107, 53, 0.1);
+      color: #ff6b35;
+    }
+
+    i {
+      width: 16px;
+      text-align: center;
+    }
+  }
+}
+
+// Pinned table styles
+.table-container {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table-wrapper {
+  display: flex;
+  overflow-x: auto;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.pinned-section {
+  background: #f8f9fa;
+  border-right: 2px solid #007bff;
+  position: sticky;
+  left: 0;
+  z-index: 10;
+}
+
+.regular-section {
+  flex: 1;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.pinned-table {
+  min-width: auto;
+}
+
+.regular-table {
+  min-width: 1200px;
+}
+
+.table-header {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  padding: 12px;
+  font-weight: 600;
+  color: #495057;
+  position: relative;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.filter-btn,
+.pin-btn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+
+  &:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+    color: #007bff;
+  }
+
+  &.active {
+    background-color: #007bff;
+    color: white;
+  }
+}
+
+.filter-row {
+  padding: 8px 12px;
+  background: #e9ecef;
+  border-top: 1px solid #dee2e6;
+}
+
+.filter-input {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 12px;
+
+  &:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+}
+
+.expand-column {
+  width: 80px;
+  text-align: center;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  padding: 12px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.expand-cell {
+  text-align: center;
+  border: 1px solid #dee2e6;
+  padding: 8px;
+}
+
+.data-row {
+  &:hover {
+    background-color: #f8f9fa;
+  }
+
+  td {
+    border: 1px solid #dee2e6;
+    padding: 8px 12px;
+    vertical-align: middle;
+  }
+}

@@ -1,0 +1,321 @@
+<!-- Add District Component (Modal) -->
+<app-add-district #addDistrictComponent></app-add-district>
+
+<div class="row">
+  <div class="col-12">
+    <div
+      class="page-title-box d-flex align-items-center justify-content-between"
+    >
+      <h4 class="mb-0">DISTRITS</h4>
+      <div class="page-title-right">
+        <button class="btn btn-primary" (click)="addEvent()">
+          <i class="fas fa-plus me-2"></i>Add District
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <!-- Search and Filter Section -->
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <div class="form-group">
+              <label class="form-label">Month</label>
+              <select class="form-select">
+                <option>July 2025</option>
+                <option>August 2025</option>
+                <option>September 2025</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="form-label">Search</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-search"></i>
+                </span>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Search by Branch or area name"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PrimeNG Row Expansion Table -->
+        <p-toast />
+        <p-table
+          [value]="branches"
+          dataKey="id"
+          [expandedRowKeys]="expandedRows"
+          (onRowExpand)="onRowExpand($event)"
+          (onRowCollapse)="onRowCollapse($event)"
+          [rowHover]="true"
+          [paginator]="true"
+          [rows]="rows"
+          [first]="first"
+          [rowsPerPageOptions]="rowsPerPageOptions"
+          [globalFilterFields]="[
+            'branchName',
+            'branchManagerName',
+            'assistantBranchManagerName'
+          ]"
+          (onPageChange)="onPageChange($event)"
+          (onSort)="onSort($event)"
+          [sortMode]="'single'"
+          [tableStyle]="{ 'min-width': '100%' }"
+        >
+          <!-- Caption with Expand/Collapse All buttons -->
+          <!-- <ng-template pTemplate="caption">
+            <div class="d-flex justify-content-end gap-2">
+              <p-button icon="pi pi-plus" text (onClick)="expandAll()" />
+              <p-button
+                label="Collapse All"
+                icon="pi pi-minus"
+                text
+                (onClick)="collapseAll()"
+              />
+            </div>
+          </ng-template> -->
+
+          <!-- Global Filter -->
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 5rem"></th>
+              <th>
+                <div class="d-flex align-items-center justify-content-between">
+                  <span>Branch Name</span>
+                  <div class="d-flex gap-1">
+                    <button
+                      class="btn btn-sm btn-link p-0"
+                      (click)="toggleColumnPin('branchName')"
+                      [class.text-warning]="isColumnPinned('branchName')"
+                    >
+                      <i class="pi pi-thumbtack"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-link p-0"
+                      (click)="showFilter('branchName')"
+                    >
+                      <i class="pi pi-filter"></i>
+                    </button>
+                  </div>
+                </div>
+                <div *ngIf="activeFilter === 'branchName'" class="mt-2">
+                  <input
+                    type="text"
+                    pInputText
+                    class="form-control form-control-sm"
+                    placeholder="Filter Branch Name"
+                    [(ngModel)]="filters['branchName']"
+                    (input)="applyFilter()"
+                  />
+                  <button
+                    class="btn btn-sm btn-link p-0 ms-1"
+                    (click)="clearFilter('branchName')"
+                  >
+                    <i class="pi pi-times"></i>
+                  </button>
+                </div>
+              </th>
+              <th>
+                <div class="d-flex align-items-center justify-content-between">
+                  <span>Branch Manager Name</span>
+                  <div class="d-flex gap-1">
+                    <button
+                      class="btn btn-sm btn-link p-0"
+                      (click)="toggleColumnPin('branchManagerName')"
+                      [class.text-warning]="isColumnPinned('branchManagerName')"
+                    >
+                      <i class="pi pi-thumbtack"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-link p-0"
+                      (click)="showFilter('branchManagerName')"
+                    >
+                      <i class="pi pi-filter"></i>
+                    </button>
+                  </div>
+                </div>
+                <div *ngIf="activeFilter === 'branchManagerName'" class="mt-2">
+                  <input
+                    type="text"
+                    pInputText
+                    class="form-control form-control-sm"
+                    placeholder="Filter Manager Name"
+                    [(ngModel)]="filters['branchManagerName']"
+                    (input)="applyFilter()"
+                  />
+                  <button
+                    class="btn btn-sm btn-link p-0 ms-1"
+                    (click)="clearFilter('branchManagerName')"
+                  >
+                    <i class="pi pi-times"></i>
+                  </button>
+                </div>
+              </th>
+              <th>
+                <div class="d-flex align-items-center justify-content-between">
+                  <span>Assistant Branch Manager Name</span>
+                  <div class="d-flex gap-1">
+                    <button
+                      class="btn btn-sm btn-link p-0"
+                      (click)="toggleColumnPin('assistantBranchManagerName')"
+                      [class.text-warning]="
+                        isColumnPinned('assistantBranchManagerName')
+                      "
+                    >
+                      <i class="pi pi-thumbtack"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-link p-0"
+                      (click)="showFilter('assistantBranchManagerName')"
+                    >
+                      <i class="pi pi-filter"></i>
+                    </button>
+                  </div>
+                </div>
+                <div
+                  *ngIf="activeFilter === 'assistantBranchManagerName'"
+                  class="mt-2"
+                >
+                  <input
+                    type="text"
+                    pInputText
+                    class="form-control form-control-sm"
+                    placeholder="Filter Assistant Manager"
+                    [(ngModel)]="filters['assistantBranchManagerName']"
+                    (input)="applyFilter()"
+                  />
+                  <button
+                    class="btn btn-sm btn-link p-0 ms-1"
+                    (click)="clearFilter('assistantBranchManagerName')"
+                  >
+                    <i class="pi pi-times"></i>
+                  </button>
+                </div>
+              </th>
+            </tr>
+          </ng-template>
+
+          <!-- Table Body -->
+          <ng-template pTemplate="body" let-branch let-expanded="expanded">
+            <tr>
+              <td>
+                <p-button
+                  type="button"
+                  pRipple
+                  [pRowToggler]="branch"
+                  [text]="true"
+                  severity="secondary"
+                  [rounded]="true"
+                  [icon]="
+                    expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'
+                  "
+                />
+              </td>
+              <td>{{ branch.branchName }}</td>
+              <td>{{ branch.branchManagerName }}</td>
+              <td>{{ branch.assistantBranchManagerName }}</td>
+            </tr>
+          </ng-template>
+
+          <!-- Expanded Row Template -->
+          <ng-template pTemplate="rowexpansion" let-branch>
+            <tr>
+              <td colspan="4">
+                <div class="p-4">
+                  <h5>Events for {{ branch.branchName }}</h5>
+                  <p-table
+                    [value]="branch.events"
+                    dataKey="id"
+                    [paginator]="true"
+                    [rows]="5"
+                    [rowsPerPageOptions]="[5, 10]"
+                  >
+                    <ng-template pTemplate="header">
+                      <tr>
+                        <th pSortableColumn="state">
+                          <div class="d-flex align-items-center gap-2">
+                            State
+                            <p-sortIcon field="state" />
+                          </div>
+                        </th>
+                        <th pSortableColumn="district">
+                          <div class="d-flex align-items-center gap-2">
+                            District
+                            <p-sortIcon field="district" />
+                          </div>
+                        </th>
+
+                        <th>Actions</th>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-event>
+                      <tr>
+                        <td>{{ event.state }}</td>
+                        <td>{{ event.district }}</td>
+                        <td>
+                          <div class="d-flex gap-1">
+                            <p-button
+                              type="button"
+                              icon="pi pi-pencil"
+                              size="small"
+                              severity="secondary"
+                              (onClick)="editEvent(event.id)"
+                              pTooltip="Edit Event"
+                              tooltipPosition="top"
+                            />
+                            <p-button
+                              type="button"
+                              icon="pi pi-trash"
+                              size="small"
+                              severity="info"
+                              (onClick)="viewEventDetails(event.id)"
+                              pTooltip="View Details"
+                              tooltipPosition="top"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                      <tr>
+                        <td colspan="13" class="text-center p-4">
+                          <i
+                            class="pi pi-inbox text-muted"
+                            style="font-size: 2rem"
+                          ></i>
+                          <p class="text-muted mt-2">
+                            No events found for this branch.
+                          </p>
+                        </td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+
+          <!-- Empty Message -->
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="4" class="text-center p-4">
+                <i class="pi pi-inbox text-muted" style="font-size: 2rem"></i>
+                <p class="text-muted mt-2">No branches found.</p>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </div>
+</div>

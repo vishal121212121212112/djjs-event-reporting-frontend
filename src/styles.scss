@@ -9,6 +9,46 @@
 // The components will use their built-in styles
 @import "primeicons/primeicons.css";
 
+// Global tooltip overrides for PrimeNG
+.p-tooltip {
+  .p-tooltip-text {
+    background: #4a5568 !important;
+    color: white !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 0.5rem !important;
+    font-size: 0.675rem !important;
+    font-weight: 200 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    border: none !important;
+    margin: 0.5rem !important;
+    max-width: 300px !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+    
+    &::before,
+    &::after {
+      display: none !important;
+    }
+  }
+}
+
+// Additional specific overrides for all tooltip positions
+.p-tooltip.p-tooltip-top .p-tooltip-text,
+.p-tooltip.p-tooltip-bottom .p-tooltip-text,
+.p-tooltip.p-tooltip-left .p-tooltip-text,
+.p-tooltip.p-tooltip-right .p-tooltip-text {
+  background: #4a5568 !important;
+  color: white !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+  border: none !important;
+  
+  &::before,
+  &::after {
+    display: none !important;
+  }
+}
+
 .modal-holder {
   animation-name: example;
   animation-duration: 0.3s;

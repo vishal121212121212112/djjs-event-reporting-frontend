@@ -1,0 +1,112 @@
+<!-- Add District Modal -->
+<div
+  class="modal fade"
+  id="addDistrictModal"
+  tabindex="-1"
+  aria-labelledby="addDistrictModalLabel"
+  aria-hidden="true"
+  (click)="$event.target === $event.currentTarget && closeModal()"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addDistrictModalLabel">
+          {{ isEditMode ? "Edit District" : "Add District" }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="closeModal()"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <div class="modal-body">
+        <form
+          class="needs-validation"
+          (ngSubmit)="validSubmit()"
+          [formGroup]="addDistrictForm"
+        >
+          <!-- Select State -->
+          <div class="mb-3">
+            <label for="state" class="form-label">Select State</label>
+            <div class="input-group">
+              <select
+                class="form-select"
+                id="state"
+                formControlName="state"
+                [ngClass]="{ 'is-invalid': submit && form.state.errors }"
+              >
+                <option value="">Select</option>
+                <option *ngFor="let state of states" [value]="state.value">
+                  {{ state.label }}
+                </option>
+              </select>
+              <span class="input-group-text">
+                <i class="fas fa-chevron-down"></i>
+              </span>
+            </div>
+            <div *ngIf="submit && form.state.errors" class="invalid-feedback">
+              <span *ngIf="form.state.errors.required"
+                >Please select a state.</span
+              >
+            </div>
+          </div>
+
+          <!-- Select District -->
+          <div class="mb-3">
+            <label for="district" class="form-label">Select District</label>
+            <div class="input-group">
+              <select
+                class="form-select"
+                id="district"
+                formControlName="district"
+                [disabled]="!addDistrictForm.get('state')?.value"
+                [ngClass]="{ 'is-invalid': submit && form.district.errors }"
+              >
+                <option value="">Select</option>
+                <option
+                  *ngFor="let district of availableDistricts"
+                  [value]="district.value"
+                >
+                  {{ district.label }}
+                </option>
+              </select>
+              <span class="input-group-text">
+                <i class="fas fa-chevron-down"></i>
+              </span>
+            </div>
+            <div
+              *ngIf="submit && form.district.errors"
+              class="invalid-feedback"
+            >
+              <span *ngIf="form.district.errors.required"
+                >Please select a district.</span
+              >
+            </div>
+            <div
+              *ngIf="!addDistrictForm.get('state')?.value"
+              class="form-text text-muted"
+            >
+              <small
+                >Please select a state first to enable district selection</small
+              >
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="d-grid gap-2">
+            <button class="btn btn-form" type="submit">
+              <i
+                class="fas"
+                [class.fa-plus]="!isEditMode"
+                [class.fa-save]="isEditMode"
+              ></i>
+              {{ isEditMode ? "Update District" : "Add District" }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

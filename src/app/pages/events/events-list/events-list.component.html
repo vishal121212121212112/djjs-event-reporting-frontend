@@ -1,324 +1,857 @@
 <div class="row">
   <div class="col-12">
-    <div class="page-title-box d-flex align-items-center justify-content-between">
-      <h4 class="mb-0">EVENTS</h4>
-      <div class="page-title-right">
-        <button class="btn btn-primary" (click)="addEvent()">
-          <i class="fas fa-plus me-2"></i>Add events
-        </button>
+    <!-- Page Header with Filters -->
+    <div class="page-title-box">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <h4 class="page-title">EVENTS</h4>
+        </div>
+        <div class="col-md-6 text-end">
+          <button class="btn add-event-btn" (click)="addEvent()">
+            <i class="pi pi-plus"></i>
+            Add events
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Section -->
+      <div class="row mt-3">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="monthFilter" class="form-label">Month</label>
+            <select class="form-select" id="monthFilter">
+              <option value="july-2025">July 2025</option>
+              <option value="june-2025">June 2025</option>
+              <option value="may-2025">May 2025</option>
+              <option value="april-2025">April 2025</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="searchFilter" class="form-label">Search</label>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="pi pi-search"></i>
+              </span>
+              <input type="text" class="form-control" id="searchFilter" placeholder="Search by Branch or area name">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PrimeNG Events Table -->
+    <p-toast />
+    <div class="table-container">
+      <p-table #dt [value]="events" dataKey="id" [rowHover]="true" [paginator]="true" [rows]="rows" [first]="first"
+        [rowsPerPageOptions]="rowsPerPageOptions" (onPageChange)="onPageChange($event)" (onSort)="onSort($event)"
+        [sortMode]="'single'" [tableStyle]="{ 'min-width': '100%' }">
+
+        <!-- Table Header -->
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 8%" [class.pinned-column]="isColumnPinned('eventType')">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center sortable-area" pSortableColumn="eventType">
+                  <span>Event Type (Scale)</span>
+                  <p-sortIcon field="eventType"></p-sortIcon>
+                </div>
+                <div class="dropdown-container" (click)="$event.stopPropagation()">
+                  <button class="btn btn-sm btn-link p-0" type="button" (click)="toggleDropdown('eventType')">
+                    <i class="pi pi-ellipsis-v"></i>
+                  </button>
+                  <div class="dropdown-menu" [class.show]="isDropdownOpen('eventType')">
+                    <a class="dropdown-item" href="#" (click)="showFilter('eventType'); $event.preventDefault()">
+                      <i class="pi pi-filter me-2"></i>Filter
+                    </a>
+                    <a class="dropdown-item" href="#" (click)="toggleColumnPin('eventType'); $event.preventDefault()">
+                      <i class="pi pi-thumbtack me-2" [class.text-warning]="isColumnPinned('eventType')"></i>
+                      {{ isColumnPinned('eventType') ? 'Unpin' : 'Pin' }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <!-- Filter input inside column header -->
+              <div *ngIf="activeFilter === 'eventType'" class="mt-2">
+                <input type="text" pInputText class="form-control form-control-sm" placeholder="Filter Event Type"
+                  [(ngModel)]="filters['eventType']" (input)="applyFilter()" />
+                <button class="btn btn-sm btn-link p-0 ms-1" (click)="clearFilter('eventType')">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </th>
+            <th style="width: 12%" [class.pinned-column]="isColumnPinned('name')">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center sortable-area" pSortableColumn="name">
+                  <span>Name</span>
+                  <p-sortIcon field="name"></p-sortIcon>
+                </div>
+                <div class="dropdown-container" (click)="$event.stopPropagation()">
+                  <button class="btn btn-sm btn-link p-0" type="button" (click)="toggleDropdown('name')">
+                    <i class="pi pi-ellipsis-v"></i>
+                  </button>
+                  <div class="dropdown-menu" [class.show]="isDropdownOpen('name')">
+                    <a class="dropdown-item" href="#" (click)="showFilter('name'); $event.preventDefault()">
+                      <i class="pi pi-filter me-2"></i>Filter
+                    </a>
+                    <a class="dropdown-item" href="#" (click)="toggleColumnPin('name'); $event.preventDefault()">
+                      <i class="pi pi-thumbtack me-2" [class.text-warning]="isColumnPinned('name')"></i>
+                      {{ isColumnPinned('name') ? 'Unpin' : 'Pin' }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <!-- Filter input inside column header -->
+              <div *ngIf="activeFilter === 'name'" class="mt-2">
+                <input type="text" pInputText class="form-control form-control-sm" placeholder="Filter Name"
+                  [(ngModel)]="filters['name']" (input)="applyFilter()" />
+                <button class="btn btn-sm btn-link p-0 ms-1" (click)="clearFilter('name')">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </th>
+            <th style="width: 10%" [class.pinned-column]="isColumnPinned('duration')">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center sortable-area" pSortableColumn="duration">
+                  <span>Duration</span>
+                  <p-sortIcon field="duration"></p-sortIcon>
+                </div>
+                <div class="dropdown-container" (click)="$event.stopPropagation()">
+                  <button class="btn btn-sm btn-link p-0" type="button" (click)="toggleDropdown('duration')">
+                    <i class="pi pi-ellipsis-v"></i>
+                  </button>
+                  <div class="dropdown-menu" [class.show]="isDropdownOpen('duration')">
+                    <a class="dropdown-item" href="#" (click)="showFilter('duration'); $event.preventDefault()">
+                      <i class="pi pi-filter me-2"></i>Filter
+                    </a>
+                    <a class="dropdown-item" href="#" (click)="toggleColumnPin('duration'); $event.preventDefault()">
+                      <i class="pi pi-thumbtack me-2" [class.text-warning]="isColumnPinned('duration')"></i>
+                      {{ isColumnPinned('duration') ? 'Unpin' : 'Pin' }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <!-- Filter input inside column header -->
+              <div *ngIf="activeFilter === 'duration'" class="mt-2">
+                <input type="text" pInputText class="form-control form-control-sm" placeholder="Filter Duration"
+                  [(ngModel)]="filters['duration']" (input)="applyFilter()" />
+                <button class="btn btn-sm btn-link p-0 ms-1" (click)="clearFilter('duration')">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </th>
+            <th style="width: 8%" [class.pinned-column]="isColumnPinned('timing')">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center sortable-area" pSortableColumn="timing">
+                  <span>Timing</span>
+                  <p-sortIcon field="timing"></p-sortIcon>
+                </div>
+                <div class="dropdown-container" (click)="$event.stopPropagation()">
+                  <button class="btn btn-sm btn-link p-0" type="button" (click)="toggleDropdown('timing')">
+                    <i class="pi pi-ellipsis-v"></i>
+                  </button>
+                  <div class="dropdown-menu" [class.show]="isDropdownOpen('timing')">
+                    <a class="dropdown-item" href="#" (click)="showFilter('timing'); $event.preventDefault()">
+                      <i class="pi pi-filter me-2"></i>Filter
+                    </a>
+                    <a class="dropdown-item" href="#" (click)="toggleColumnPin('timing'); $event.preventDefault()">
+                      <i class="pi pi-thumbtack me-2" [class.text-warning]="isColumnPinned('timing')"></i>
+                      {{ isColumnPinned('timing') ? 'Unpin' : 'Pin' }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <!-- Filter input inside column header -->
+              <div *ngIf="activeFilter === 'timing'" class="mt-2">
+                <input type="text" pInputText class="form-control form-control-sm" placeholder="Filter Timing"
+                  [(ngModel)]="filters['timing']" (input)="applyFilter()" />
+                <button class="btn btn-sm btn-link p-0 ms-1" (click)="clearFilter('timing')">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </th>
+            <th style="width: 8%" [class.pinned-column]="isColumnPinned('state')">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center sortable-area" pSortableColumn="state">
+                  <span>State</span>
+                  <p-sortIcon field="state"></p-sortIcon>
+                </div>
+                <div class="dropdown-container" (click)="$event.stopPropagation()">
+                  <button class="btn btn-sm btn-link p-0" type="button" (click)="toggleDropdown('state')">
+                    <i class="pi pi-ellipsis-v"></i>
+                  </button>
+                  <div class="dropdown-menu" [class.show]="isDropdownOpen('state')">
+                    <a class="dropdown-item" href="#" (click)="showFilter('state'); $event.preventDefault()">
+                      <i class="pi pi-filter me-2"></i>Filter
+                    </a>
+                    <a class="dropdown-item" href="#" (click)="toggleColumnPin('state'); $event.preventDefault()">
+                      <i class="pi pi-thumbtack me-2" [class.text-warning]="isColumnPinned('state')"></i>
+                      {{ isColumnPinned('state') ? 'Unpin' : 'Pin' }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <!-- Filter input inside column header -->
+              <div *ngIf="activeFilter === 'state'" class="mt-2">
+                <input type="text" pInputText class="form-control form-control-sm" placeholder="Filter State"
+                  [(ngModel)]="filters['state']" (input)="applyFilter()" />
+                <button class="btn btn-sm btn-link p-0 ms-1" (click)="clearFilter('state')">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </th>
+            <th style="width: 8%" [class.pinned-column]="isColumnPinned('city')">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center sortable-area" pSortableColumn="city">
+                  <span>City</span>
+                  <p-sortIcon field="city"></p-sortIcon>
+                </div>
+                <div class="dropdown-container" (click)="$event.stopPropagation()">
+                  <button class="btn btn-sm btn-link p-0" type="button" (click)="toggleDropdown('city')">
+                    <i class="pi pi-ellipsis-v"></i>
+                  </button>
+                  <div class="dropdown-menu" [class.show]="isDropdownOpen('city')">
+                    <a class="dropdown-item" href="#" (click)="showFilter('city'); $event.preventDefault()">
+                      <i class="pi pi-filter me-2"></i>Filter
+                    </a>
+                    <a class="dropdown-item" href="#" (click)="toggleColumnPin('city'); $event.preventDefault()">
+                      <i class="pi pi-thumbtack me-2" [class.text-warning]="isColumnPinned('city')"></i>
+                      {{ isColumnPinned('city') ? 'Unpin' : 'Pin' }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <!-- Filter input inside column header -->
+              <div *ngIf="activeFilter === 'city'" class="mt-2">
+                <input type="text" pInputText class="form-control form-control-sm" placeholder="Filter City"
+                  [(ngModel)]="filters['city']" (input)="applyFilter()" />
+                <button class="btn btn-sm btn-link p-0 ms-1" (click)="clearFilter('city')">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </th>
+            <th style="width: 12%" [class.pinned-column]="isColumnPinned('branch')">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center sortable-area" pSortableColumn="branch">
+                  <span>Branch</span>
+                  <p-sortIcon field="branch"></p-sortIcon>
+                </div>
+                <div class="dropdown-container" (click)="$event.stopPropagation()">
+                  <button class="btn btn-sm btn-link p-0" type="button" (click)="toggleDropdown('branch')">
+                    <i class="pi pi-ellipsis-v"></i>
+                  </button>
+                  <div class="dropdown-menu" [class.show]="isDropdownOpen('branch')">
+                    <a class="dropdown-item" href="#" (click)="showFilter('branch'); $event.preventDefault()">
+                      <i class="pi pi-filter me-2"></i>Filter
+                    </a>
+                    <a class="dropdown-item" href="#" (click)="toggleColumnPin('branch'); $event.preventDefault()">
+                      <i class="pi pi-thumbtack me-2" [class.text-warning]="isColumnPinned('branch')"></i>
+                      {{ isColumnPinned('branch') ? 'Unpin' : 'Pin' }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <!-- Filter input inside column header -->
+              <div *ngIf="activeFilter === 'branch'" class="mt-2">
+                <input type="text" pInputText class="form-control form-control-sm" placeholder="Filter Branch"
+                  [(ngModel)]="filters['branch']" (input)="applyFilter()" />
+                <button class="btn btn-sm btn-link p-0 ms-1" (click)="clearFilter('branch')">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </th>
+            <th style="width: 8%" [class.pinned-column]="isColumnPinned('spiritualOrator')">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center sortable-area" pSortableColumn="spiritualOrator">
+                  <span>Spiritual Orator</span>
+                  <p-sortIcon field="spiritualOrator"></p-sortIcon>
+                </div>
+                <div class="dropdown-container" (click)="$event.stopPropagation()">
+                  <button class="btn btn-sm btn-link p-0" type="button" (click)="toggleDropdown('spiritualOrator')">
+                    <i class="pi pi-ellipsis-v"></i>
+                  </button>
+                  <div class="dropdown-menu" [class.show]="isDropdownOpen('spiritualOrator')">
+                    <a class="dropdown-item" href="#" (click)="showFilter('spiritualOrator'); $event.preventDefault()">
+                      <i class="pi pi-filter me-2"></i>Filter
+                    </a>
+                    <a class="dropdown-item" href="#"
+                      (click)="toggleColumnPin('spiritualOrator'); $event.preventDefault()">
+                      <i class="pi pi-thumbtack me-2" [class.text-warning]="isColumnPinned('spiritualOrator')"></i>
+                      {{ isColumnPinned('spiritualOrator') ? 'Unpin' : 'Pin' }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <!-- Filter input inside column header -->
+              <div *ngIf="activeFilter === 'spiritualOrator'" class="mt-2">
+                <input type="text" pInputText class="form-control form-control-sm" placeholder="Filter Orator"
+                  [(ngModel)]="filters['spiritualOrator']" (input)="applyFilter()" />
+                <button class="btn btn-sm btn-link p-0 ms-1" (click)="clearFilter('spiritualOrator')">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </th>
+            <th style="width: 8%" [class.pinned-column]="isColumnPinned('language')">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center sortable-area" pSortableColumn="language">
+                  <span>Language</span>
+                  <p-sortIcon field="language"></p-sortIcon>
+                </div>
+                <div class="dropdown-container" (click)="$event.stopPropagation()">
+                  <button class="btn btn-sm btn-link p-0" type="button" (click)="toggleDropdown('language')">
+                    <i class="pi pi-ellipsis-v"></i>
+                  </button>
+                  <div class="dropdown-menu" [class.show]="isDropdownOpen('language')">
+                    <a class="dropdown-item" href="#" (click)="showFilter('language'); $event.preventDefault()">
+                      <i class="pi pi-filter me-2"></i>Filter
+                    </a>
+                    <a class="dropdown-item" href="#" (click)="toggleColumnPin('language'); $event.preventDefault()">
+                      <i class="pi pi-thumbtack me-2" [class.text-warning]="isColumnPinned('language')"></i>
+                      {{ isColumnPinned('language') ? 'Unpin' : 'Pin' }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <!-- Filter input inside column header -->
+              <div *ngIf="activeFilter === 'language'" class="mt-2">
+                <input type="text" pInputText class="form-control form-control-sm" placeholder="Filter Language"
+                  [(ngModel)]="filters['language']" (input)="applyFilter()" />
+                <button class="btn btn-sm btn-link p-0 ms-1" (click)="clearFilter('language')">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </th>
+            <th style="width: 8%" [class.pinned-column]="isColumnPinned('beneficiaries')">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center sortable-area" pSortableColumn="beneficiaries">
+                  <span>Beneficiaries</span>
+                  <p-sortIcon field="beneficiaries"></p-sortIcon>
+                </div>
+                <div class="dropdown-container" (click)="$event.stopPropagation()">
+                  <button class="btn btn-sm btn-link p-0" type="button" (click)="toggleDropdown('beneficiaries')">
+                    <i class="pi pi-ellipsis-v"></i>
+                  </button>
+                  <div class="dropdown-menu" [class.show]="isDropdownOpen('beneficiaries')">
+                    <a class="dropdown-item" href="#" (click)="showFilter('beneficiaries'); $event.preventDefault()">
+                      <i class="pi pi-filter me-2"></i>Filter
+                    </a>
+                    <a class="dropdown-item" href="#"
+                      (click)="toggleColumnPin('beneficiaries'); $event.preventDefault()">
+                      <i class="pi pi-thumbtack me-2" [class.text-warning]="isColumnPinned('beneficiaries')"></i>
+                      {{ isColumnPinned('beneficiaries') ? 'Unpin' : 'Pin' }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <!-- Filter input inside column header -->
+              <div *ngIf="activeFilter === 'beneficiaries'" class="mt-2">
+                <input type="text" pInputText class="form-control form-control-sm" placeholder="Filter Beneficiaries"
+                  [(ngModel)]="filters['beneficiaries']" (input)="applyFilter()" />
+                <button class="btn btn-sm btn-link p-0 ms-1" (click)="clearFilter('beneficiaries')">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </th>
+            <th style="width: 8%" [class.pinned-column]="isColumnPinned('initiation')">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center sortable-area" pSortableColumn="initiation">
+                  <span>Initiation</span>
+                  <p-sortIcon field="initiation"></p-sortIcon>
+                </div>
+                <div class="dropdown-container" (click)="$event.stopPropagation()">
+                  <button class="btn btn-sm btn-link p-0" type="button" (click)="toggleDropdown('initiation')">
+                    <i class="pi pi-ellipsis-v"></i>
+                  </button>
+                  <div class="dropdown-menu" [class.show]="isDropdownOpen('initiation')">
+                    <a class="dropdown-item" href="#" (click)="showFilter('initiation'); $event.preventDefault()">
+                      <i class="pi pi-filter me-2"></i>Filter
+                    </a>
+                    <a class="dropdown-item" href="#" (click)="toggleColumnPin('initiation'); $event.preventDefault()">
+                      <i class="pi pi-thumbtack me-2" [class.text-warning]="isColumnPinned('initiation')"></i>
+                      {{ isColumnPinned('initiation') ? 'Unpin' : 'Pin' }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <!-- Filter input inside column header -->
+              <div *ngIf="activeFilter === 'initiation'" class="mt-2">
+                <input type="text" pInputText class="form-control form-control-sm" placeholder="Filter Initiation"
+                  [(ngModel)]="filters['initiation']" (input)="applyFilter()" />
+                <button class="btn btn-sm btn-link p-0 ms-1" (click)="clearFilter('initiation')">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </th>
+            <th style="width: 8%" [class.pinned-column]="isColumnPinned('specialGuests')">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center sortable-area" pSortableColumn="specialGuests">
+                  <span>Special Guests</span>
+                  <p-sortIcon field="specialGuests"></p-sortIcon>
+                </div>
+                <div class="dropdown-container" (click)="$event.stopPropagation()">
+                  <button class="btn btn-sm btn-link p-0" type="button" (click)="toggleDropdown('specialGuests')">
+                    <i class="pi pi-ellipsis-v"></i>
+                  </button>
+                  <div class="dropdown-menu" [class.show]="isDropdownOpen('specialGuests')">
+                    <a class="dropdown-item" href="#" (click)="showFilter('specialGuests'); $event.preventDefault()">
+                      <i class="pi pi-filter me-2"></i>Filter
+                    </a>
+                    <a class="dropdown-item" href="#"
+                      (click)="toggleColumnPin('specialGuests'); $event.preventDefault()">
+                      <i class="pi pi-thumbtack me-2" [class.text-warning]="isColumnPinned('specialGuests')"></i>
+                      {{ isColumnPinned('specialGuests') ? 'Unpin' : 'Pin' }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <!-- Filter input inside column header -->
+              <div *ngIf="activeFilter === 'specialGuests'" class="mt-2">
+                <input type="text" pInputText class="form-control form-control-sm" placeholder="Filter Special Guests"
+                  [(ngModel)]="filters['specialGuests']" (input)="applyFilter()" />
+                <button class="btn btn-sm btn-link p-0 ms-1" (click)="clearFilter('specialGuests')">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </th>
+            <th style="width: 8%" [class.pinned-column]="isColumnPinned('volunteers')">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center sortable-area" pSortableColumn="volunteers">
+                  <span>Volunteers</span>
+                  <p-sortIcon field="volunteers"></p-sortIcon>
+                </div>
+                <div class="dropdown-container" (click)="$event.stopPropagation()">
+                  <button class="btn btn-sm btn-link p-0" type="button" (click)="toggleDropdown('volunteers')">
+                    <i class="pi pi-ellipsis-v"></i>
+                  </button>
+                  <div class="dropdown-menu" [class.show]="isDropdownOpen('volunteers')">
+                    <a class="dropdown-item" href="#" (click)="showFilter('volunteers'); $event.preventDefault()">
+                      <i class="pi pi-filter me-2"></i>Filter
+                    </a>
+                    <a class="dropdown-item" href="#" (click)="toggleColumnPin('volunteers'); $event.preventDefault()">
+                      <i class="pi pi-thumbtack me-2" [class.text-warning]="isColumnPinned('volunteers')"></i>
+                      {{ isColumnPinned('volunteers') ? 'Unpin' : 'Pin' }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <!-- Filter input inside column header -->
+              <div *ngIf="activeFilter === 'volunteers'" class="mt-2">
+                <input type="text" pInputText class="form-control form-control-sm" placeholder="Filter Volunteers"
+                  [(ngModel)]="filters['volunteers']" (input)="applyFilter()" />
+                <button class="btn btn-sm btn-link p-0 ms-1" (click)="clearFilter('volunteers')">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </th>
+            <th style="width: 10%">Actions</th>
+          </tr>
+        </ng-template>
+
+        <!-- Table Body -->
+        <ng-template pTemplate="body" let-event>
+          <tr>
+            <td [class.pinned-column]="isColumnPinned('eventType')">
+              <p-tag [value]="getEventTypeDisplay(event)" [severity]="getSeverity(event.scale)" />
+            </td>
+            <td [class.pinned-column]="isColumnPinned('name')">{{ event.name }}</td>
+            <td [class.pinned-column]="isColumnPinned('duration')">{{ event.duration }}</td>
+            <td [class.pinned-column]="isColumnPinned('timing')">{{ event.timing }}</td>
+            <td [class.pinned-column]="isColumnPinned('state')">{{ event.state }}</td>
+            <td [class.pinned-column]="isColumnPinned('city')">{{ event.city }}</td>
+            <td [class.pinned-column]="isColumnPinned('branch')">{{ event.branch }}</td>
+            <td [class.pinned-column]="isColumnPinned('spiritualOrator')">{{ event.spiritualOrator || '-' }}</td>
+            <td [class.pinned-column]="isColumnPinned('language')">{{ event.language }}</td>
+            <td [class.pinned-column]="isColumnPinned('beneficiaries')">
+              <span class="cursor-pointer" (click)="openBeneficiariesModal(event)">
+                {{ event.beneficiaries.total }}
+              </span>
+              <i class="pi pi-info-circle text-primary ms-1" pTooltip="Click to view Beneficiaries details"
+                tooltipPosition="top"></i>
+            </td>
+            <td [class.pinned-column]="isColumnPinned('initiation')">
+              <span class="cursor-pointer" (click)="openInitiationModal(event)">
+                {{ event.initiation.total }}
+              </span>
+              <i class="pi pi-info-circle text-primary ms-1" pTooltip="Click to view Initiation details"
+                tooltipPosition="top"></i>
+            </td>
+            <td [class.pinned-column]="isColumnPinned('specialGuests')">
+              <span class="cursor-pointer" (click)="openSpecialGuestsModal(event)">
+                {{ event.specialGuests }}
+              </span>
+            </td>
+            <td [class.pinned-column]="isColumnPinned('volunteers')">
+              <span class="cursor-pointer" (click)="openVolunteersModal(event)">
+                {{ event.volunteers }}
+              </span>
+            </td>
+            <td [class.pinned-column]="isColumnPinned('actions')">
+              <div class="d-flex gap-1">
+                <button class="btn btn-link p-0 action-btn"
+                  (click)="openMoreDetailsModal(event); $event.preventDefault()" data-tooltip="More Details">
+                  <i class="pi pi-eye me-2"></i>
+                </button>
+                <button class="btn btn-link p-0 action-btn" (click)="editEvent(event.id)" data-tooltip="Edit Event">
+                  <i class="pi pi-pencil"></i>
+                </button>
+                <button class="btn btn-link p-0 action-btn" (click)="downloadEvent(event.id)" data-tooltip="Download">
+                  <i class="pi pi-download"></i>
+                </button>
+
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <!-- Empty Message -->
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="14" class="text-center p-4">
+              <i class="pi pi-inbox text-muted" style="font-size: 2rem;"></i>
+              <p class="text-muted mt-2">No events found.</p>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>
+
+<!-- Beneficiaries Modal -->
+<div class="modal fade" id="beneficiariesModal" tabindex="-1" aria-labelledby="beneficiariesModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="beneficiariesModalLabel">
+          Beneficiaries ({{ selectedEvent?.beneficiaries?.total }})
+        </h5>
+        <button type="button" class="btn-close" (click)="closeModal('beneficiariesModal')" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <div class="text-center p-3 bg-light rounded">
+              <h6 class="text-primary">Men</h6>
+              <h4 class="mb-0">{{ selectedEvent?.beneficiaries?.men || 0 }}</h4>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-center p-3 bg-light rounded">
+              <h6 class="text-success">Women</h6>
+              <h4 class="mb-0">{{ selectedEvent?.beneficiaries?.women || 0 }}</h4>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-center p-3 bg-light rounded">
+              <h6 class="text-warning">Children</h6>
+              <h4 class="mb-0">{{ selectedEvent?.beneficiaries?.children || 0 }}</h4>
+            </div>
+          </div>
+        </div>
+        <div class="text-center">
+          <p class="text-muted">People who attended and benefited from the event</p>
+          <div class="mt-3">
+            <span class="badge bg-primary me-2">Total: {{ selectedEvent?.beneficiaries?.total || 0 }}</span>
+            <span class="badge bg-info">Event: {{ selectedEvent?.name }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal('beneficiariesModal')">Close</button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="row">
-  <div class="col-12">
-    <div class="card">
-      <div class="card-body">
-        <!-- Search and Filter Section -->
-        <div class="row mb-3">
-          <div class="col-md-3">
-            <div class="form-group">
-              <label class="form-label">Month</label>
-              <select class="form-select">
-                <option>July 2025</option>
-                <option>August 2025</option>
-                <option>September 2025</option>
-              </select>
+<!-- Initiation Modal -->
+<div class="modal fade" id="initiationModal" tabindex="-1" aria-labelledby="initiationModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="initiationModalLabel">
+          Initiation ({{ selectedEvent?.initiation?.total }})
+        </h5>
+        <button type="button" class="btn-close" (click)="closeModal('initiationModal')" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <div class="text-center p-3 bg-light rounded">
+              <h6 class="text-primary">Men</h6>
+              <h4 class="mb-0">{{ selectedEvent?.initiation?.men || 0 }}</h4>
             </div>
           </div>
-          <div class="col-md-6">
-            <div class="form-group">
-              <label class="form-label">Search</label>
-              <div class="input-group">
-                <span class="input-group-text">
-                  <i class="fas fa-search"></i>
-                </span>
-                <input type="text" class="form-control" placeholder="Search by Branch or area name">
-              </div>
+          <div class="col-md-4">
+            <div class="text-center p-3 bg-light rounded">
+              <h6 class="text-success">Women</h6>
+              <h4 class="mb-0">{{ selectedEvent?.initiation?.women || 0 }}</h4>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-center p-3 bg-light rounded">
+              <h6 class="text-warning">Children</h6>
+              <h4 class="mb-0">{{ selectedEvent?.initiation?.children || 0 }}</h4>
             </div>
           </div>
         </div>
+        <div class="text-center">
+          <p class="text-muted">People who took Gyan (spiritual knowledge) during the event</p>
+          <div class="mt-3">
+            <span class="badge bg-primary me-2">Total: {{ selectedEvent?.initiation?.total || 0 }}</span>
+            <span class="badge bg-info">Event: {{ selectedEvent?.name }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal('initiationModal')">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-        <!-- PrimeNG Row Expansion Table -->
-        <p-toast />
-        <p-table 
-          [value]="branches" 
-          dataKey="id" 
-          [expandedRowKeys]="expandedRows" 
-          (onRowExpand)="onRowExpand($event)" 
-          (onRowCollapse)="onRowCollapse($event)"
-          [rowHover]="true"
-          [paginator]="true"
-          [rows]="rows"
-          [first]="first"
-          [rowsPerPageOptions]="rowsPerPageOptions"
-          [globalFilterFields]="['branchName', 'branchManagerName', 'assistantBranchManagerName']"
-          (onPageChange)="onPageChange($event)"
-          (onSort)="onSort($event)"
-          [sortMode]="'single'"
-          [tableStyle]="{ 'min-width': '100%' }">
-          
-          <!-- Caption with Expand/Collapse All buttons -->
-          <ng-template pTemplate="caption">
-            <div class="d-flex justify-content-end gap-2">
-              <p-button label="Expand All" icon="pi pi-plus" text (onClick)="expandAll()" />
-              <p-button label="Collapse All" icon="pi pi-minus" text (onClick)="collapseAll()" />
+<!-- Special Guests Modal -->
+<div class="modal fade" id="specialGuestsModal" tabindex="-1" aria-labelledby="specialGuestsModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="specialGuestsModalLabel">
+          Special Guests ({{ selectedEvent?.specialGuests }})
+        </h5>
+        <button type="button" class="btn-close" (click)="closeModal('specialGuestsModal')" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Gender</th>
+                <th>Designation</th>
+                <th>Organization</th>
+                <th>Email</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Personal No</th>
+                <th>Contact Person</th>
+                <th>Contact Phone</th>
+                <th>Reference Person</th>
+                <th>Reference Phone</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let guest of selectedEvent?.specialGuestsList">
+                <td>{{ guest.name }}</td>
+                <td>{{ guest.phone }}</td>
+                <td>{{ guest.gender }}</td>
+                <td>{{ guest.designation }}</td>
+                <td>{{ guest.organization }}</td>
+                <td>{{ guest.email }}</td>
+                <td>{{ guest.city }}</td>
+                <td>{{ guest.state }}</td>
+                <td>{{ guest.personalNo }}</td>
+                <td>{{ guest.contactPerson }}</td>
+                <td>{{ guest.contactPhone }}</td>
+                <td>{{ guest.referencePerson }}</td>
+                <td>{{ guest.referencePhone }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal('specialGuestsModal')">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Volunteers Modal -->
+<div class="modal fade" id="volunteersModal" tabindex="-1" aria-labelledby="volunteersModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="volunteersModalLabel">
+          Volunteers ({{ selectedEvent?.volunteers }})
+        </h5>
+        <button type="button" class="btn-close" (click)="closeModal('volunteersModal')" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Days</th>
+                <th>Seva</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let volunteer of selectedEvent?.volunteersList">
+                <td>{{ volunteer.name }}</td>
+                <td>{{ volunteer.days }}</td>
+                <td>{{ volunteer.seva }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal('volunteersModal')">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- More Details Modal -->
+<div class="modal fade" id="moreDetailsModal" tabindex="-1" aria-labelledby="moreDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="moreDetailsModalLabel">More details</h5>
+        <button type="button" class="btn-close" (click)="closeModal('moreDetailsModal')" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <!-- Theme/Message Section -->
+          <div class="col-12 mb-4">
+            <h6 class="fw-bold">Theme/ Message given:</h6>
+            <p class="text-primary">{{ selectedEvent?.theme || 'Manthan' }}</p>
+          </div>
+
+          <!-- Donation Section -->
+          <div class="col-12 mb-4">
+            <h6 class="fw-bold">Donation:</h6>
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Donation Type</th>
+                    <th>Additional Details</th>
+                    <th>Amount (in Rupees)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let donation of selectedEvent?.donations">
+                    <td>{{ donation.type }}</td>
+                    <td>{{ donation.details || '-' }}</td>
+                    <td>Rs. {{ donation.amount | number }}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-          </ng-template>
+          </div>
 
-          <!-- Global Filter -->
-          <ng-template pTemplate="header">
-            <tr>
-              <th style="width: 5rem"></th>
-              <th>
-                <div class="d-flex align-items-center justify-content-between">
-                  <span>Branch Name</span>
-                  <div class="d-flex gap-1">
-                    <button class="btn btn-sm btn-link p-0" (click)="toggleColumnPin('branchName')" [class.text-warning]="isColumnPinned('branchName')">
-                      <i class="pi pi-thumbtack"></i>
-                    </button>
-                    <button class="btn btn-sm btn-link p-0" (click)="showFilter('branchName')">
-                      <i class="pi pi-filter"></i>
-                    </button>
-                  </div>
-                </div>
-                <div *ngIf="activeFilter === 'branchName'" class="mt-2">
-                  <input type="text" pInputText class="form-control form-control-sm" placeholder="Filter Branch Name" 
-                         [(ngModel)]="filters['branchName']" (input)="applyFilter()" />
-                  <button class="btn btn-sm btn-link p-0 ms-1" (click)="clearFilter('branchName')">
-                    <i class="pi pi-times"></i>
-                  </button>
-                </div>
-              </th>
-              <th>
-                <div class="d-flex align-items-center justify-content-between">
-                  <span>Branch Manager Name</span>
-                  <div class="d-flex gap-1">
-                    <button class="btn btn-sm btn-link p-0" (click)="toggleColumnPin('branchManagerName')" [class.text-warning]="isColumnPinned('branchManagerName')">
-                      <i class="pi pi-thumbtack"></i>
-                    </button>
-                    <button class="btn btn-sm btn-link p-0" (click)="showFilter('branchManagerName')">
-                      <i class="pi pi-filter"></i>
-                    </button>
-                  </div>
-                </div>
-                <div *ngIf="activeFilter === 'branchManagerName'" class="mt-2">
-                  <input type="text" pInputText class="form-control form-control-sm" placeholder="Filter Manager Name" 
-                         [(ngModel)]="filters['branchManagerName']" (input)="applyFilter()" />
-                  <button class="btn btn-sm btn-link p-0 ms-1" (click)="clearFilter('branchManagerName')">
-                    <i class="pi pi-times"></i>
-                  </button>
-                </div>
-              </th>
-              <th>
-                <div class="d-flex align-items-center justify-content-between">
-                  <span>Assistant Branch Manager Name</span>
-                  <div class="d-flex gap-1">
-                    <button class="btn btn-sm btn-link p-0" (click)="toggleColumnPin('assistantBranchManagerName')" [class.text-warning]="isColumnPinned('assistantBranchManagerName')">
-                      <i class="pi pi-thumbtack"></i>
-                    </button>
-                    <button class="btn btn-sm btn-link p-0" (click)="showFilter('assistantBranchManagerName')">
-                      <i class="pi pi-filter"></i>
-                    </button>
-                  </div>
-                </div>
-                <div *ngIf="activeFilter === 'assistantBranchManagerName'" class="mt-2">
-                  <input type="text" pInputText class="form-control form-control-sm" placeholder="Filter Assistant Manager" 
-                         [(ngModel)]="filters['assistantBranchManagerName']" (input)="applyFilter()" />
-                  <button class="btn btn-sm btn-link p-0 ms-1" (click)="clearFilter('assistantBranchManagerName')">
-                    <i class="pi pi-times"></i>
-                  </button>
-                </div>
-              </th>
-            </tr>
-          </ng-template>
+          <!-- Event Media Section -->
+          <div class="col-12 mb-4">
+            <h6 class="fw-bold">Event media:</h6>
+            <div class="row">
+              <div class="col-md-6">
+                <p><strong>Media coverage type:</strong> <span class="text-primary">{{
+                    selectedEvent?.media?.coverageType || 'link' }}</span></p>
+                <p><strong>Organization/ Comp...:</strong> <span class="text-primary">{{
+                    selectedEvent?.media?.organization || 'link' }}</span></p>
+                <p><strong>Media email:</strong> <span class="text-primary">{{ selectedEvent?.media?.email ||
+                    'link.gmail.com' }}</span></p>
+                <p><strong>Media website:</strong> <span class="text-primary">{{ selectedEvent?.media?.website ||
+                    'www.link.in' }}</span></p>
+              </div>
+              <div class="col-md-6">
+                <p><strong>Media person:</strong> {{ selectedEvent?.media?.person || 'Mr. First middle last' }}</p>
+                <p><strong>Designation:</strong> <span class="text-primary">{{ selectedEvent?.media?.designation ||
+                    'link' }}</span></p>
+                <p><strong>Contact:</strong> {{ selectedEvent?.media?.contact || '000000000' }}</p>
+                <p><strong>Email:</strong> <span class="text-primary">{{ selectedEvent?.media?.personEmail ||
+                    'name.gmail.com' }}</span></p>
+                <p><strong>Reference person:</strong> {{ selectedEvent?.media?.referencePerson || 'Mr. First middle
+                  last' }}</p>
+              </div>
+            </div>
+          </div>
 
-          <!-- Table Body -->
-          <ng-template pTemplate="body" let-branch let-expanded="expanded">
-            <tr>
-              <td>
-                <p-button 
-                  type="button" 
-                  pRipple 
-                  [pRowToggler]="branch" 
-                  [text]="true" 
-                  severity="secondary"  
-                  [rounded]="true" 
-                  [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
-              </td>
-              <td>{{ branch.branchName }}</td>
-              <td>{{ branch.branchManagerName }}</td>
-              <td>{{ branch.assistantBranchManagerName }}</td>
-            </tr>
-          </ng-template>
+          <!-- Promotional Material Section -->
+          <div class="col-12 mb-4">
+            <h6 class="fw-bold">Promotional material used:</h6>
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Quantity</th>
+                    <th>Size</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let material of selectedEvent?.promotionalMaterials">
+                    <td>{{ material.name }}</td>
+                    <td>{{ material.quantity }}</td>
+                    <td>{{ material.size }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-          <!-- Expanded Row Template -->
-          <ng-template pTemplate="rowexpansion" let-branch>
-            <tr>
-              <td colspan="4">
-                <div class="p-4">
-                  <h5>Events for {{ branch.branchName }}</h5>
-                  <p-table [value]="branch.events" dataKey="id" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5, 10]">
-                    <ng-template pTemplate="header">
-                      <tr>
-                        <th pSortableColumn="eventType">
-                          <div class="d-flex align-items-center gap-2">
-                            Event Type (Scale)
-                            <p-sortIcon field="eventType" />
-                          </div>
-                        </th>
-                        <th pSortableColumn="name">
-                          <div class="d-flex align-items-center gap-2">
-                            Name
-                            <p-sortIcon field="name" />
-                          </div>
-                        </th>
-                        <th pSortableColumn="duration">
-                          <div class="d-flex align-items-center gap-2">
-                            Duration
-                            <p-sortIcon field="duration" />
-                          </div>
-                        </th>
-                        <th pSortableColumn="timing">
-                          <div class="d-flex align-items-center gap-2">
-                            Timing
-                            <p-sortIcon field="timing" />
-                          </div>
-                        </th>
-                        <th pSortableColumn="state">
-                          <div class="d-flex align-items-center gap-2">
-                            State
-                            <p-sortIcon field="state" />
-                          </div>
-                        </th>
-                        <th pSortableColumn="city">
-                          <div class="d-flex align-items-center gap-2">
-                            City
-                            <p-sortIcon field="city" />
-                          </div>
-                        </th>
-                        <th pSortableColumn="spiritualOrator">
-                          <div class="d-flex align-items-center gap-2">
-                            Spiritual Orator
-                            <p-sortIcon field="spiritualOrator" />
-                          </div>
-                        </th>
-                        <th pSortableColumn="language">
-                          <div class="d-flex align-items-center gap-2">
-                            Language
-                            <p-sortIcon field="language" />
-                          </div>
-                        </th>
-                        <th pSortableColumn="beneficiaries.total">
-                          <div class="d-flex align-items-center gap-2">
-                            Beneficiaries
-                            <p-sortIcon field="beneficiaries.total" />
-                          </div>
-                        </th>
-                        <th pSortableColumn="initiation.total">
-                          <div class="d-flex align-items-center gap-2">
-                            Initiation
-                            <p-sortIcon field="initiation.total" />
-                          </div>
-                        </th>
-                        <th pSortableColumn="specialGuests">
-                          <div class="d-flex align-items-center gap-2">
-                            Special Guests
-                            <p-sortIcon field="specialGuests" />
-                          </div>
-                        </th>
-                        <th pSortableColumn="volunteers">
-                          <div class="d-flex align-items-center gap-2">
-                            Volunteers
-                            <p-sortIcon field="volunteers" />
-                          </div>
-                        </th>
-                        <th>Actions</th>
-                      </tr>
-                    </ng-template>
-                    <ng-template pTemplate="body" let-event>
-                      <tr>
-                        <td>
-                          <p-tag 
-                            [value]="getEventTypeDisplay(event)" 
-                            [severity]="getSeverity(event.scale)" />
-                        </td>
-                        <td>{{ event.name }}</td>
-                        <td>{{ event.duration }}</td>
-                        <td>{{ event.timing }}</td>
-                        <td>{{ event.state }}</td>
-                        <td>{{ event.city }}</td>
-                        <td>{{ event.spiritualOrator || '-' }}</td>
-                        <td>{{ event.language }}</td>
-                        <td>
-                          {{ event.beneficiaries.total }}
-                          <i class="pi pi-info-circle text-primary ms-1" 
-                             pTooltip="{{ getTooltipText('beneficiaries', event) }}"
-                             tooltipPosition="top"></i>
-                        </td>
-                        <td>
-                          {{ event.initiation.total }}
-                          <i class="pi pi-info-circle text-primary ms-1" 
-                             pTooltip="{{ getTooltipText('initiation', event) }}"
-                             tooltipPosition="top"></i>
-                        </td>
-                        <td>{{ event.specialGuests }}</td>
-                        <td>{{ event.volunteers }}</td>
-                        <td>
-                          <div class="d-flex gap-1">
-                            <p-button 
-                              type="button" 
-                              icon="pi pi-pencil" 
-                              size="small"
-                              severity="secondary"
-                              (onClick)="editEvent(event.id)"
-                              pTooltip="Edit Event"
-                              tooltipPosition="top" />
-                            <p-button 
-                              type="button" 
-                              icon="pi pi-eye" 
-                              size="small"
-                              severity="info"
-                              (onClick)="viewEventDetails(event.id)"
-                              pTooltip="View Details"
-                              tooltipPosition="top" />
-                            <p-button 
-                              type="button" 
-                              icon="pi pi-download" 
-                              size="small"
-                              severity="success"
-                              (onClick)="downloadEvent(event.id)"
-                              pTooltip="Download"
-                              tooltipPosition="top" />
-                          </div>
-                        </td>
-                      </tr>
-                    </ng-template>
-                    <ng-template pTemplate="emptymessage">
-                      <tr>
-                        <td colspan="13" class="text-center p-4">
-                          <i class="pi pi-inbox text-muted" style="font-size: 2rem;"></i>
-                          <p class="text-muted mt-2">No events found for this branch.</p>
-                        </td>
-                      </tr>
-                    </ng-template>
-                  </p-table>
-                </div>
-              </td>
-            </tr>
-          </ng-template>
+          <!-- Media and Documentation Section -->
+          <div class="col-12 mb-4">
+            <h6 class="fw-bold">Media and Documentation:</h6>
+            <div class="d-flex flex-wrap gap-3">
+              <span class="cursor-pointer" 
+                 (click)="openMediaContentModal('photos'); $event.preventDefault()">{{ selectedEvent?.media?.photos || 'Event photos' }}</span>
+              <span class="cursor-pointer" 
+                 (click)="openMediaContentModal('video'); $event.preventDefault()">{{ selectedEvent?.media?.video || 'Video Coverage' }}</span>
+              <span class="cursor-pointer" 
+                 (click)="openMediaContentModal('pressRelease'); $event.preventDefault()">{{ selectedEvent?.media?.pressRelease || 'Press Release' }}</span>
+              <span class="cursor-pointer" 
+                 (click)="openMediaContentModal('testimonials'); $event.preventDefault()">{{ selectedEvent?.media?.testimonials || 'Testimonials' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal('moreDetailsModal')">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-          <!-- Empty Message -->
-          <ng-template pTemplate="emptymessage">
-            <tr>
-              <td colspan="4" class="text-center p-4">
-                <i class="pi pi-inbox text-muted" style="font-size: 2rem;"></i>
-                <p class="text-muted mt-2">No branches found.</p>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
+<!-- Media Content Modal -->
+<div class="modal fade" id="mediaContentModal" tabindex="-1" aria-labelledby="mediaContentModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="mediaContentModalLabel">
+          {{ getMediaModalTitle() }}
+        </h5>
+        <button type="button" class="btn-close" (click)="closeMediaContentModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center p-4">
+          <div class="media-content-display">
+            <i class="pi pi-image text-primary" style="font-size: 3rem;"></i>
+            <h4 class="mt-3">{{ getMediaModalTitle() }}</h4>
+            <p class="text-muted mt-2">
+              {{ getMediaContentDescription() }}
+            </p>
+            <div class="mt-4">
+              <button class="btn btn-primary me-2">
+                <i class="pi pi-download me-2"></i>Download
+              </button>
+              <button class="btn btn-outline-secondary">
+                <i class="pi pi-eye me-2"></i>View
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeMediaContentModal()">Close</button>
       </div>
     </div>
   </div>
