@@ -25,6 +25,7 @@ import { AddEventComponent } from './add-event/add-event.component';
 // Dropzone configuration
 import { DROPZONE_CONFIG } from 'ngx-dropzone-wrapper';
 import { DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
+import { ViewEventComponent } from './view-event/view-event.component';
 
 const DEFAULT_DROPZONE_CONFIG: DropzoneConfigInterface = {
   url: 'https://httpbin.org/post',
@@ -35,7 +36,8 @@ const DEFAULT_DROPZONE_CONFIG: DropzoneConfigInterface = {
 @NgModule({
   declarations: [
     EventsListComponent,
-    AddEventComponent
+    AddEventComponent,
+    ViewEventComponent
   ],
   imports: [
     CommonModule,
