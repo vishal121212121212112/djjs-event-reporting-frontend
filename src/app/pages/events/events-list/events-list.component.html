@@ -498,6 +498,10 @@
                 <button class="btn btn-link p-0 action-btn" (click)="downloadEvent(event.id)" data-tooltip="Download">
                   <i class="pi pi-download"></i>
                 </button>
+                <button class="btn btn-link p-0 action-btn gallery-btn" (click)="openGallery(event); $event.preventDefault()"
+                  data-tooltip="View in Gallery">
+                  <i class="pi pi-images"></i>
+                </button>
 
               </div>
             </td>
@@ -566,8 +570,7 @@
 </div>
 
 <!-- Initiation Modal -->
-<div class="modal fade" id="initiationModal" tabindex="-1" aria-labelledby="initiationModalLabel"
-  aria-hidden="true">
+<div class="modal fade" id="initiationModal" tabindex="-1" aria-labelledby="initiationModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -671,8 +674,7 @@
 </div>
 
 <!-- Volunteers Modal -->
-<div class="modal fade" id="volunteersModal" tabindex="-1" aria-labelledby="volunteersModalLabel"
-  aria-hidden="true">
+<div class="modal fade" id="volunteersModal" tabindex="-1" aria-labelledby="volunteersModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -801,14 +803,14 @@
           <div class="col-12 mb-4">
             <h6 class="fw-bold">Media and Documentation:</h6>
             <div class="d-flex flex-wrap gap-3">
-              <span class="cursor-pointer" 
-                 (click)="openMediaContentModal('photos'); $event.preventDefault()">{{ selectedEvent?.media?.photos || 'Event photos' }}</span>
-              <span class="cursor-pointer" 
-                 (click)="openMediaContentModal('video'); $event.preventDefault()">{{ selectedEvent?.media?.video || 'Video Coverage' }}</span>
-              <span class="cursor-pointer" 
-                 (click)="openMediaContentModal('pressRelease'); $event.preventDefault()">{{ selectedEvent?.media?.pressRelease || 'Press Release' }}</span>
-              <span class="cursor-pointer" 
-                 (click)="openMediaContentModal('testimonials'); $event.preventDefault()">{{ selectedEvent?.media?.testimonials || 'Testimonials' }}</span>
+              <span class="cursor-pointer" (click)="openMediaContentModal('photos'); $event.preventDefault()">{{
+                selectedEvent?.media?.photos || 'Event photos' }}</span>
+              <span class="cursor-pointer" (click)="openMediaContentModal('video'); $event.preventDefault()">{{
+                selectedEvent?.media?.video || 'Video Coverage' }}</span>
+              <span class="cursor-pointer" (click)="openMediaContentModal('pressRelease'); $event.preventDefault()">{{
+                selectedEvent?.media?.pressRelease || 'Press Release' }}</span>
+              <span class="cursor-pointer" (click)="openMediaContentModal('testimonials'); $event.preventDefault()">{{
+                selectedEvent?.media?.testimonials || 'Testimonials' }}</span>
             </div>
           </div>
         </div>
