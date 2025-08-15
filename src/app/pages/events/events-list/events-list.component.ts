@@ -1047,6 +1047,10 @@ export class EventsListComponent implements OnInit {
      this.router.navigate(['/view']);
   }
 
+   openGallery(event: EventData): void {   
+     this.router.navigate(['/gallery']);
+  }
+
   // Open media content modal
   openMediaContentModal(mediaType: string): void {
     this.selectedMediaType = mediaType;
