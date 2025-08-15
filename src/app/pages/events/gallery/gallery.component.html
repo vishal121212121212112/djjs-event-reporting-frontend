@@ -1,0 +1,72 @@
+<div class="gallery-layout">
+
+  <!-- Left: Vertical Categories -->
+  <div class="categories-vertical">
+    <button *ngFor="let category of categories" (click)="selectCategory(category)"
+      [class.active]="category === selectedCategory">
+      {{ category }}
+    </button>
+  </div>
+
+  <!-- Right: Types + Gallery -->
+  <div class="gallery-right">
+
+    <!-- Horizontal Type Tabs -->
+    <div class="tabs">
+      <button *ngFor="let type of types" (click)="selectType(type)" [class.active]="type === selectedType">
+        {{ type | titlecase }}
+      </button>
+    </div>
+
+    <!-- Grouped by Month-Year -->
+    <div *ngFor="let monthYear of getMonthYearKeys()">
+      <h3>{{ monthYear }}</h3>
+      <div class="gallery">
+        <div *ngFor="let item of filteredItemsByMonth[monthYear]" class="thumbnail" (click)="openPopup(item)">
+          <ng-container [ngSwitch]="item.type">
+
+            <img *ngSwitchCase="'image'" [src]="item.url" [alt]="item.name">
+
+            <video *ngSwitchCase="'video'" controls>
+              <source [src]="item.url" type="video/mp4">
+            </video>
+
+            <audio *ngSwitchCase="'audio'" controls>
+              <source [src]="item.url" type="audio/mpeg">
+            </audio>
+
+            <a *ngSwitchCase="'file'" (click)="openPopup(item); $event.preventDefault()" href="#">
+              📄 {{ item.name }}
+            </a>
+
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Popup Modal -->
+<div class="popup" *ngIf="selectedItem" (click)="closePopup()">
+  <div class="popup-content" (click)="$event.stopPropagation()">
+    <span class="close-btn" (click)="closePopup()">×</span>
+
+    <ng-container [ngSwitch]="selectedItem.type">
+
+      <img *ngSwitchCase="'image'" [src]="selectedItem.url" [alt]="selectedItem.name"
+        style="max-width: 100%; max-height: 85vh;">
+
+      <video *ngSwitchCase="'video'" controls autoplay style="max-width:100%; max-height: 85vh;">
+        <source [src]="selectedItem.url" type="video/mp4">
+      </video>
+
+      <audio *ngSwitchCase="'audio'" controls autoplay style="width:100%;max-height: 85vh;">
+        <source [src]="selectedItem.url" type="audio/mpeg">
+      </audio>
+
+      <iframe *ngSwitchCase="'file'" [src]="selectedItem.url" style="width:80vw; height:80vh;"></iframe>
+
+    </ng-container>
+  </div>
+</div>
