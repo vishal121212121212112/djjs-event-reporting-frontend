@@ -1,113 +1,171 @@
-<div class="row">
-  <div class="col-12">
-    <div class="page-title-box d-flex align-items-center justify-content-between">
-      <h4 class="mb-0">BRANCHES</h4>
-      <div class="page-title-right">
-        <button class="btn btn-primary" (click)="addBranch()">
-          <i class="fas fa-plus me-2"></i>Add Branch
-        </button>
-      </div>
-    </div>
+<div class="page-title-box d-flex align-items-center justify-content-between">
+  <h4 class="mb-0">Branches</h4>
+  <div>
+    <button class="btn btn-primary" (click)="addBranch()">
+      <i class="pi pi-plus me-2"></i> Add Branch
+    </button>
   </div>
 </div>
+
 
 <div class="row">
   <div class="col-12">
     <div class="card">
       <div class="card-body">
-
-        <!-- Search & Filter -->
+        <!-- Search Section -->
         <div class="row mb-3">
           <div class="col-md-6">
-            <div class="form-group">
-              <label class="form-label">Search</label>
-              <div class="input-group">
-                <span class="input-group-text">
-                  <i class="fas fa-search"></i>
-                </span>
-                <input type="text" class="form-control" [(ngModel)]="globalFilterValue" placeholder="Search by Branch name or Coordinator"
-                       (input)="onGlobalFilterChange($event)">
-              </div>
+            <label class="form-label">Search</label>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-search"></i>
+              </span>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Search by Branch, Coordinator, City"
+                (input)="onGlobalFilterChange($event)"
+              />
             </div>
           </div>
         </div>
 
         <p-toast></p-toast>
-        <p-table 
-          [value]="branches" 
-          dataKey="id" 
-          [expandedRowKeys]="expandedRows" 
-          (onRowExpand)="onRowExpand($event)" 
+
+        <p-table
+          [value]="branches"
+          dataKey="id"
+          [expandedRowKeys]="expandedRows"
+          (onRowExpand)="onRowExpand($event)"
           (onRowCollapse)="onRowCollapse($event)"
           [rowHover]="true"
           [paginator]="true"
           [rows]="rows"
           [first]="first"
           [rowsPerPageOptions]="rowsPerPageOptions"
-          [globalFilterFields]="['branchName', 'coordinatorName', 'state', 'city']"
+          [globalFilterFields]="['branchName','coordinatorName','state','city']"
           (onPageChange)="onPageChange($event)"
           (onSort)="onSort($event)"
           [sortMode]="'single'"
-          [tableStyle]="{ 'min-width': '100%' }">
-
-          <!-- Caption -->
-          <ng-template pTemplate="caption">
-            <div class="d-flex justify-content-end gap-2">
-              <p-button label="Expand All" icon="pi pi-plus" text (onClick)="expandAll()" />
-              <p-button label="Collapse All" icon="pi pi-minus" text (onClick)="collapseAll()" />
-            </div>
-          </ng-template>
-
-          <!-- Header -->
+          [tableStyle]="{ 'min-width': '100%' }"
+        >
+          <!-- Table Header -->
           <ng-template pTemplate="header">
             <tr>
               <th style="width: 5rem"></th>
-              <th pSortableColumn="branchName">Branch Name
-                <p-sortIcon field="branchName"></p-sortIcon>
+              <th>
+                <div class="d-flex align-items-center justify-content-between">
+                  <span>Branch Name</span>
+                  <div class="d-flex gap-1">
+                    <button
+                      class="btn btn-sm btn-link p-0"
+                      (click)="toggleColumnPin('branchName')"
+                      [class.text-warning]="isColumnPinned('branchName')"
+                    >
+                      <i class="pi pi-thumbtack"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-link p-0"
+                      (click)="showFilter('branchName')"
+                    >
+                      <i class="pi pi-filter"></i>
+                    </button>
+                  </div>
+                </div>
+                <div *ngIf="activeFilter === 'branchName'" class="mt-2">
+                  <input
+                    type="text"
+                    pInputText
+                    class="form-control form-control-sm"
+                    placeholder="Filter Branch Name"
+                    [(ngModel)]="filters['branchName']"
+                    (input)="applyFilter()"
+                  />
+                  <button
+                    class="btn btn-sm btn-link p-0 ms-1"
+                    (click)="clearFilter('branchName')"
+                  >
+                    <i class="pi pi-times"></i>
+                  </button>
+                </div>
               </th>
-              <th pSortableColumn="coordinatorName">Coordinator
-                <p-sortIcon field="coordinatorName"></p-sortIcon>
+
+              <th>
+                <span>Coordinator</span>
               </th>
-              <th pSortableColumn="state">State
-                <p-sortIcon field="state"></p-sortIcon>
+
+              <th>
+                <span>State</span>
               </th>
-              <th pSortableColumn="city">City
-                <p-sortIcon field="city"></p-sortIcon>
+
+              <th>
+                <span>City</span>
               </th>
-              <th pSortableColumn="establishedOn">Established On
-                <p-sortIcon field="establishedOn"></p-sortIcon>
+
+              <th>
+                <span>Established On</span>
               </th>
+
+              <th>
+                <span>Ashram Area</span>
+              </th>
+
+              <th>Actions</th>
             </tr>
           </ng-template>
 
-          <!-- Body -->
+          <!-- Table Body -->
           <ng-template pTemplate="body" let-branch let-expanded="expanded">
             <tr>
               <td>
-                <p-button 
-                  type="button" 
-                  pRipple 
-                  [pRowToggler]="branch" 
-                  [text]="true" 
-                  severity="secondary"  
-                  [rounded]="true" 
-                  [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+                <p-button
+                  type="button"
+                  pRipple
+                  [pRowToggler]="branch"
+                  [text]="true"
+                  severity="secondary"
+                  [rounded]="true"
+                  [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                ></p-button>
               </td>
               <td>{{ branch.branchName }}</td>
               <td>{{ branch.coordinatorName }}</td>
               <td>{{ branch.state }}</td>
               <td>{{ branch.city }}</td>
-              <td>{{ branch.establishedOn | date:'dd/MM/yyyy' }}</td>
+              <td>{{ branch.establishedOn | date: 'mediumDate' }}</td>
+              <td>{{ branch.ashramArea }}</td>
+              <td>
+                <div class="d-flex gap-1">
+                  <p-button
+                    type="button"
+                    icon="pi pi-pencil"
+                    size="small"
+                    severity="secondary"
+                    (onClick)="editBranch(branch.id)"
+                    pTooltip="Edit Branch"
+                    tooltipPosition="top"
+                  ></p-button>
+                  <p-button
+                    type="button"
+                    icon="pi pi-trash"
+                    size="small"
+                    severity="danger"
+                    (onClick)="deleteBranch(branch.id)"
+                    pTooltip="Delete Branch"
+                    tooltipPosition="top"
+                  ></p-button>
+                </div>
+              </td>
             </tr>
           </ng-template>
 
-          <!-- Row Expansion -->
+          <!-- Expanded Row: Members -->
           <ng-template pTemplate="rowexpansion" let-branch>
             <tr>
-              <td colspan="6">
-                <div class="p-4">
-                  <h5>Members for {{ branch.branchName }}</h5>
-                  <p-table [value]="branch.members" dataKey="name" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5, 10]">
+              <td colspan="8">
+                <div class="p-4 expanded-content">
+                  <h5>Members of {{ branch.branchName }}</h5>
+                  <p-table [value]="branch.members" dataKey="name" [paginator]="true" [rows]="5">
                     <ng-template pTemplate="header">
                       <tr>
                         <th>Name</th>
@@ -130,7 +188,10 @@
                     </ng-template>
                     <ng-template pTemplate="emptymessage">
                       <tr>
-                        <td colspan="6" class="text-center p-4 text-muted">No members found.</td>
+                        <td colspan="6" class="text-center p-4">
+                          <i class="pi pi-inbox text-muted" style="font-size: 2rem"></i>
+                          <p class="text-muted mt-2">No members found for this branch.</p>
+                        </td>
                       </tr>
                     </ng-template>
                   </p-table>
@@ -139,17 +200,16 @@
             </tr>
           </ng-template>
 
-          <!-- Empty Message -->
+          <!-- Empty Table Message -->
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="6" class="text-center p-4">
-                <i class="pi pi-inbox text-muted" style="font-size: 2rem;"></i>
+              <td colspan="8" class="text-center p-4">
+                <i class="pi pi-inbox text-muted" style="font-size: 2rem"></i>
                 <p class="text-muted mt-2">No branches found.</p>
               </td>
             </tr>
           </ng-template>
         </p-table>
-
       </div>
     </div>
   </div>
