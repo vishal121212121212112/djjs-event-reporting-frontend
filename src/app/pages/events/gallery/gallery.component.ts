@@ -17,7 +17,7 @@ export class GalleryComponent {
   types = ['All', 'image', 'video', 'audio', 'file'];
 
   // Category filter tabs
-  categories = ['All', 'Katha', 'Peace', 'Bodh'];
+  categories = ['All', 'Event Photos', 'Video Coverage', 'Testimonials','Press Release'];
 
   // Current selections
   selectedType = 'All';
@@ -27,15 +27,15 @@ export class GalleryComponent {
 
   // Data with dates
   items: GalleryItem[] = [
-    { type: 'image', url: 'assets/images/companies/adobe.svg', name: 'Image 1', category: 'Katha', date: new Date('2025-08-05') },
-    { type: 'image', url: 'assets/images/companies/adobe-photoshop.svg', name: 'Image 2', category: 'Katha', date: new Date('2025-08-04') },
-    { type: 'image', url: 'assets/images/companies/amazon.svg', name: 'Image 3', category: 'Katha', date: new Date('2025-07-25') },
-    { type: 'image', url: 'assets/images/companies/flutter.svg', name: 'Image 4', category: 'Katha', date: new Date('2025-06-18') },
-    { type: 'image', url: 'assets/images/companies/airbnb.svg', name: 'Image 5', category: 'Peace', date: new Date('2025-08-02') },
-    { type: 'video', url: 'assets/gallery/video1.mp4', name: 'Video 1', category: 'Katha', date: new Date('2025-07-15') },
-    { type: 'video', url: 'assets/gallery/video1.mp4', name: 'Video 2', category: 'Peace', date: new Date('2025-08-03') },
-    { type: 'audio', url: 'assets/gallery/audio1.mp3', name: 'Audio 1', category: 'Bodh', date: new Date('2025-07-05') },
-    { type: 'file', url: 'assets/gallery/doc1.pdf', name: 'Document 1', category: 'Katha', date: new Date('2025-06-01') },
+    { type: 'image', url: 'assets/images/companies/adobe.svg', name: 'Image 1', category: 'Event Photos', date: new Date('2025-08-05') },
+    { type: 'image', url: 'assets/images/companies/adobe-photoshop.svg', name: 'Image 2', category: 'Event Photos', date: new Date('2025-08-04') },
+    { type: 'image', url: 'assets/images/companies/amazon.svg', name: 'Image 3', category: 'Event Photos', date: new Date('2025-07-25') },
+    { type: 'image', url: 'assets/images/companies/flutter.svg', name: 'Image 4', category: 'Event Photos', date: new Date('2025-06-18') },
+    { type: 'image', url: 'assets/images/companies/airbnb.svg', name: 'Image 5', category: 'Event Photos', date: new Date('2025-08-02') },
+    { type: 'video', url: 'assets/gallery/video1.mp4', name: 'Video 1', category: 'Video Coverage', date: new Date('2025-07-15') },
+    { type: 'video', url: 'assets/gallery/video1.mp4', name: 'Video 2', category: 'Video Coverage', date: new Date('2025-08-03') },
+    { type: 'audio', url: 'assets/gallery/audio1.mp3', name: 'Audio 1', category: 'Testimonials', date: new Date('2025-07-05') },
+    { type: 'file', url: 'assets/gallery/doc1.pdf', name: 'Document 1', category: 'Press Release', date: new Date('2025-06-01') },
   ];
 
   // Grouped and filtered items by Month-Year
