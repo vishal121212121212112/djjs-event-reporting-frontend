@@ -1,0 +1,148 @@
+.page-title-box {
+  padding: 20px 0;
+
+  h4 {
+    color: #495057;
+    font-weight: 600;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    border: none;
+    padding: 10px 20px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: linear-gradient(135deg, #e55a2b, #e0851a);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+    }
+  }
+}
+
+.search-container,
+.form-group {
+  margin-bottom: 1rem;
+
+  .form-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 5px;
+  }
+
+  .input-group {
+    span.input-group-text {
+      background-color: #f8f9fa;
+      border-color: #dee2e6;
+      color: #6c757d;
+    }
+
+    input.form-control {
+      border-radius: 6px;
+      border: 1px solid #dee2e6;
+      padding: 5px 10px;
+
+      &:focus {
+        border-color: #ff6b35;
+        box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
+      }
+    }
+  }
+}
+
+::ng-deep .p-datatable {
+  font-size: 14px;
+  border-radius: 10px;
+  overflow: hidden;
+
+  .p-datatable-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 600;
+    color: #495057;
+    padding: 12px 8px;
+  }
+
+  .p-datatable-thead > tr > th {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    font-weight: 600;
+    padding: 10px;
+  }
+
+  .p-datatable-tbody > tr > td {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    vertical-align: middle;
+    transition: background 0.2s;
+  }
+
+  .p-datatable-tbody > tr:hover {
+    background-color: #f8f9fa;
+  }
+
+  .p-datatable-tbody > tr.expanded-row td {
+    background-color: #fafafa;
+    border-left: 3px solid #007bff;
+    padding: 12px;
+  }
+}
+
+/* Action buttons */
+.action-btn {
+  color: #6c757d;
+  font-size: 1.1rem;
+  padding: 4px 6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    color: #ff6b35;
+    transform: scale(1.1);
+  }
+
+  i {
+    vertical-align: middle;
+  }
+}
+
+
+/* Pagination styling */
+::ng-deep .p-paginator {
+  justify-content: flex-end;
+  padding: 10px;
+
+  .p-paginator-pages .p-paginator-page {
+    min-width: 32px;
+    height: 32px;
+    border-radius: 4px;
+  }
+
+  .p-paginator-pages .p-paginator-page.p-highlight {
+    background-color: #007bff;
+    color: #fff;
+  }
+}
+
+/* Ensure PrimeNG icons are visible */
+.pi {
+  font-family: "PrimeIcons" !important;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.pi-chevron-right:before {
+  content: "\e901";
+}
+
+.pi-chevron-down:before {
+  content: "\e900";
+}

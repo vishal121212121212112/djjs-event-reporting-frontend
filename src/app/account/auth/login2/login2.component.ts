@@ -1,10 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { AuthenticationService } from '../../../core/services/auth.service';
-import { AuthfakeauthenticationService } from '../../../core/services/authfake.service';
-import { login } from 'src/app/store/Authentication/authentication.actions';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Store } from '@ngrx/store';
 
 @Component({
   selector: 'app-login2',
@@ -16,21 +13,26 @@ import { Store } from '@ngrx/store';
  */
 export class Login2Component implements OnInit {
 
-  constructor(private formBuilder: UntypedFormBuilder, private route: ActivatedRoute, private router: Router, private authenticationService: AuthenticationService,
-    private authFackservice: AuthfakeauthenticationService, public store: Store) { }
+  constructor(
+    private formBuilder: UntypedFormBuilder, 
+    private route: ActivatedRoute, 
+    private router: Router, 
+    private authenticationService: AuthenticationService
+  ) { }
+  
   loginForm: UntypedFormGroup;
   submitted: any = false;
   error: any = '';
   returnUrl: string;
 
-  // set the currenr year
+  // set the current year
   year: number = new Date().getFullYear();
 
   ngOnInit(): void {
     document.body.classList.add("auth-body-bg");
     this.loginForm = this.formBuilder.group({
-      email: ['admin@themesbrand.com', [Validators.required, Validators.email]],
-      password: ['123456', [Validators.required]],
+      identifier: ['admin@djjs.org', [Validators.required]],  // Changed from email to identifier, removed email validation
+      password: ['admin123', [Validators.required]],
     });
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
   }
@@ -51,13 +53,19 @@ export class Login2Component implements OnInit {
    */
   onSubmit() {
     this.submitted = true;
-    this.submitted = true;
-
-    const email = this.f['email'].value; // Get the username from the form
-    const password = this.f['password'].value; // Get the password from the form
-
-    // Login Api
-    this.store.dispatch(login({ email: email, password: password }));
+    const credentials = {
+      identifier: this.f['identifier'].value,  // Changed from email to identifier
+      password: this.f['password'].value
+    };
+    this.authenticationService.login(credentials).subscribe({
+      next: (response) => {
+        console.log('Login successful:', response);
+        this.router.navigate([this.returnUrl]);
+      },
+      error: (error) => {
+        console.error('Login error:', error);
+        this.error = error.message || 'Login failed';
+      }
+    });
   }
-
 }

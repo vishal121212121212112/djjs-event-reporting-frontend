@@ -1,3 +1,28 @@
+.branch-header {
+  transition: all 0.3s ease;
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  }
+
+  .branch-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+  }
+}
+
 .page-title-box {
   padding: 20px 0;
 
@@ -21,30 +46,49 @@
   }
 }
 
-.p-datatable {
-  .p-datatable-header {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
+:host ::ng-deep {
+  .p-datatable {
+    font-size: 14px;
+
+    .p-datatable-header {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+    }
+
+    .p-datatable-thead > tr > th {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      font-weight: 600;
+      color: #495057;
+      padding: 0.75rem;
+    }
+
+    .p-datatable-tbody > tr > td {
+      border: 1px solid #dee2e6;
+      padding: 0.75rem;
+      vertical-align: middle;
+    }
+
+    .p-datatable-tbody > tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    // Nested table styling
+    .p-datatable .p-datatable {
+      .p-datatable-thead > tr > th {
+        background: #e9ecef;
+        font-size: 0.875rem;
+        padding: 0.5rem;
+      }
+
+      .p-datatable-tbody > tr > td {
+        font-size: 0.875rem;
+        padding: 0.5rem;
+      }
+    }
   }
 
-  .p-datatable-thead > tr > th {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    font-weight: 600;
-    color: #495057;
-    padding: 0.75rem;
-  }
-
-  .p-datatable-tbody > tr > td {
-    border: 1px solid #dee2e6;
-    padding: 0.75rem;
-    vertical-align: middle;
-  }
-
-  .p-datatable-tbody > tr:hover {
-    background-color: #f8f9fa;
-  }
-
+  // Expand/Collapse button styling
   .p-button.p-button-text {
     color: #6c757d;
     &:hover {
@@ -52,27 +96,88 @@
       background-color: rgba(255, 107, 53, 0.1);
     }
   }
-}
 
-.p-table {
-  .p-datatable-thead > tr > th {
-    background-color: #e9ecef;
-    font-size: 0.875rem;
-    padding: 0.5rem;
+  // Tag styling
+  .p-tag {
+    font-size: 0.75rem;
+    font-weight: 500;
   }
 
-  .p-datatable-tbody > tr > td {
-    font-size: 0.875rem;
-    padding: 0.5rem;
+  // Paginator styling
+  .p-paginator {
+    justify-content: flex-end;
+    padding: 10px;
+  }
+
+  .p-paginator .p-paginator-pages .p-paginator-page {
+    min-width: 32px;
+    height: 32px;
+    border-radius: 4px;
+  }
+
+  .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+    background-color: #007bff;
+    color: #fff;
+  }
+
+  // Row toggler
+  .p-datatable .p-row-toggler {
+    cursor: pointer;
   }
 }
 
-.btn-outline-secondary {
-  &:hover {
-    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+// Expanded row content
+.expanded-row, .expanded-content {
+  background: #f8f9fa;
+  padding: 12px;
+  border-left: 3px solid #007bff;
+
+  h5 {
+    color: #495057;
+    margin-bottom: 1rem;
+    font-weight: 600;
   }
 }
 
+// Search input
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  input {
+    width: 200px;
+    padding: 5px 8px;
+    font-size: 14px;
+  }
+}
+
+// Action buttons
+.action-buttons {
+  display: flex;
+  gap: 8px;
+
+  button {
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 13px;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  :host ::ng-deep {
+    .p-datatable {
+      .p-datatable-thead > tr > th,
+      .p-datatable-tbody > tr > td {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+      }
+    }
+  }
+}
+
+// Ensure PrimeNG icons are visible
 .pi {
   font-family: "PrimeIcons" !important;
   font-style: normal;

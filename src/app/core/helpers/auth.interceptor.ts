@@ -1,31 +1,60 @@
-import { HTTP_INTERCEPTORS, HttpEvent } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { HttpInterceptor, HttpHandler, HttpRequest } from '@angular/common/http';
-
-import { TokenStorageService } from '../../core/services/token-storage.service';
-import { Observable } from 'rxjs';
-
-// const TOKEN_HEADER_KEY = 'Authorization';       // for Spring Boot back-end
-const TOKEN_HEADER_KEY = 'x-access-token';   // for Node.js Express back-end
+import {
+  HttpRequest,
+  HttpHandler,
+  HttpEvent,
+  HttpInterceptor,
+  HttpErrorResponse
+} from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { AuthenticationService } from '../services/auth.service';
+import { Router } from '@angular/router';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  constructor(private token: TokenStorageService) { }
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    let authReq = req;
-    const token = this.token.getToken();
-    if (token != null) {
-      // for Spring Boot back-end
-      // authReq = req.clone({ headers: req.headers.set(TOKEN_HEADER_KEY, 'Bearer ' + token) });
+  constructor(
+    private authService: AuthenticationService,
+    private router: Router
+  ) {}
 
-      // for Node.js Express back-end
-      authReq = req.clone({ headers: req.headers.set(TOKEN_HEADER_KEY, token) });
+  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    // Get token from auth service
+    const token = this.authService.getToken();
+    
+    // Clone the request and add authorization header if token exists
+    if (token) {
+      // Check if token is expired before adding it
+      if (this.authService.isTokenExpired(token)) {
+        // Token is expired, logout and redirect
+        this.authService.logout();
+        this.router.navigate(['/auth/login'], { 
+          queryParams: { reason: 'expired' } 
+        });
+        return throwError(() => new Error('Token expired'));
+      }
+      
+      request = request.clone({
+        setHeaders: {
+          Authorization: `Bearer ${token}`
+        }
+      });
     }
-    return next.handle(authReq);
+
+    // Handle the request and catch any errors
+    return next.handle(request).pipe(
+      catchError((error: HttpErrorResponse) => {
+        // If unauthorized (401), redirect to login
+        if (error.status === 401) {
+          this.authService.logout();
+          this.router.navigate(['/auth/login'], { 
+            queryParams: { reason: 'unauthorized' } 
+          });
+        }
+        
+        return throwError(() => error);
+      })
+    );
   }
 }
-
-export const authInterceptorProviders = [
-  { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
-];

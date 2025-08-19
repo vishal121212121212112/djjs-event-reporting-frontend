@@ -29,9 +29,9 @@ import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 // Auth
-import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
 import { ErrorInterceptor } from './core/helpers/error.interceptor';
-import { JwtInterceptor } from './core/helpers/jwt.interceptor';
+import { AuthInterceptor } from './core/helpers/auth.interceptor';
 import { FakeBackendInterceptor } from './core/helpers/fake-backend';
 import { FilemanagerEffects } from './store/filemanager/filemanager.effects';
 import { rootReducer } from './store';
@@ -69,6 +69,7 @@ export function createTranslateLoader(http: HttpClient): any {
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
         BrowserAnimationsModule,
+        HttpClientModule,
         AngularFireModule.initializeApp(environment.firebaseConfig),
         AngularFireAuthModule,
         TranslateModule.forRoot({
@@ -110,9 +111,9 @@ export function createTranslateLoader(http: HttpClient): any {
             CustomerEffects,
             MailEffects
         ])], providers: [
-        { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
+        { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
         { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
         { provide: HTTP_INTERCEPTORS, useClass: FakeBackendInterceptor, multi: true },
-        provideHttpClient(withInterceptorsFromDi()),
+        HttpClientModule,
     ] })
 export class AppModule { }

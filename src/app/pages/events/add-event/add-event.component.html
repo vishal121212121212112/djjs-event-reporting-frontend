@@ -37,102 +37,168 @@
   </div>
 </div>
 
-<!-- Form Content -->
-<div class="row">
+<!-- Success and Error Messages -->
+<div class="row mb-3" *ngIf="successMessage || errorMessage">
+  <div class="col-12">
+    <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="fas fa-check-circle me-2"></i>
+      {{ successMessage }}
+      <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+    </div>
+    <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="fas fa-exclamation-circle me-2"></i>
+      {{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Mock Data Buttons -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card border-primary">
+      <div class="card-header bg-primary text-white">
+        <h6 class="mb-0">
+          <i class="fas fa-database me-2"></i>🎯 MOCK DATA FOR TESTING - CLICK ANY BUTTON BELOW
+        </h6>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <h6 class="text-primary mb-2">Quick Fill Options:</h6>
+            <button type="button" class="btn btn-outline-info btn-sm me-2 mb-2" (click)="fillWithSampleData()">
+              <i class="fas fa-magic me-1"></i>Sample Data
+            </button>
+            <button type="button" class="btn btn-outline-warning btn-sm mb-2" (click)="fillWithRandomMockData()">
+              <i class="fas fa-random me-1"></i>Random Data
+            </button>
+          </div>
+          <div class="col-md-4 mb-3">
+            <h6 class="text-primary mb-2">Event Type Quick Fill:</h6>
+            <div class="btn-group-vertical d-block">
+              <button type="button" class="btn btn-outline-primary btn-sm mb-1" (click)="quickFillEventType('spiritual')">
+                🕉️ Spiritual Event
+              </button>
+              <button type="button" class="btn btn-outline-primary btn-sm mb-1" (click)="quickFillEventType('cultural')">
+                🎭 Cultural Event
+              </button>
+              <button type="button" class="btn btn-outline-primary btn-sm mb-1" (click)="quickFillEventType('educational')">
+                📚 Educational Event
+              </button>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <h6 class="text-primary mb-2">Form Management:</h6>
+            <button type="button" class="btn btn-outline-danger btn-sm" (click)="clearAllForms()">
+              <i class="fas fa-trash me-1"></i>Clear All Forms
+            </button>
+          </div>
+        </div>
+        <div class="alert alert-info mt-2">
+          <i class="fas fa-info-circle me-2"></i>
+          <strong>Instructions:</strong> Click any button above to automatically fill the forms with mock data for testing!
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mock Data Preview -->
+<div class="row mb-4">
   <div class="col-12">
     <div class="card">
+      <div class="card-header">
+        <h6 class="mb-0">
+          <i class="fas fa-eye me-2"></i>Mock Data Preview
+        </h6>
+      </div>
       <div class="card-body">
-        <form #eventForm="ngForm">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped">
+            <thead class="table-light">
+              <tr>
+                <th>ID</th>
+                <th>Event Name</th>
+                <th>Type</th>
+                <th>Scale</th>
+                <th>Location</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let event of mockEvents">
+                <td><span class="badge bg-secondary">{{ event.id }}</span></td>
+                <td>{{ event.eventName }}</td>
+                <td><span class="badge bg-info">{{ event.eventType }}</span></td>
+                <td>{{ event.scale }}</td>
+                <td>{{ event.city }}, {{ event.state }}</td>
+                <td>{{ event.duration }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <small class="text-muted">
+          <i class="fas fa-info-circle me-1"></i>
+          Showing {{ mockEvents.length }} mock events available for testing
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
 
-          <!-- Step 1: General Details -->
+<!-- Event Form -->
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="card-title mb-0">Add New Event</h4>
+        </div>
+        <div class="card-body">
+          <!-- Step 1: Basic Event Details -->
           <div *ngIf="currentStep === 1">
-            <h5 class="mb-4">Event details</h5>
-            <!-- <div class="row">
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Type</label>
-                <select class="form-select" [formControl]="generalDetailsForm.get('eventType')">
-                  <option *ngFor="let type of eventTypes" [value]="type">{{type}}</option>
-                </select>
-              </div>
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Event name</label>
-                <input type="text" class="form-control" [formControl]="generalDetailsForm.get('eventName')">
-              </div>
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Katha type</label>
-                <select class="form-select" [formControl]="generalDetailsForm.get('kathaType')">
-                  <option *ngFor="let type of kathaTypes" [value]="type">{{type}}</option>
-                </select>
-              </div>
-            </div> -->
-            <div class="row">
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Type <span class="text-danger">*</span></label>
-                <select class="form-select" [formControl]="generalDetailsForm.get('eventType')">
-                  <option value="">Select Event Type</option>
-                  <option *ngFor="let type of eventTypes" [value]="type">{{type}}</option>
-                </select>
-              </div>
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Event name <span class="text-danger">*</span></label>
-                <select class="form-select" [formControl]="generalDetailsForm.get('eventName')"
-                  [disabled]="!generalDetailsForm.get('eventType')?.value">
-                  <option value="">Select Event Name</option>
-                  <option *ngFor="let name of availableEventNames" [value]="name">{{name}}</option>
-                </select>
-                <small class="text-muted" *ngIf="!generalDetailsForm.get('eventType')?.value">
-                  Please select event type first
-                </small>
-              </div>
-              <div class="col-md-4 mb-3" *ngIf="shouldShowKathaType()">
-                <label class="form-label">Katha type</label>
-                <select class="form-select" [formControl]="generalDetailsForm.get('kathaType')"
-                  [disabled]="!generalDetailsForm.get('eventName')?.value || !shouldShowKathaType()">
-                  <option value="">Select Katha Type</option>
-                  <option *ngFor="let type of availableKathaTypes" [value]="type">{{type}}</option>
-                </select>
-                <small class="text-muted" *ngIf="!generalDetailsForm.get('eventName')?.value">
-                  Please select event name first
-                </small>
+            <h5 class="mb-4">Basic Event Details</h5>
+            <form [formGroup]="generalDetailsForm">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Event Name <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" formControlName="eventName" placeholder="Enter event name">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Event Type <span class="text-danger">*</span></label>
+                  <select class="form-select" formControlName="eventType">
+                    <option value="">Select Event Type</option>
+                    <option *ngFor="let type of eventTypes" [value]="type">{{type}}</option>
+                  </select>
+                </div>
               </div>
 
-              <h5 class="mb-4 mt-4">Katha details</h5>
               <div class="row">
-                <div class="col-md-4 mb-3">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Katha Type</label>
+                  <select class="form-select" formControlName="kathaType">
+                    <option value="">Select Katha Type</option>
+                    <option *ngFor="let type of kathaTypes" [value]="type">{{type}}</option>
+                  </select>
+                </div>
+                <div class="col-md-6 mb-3">
                   <label class="form-label">Scale</label>
-                  <select class="form-select" [formControl]="generalDetailsForm.get('scale')">
-                    <option value="">Select</option>
+                  <select class="form-select" formControlName="scale">
+                    <option value="">Select Scale</option>
                     <option *ngFor="let scale of scales" [value]="scale">{{scale}}</option>
                   </select>
                 </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Theme</label>
-                  <select class="form-select" [formControl]="generalDetailsForm.get('theme')">
-                    <option value="">Select</option>
-                    <option value="spiritual">Spiritual</option>
-                    <option value="devotional">Devotional</option>
-                    <option value="philosophical">Philosophical</option>
-                  </select>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Language</label>
-                  <select class="form-select" [formControl]="generalDetailsForm.get('language')">
-                    <option value="">Select</option>
-                    <option *ngFor="let lang of languages" [value]="lang">{{lang}}</option>
-                  </select>
-                </div>
               </div>
 
               <div class="row">
-                <div class="col-md-4 mb-3">
+                <div class="col-md-6 mb-3">
                   <label class="form-label">Duration</label>
-                  <input type="text" class="form-control" [formControl]="generalDetailsForm.get('duration')"
-                    placeholder="dd MMM yyyy - dd MMM, yyyy">
+                  <input type="text" class="form-control" formControlName="duration" placeholder="dd MMM yyyy - dd MMM, yyyy">
                 </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Daily start time</label>
-                  <select class="form-select" [formControl]="generalDetailsForm.get('dailyStartTime')">
-                    <option value="">Select</option>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Daily Start Time</label>
+                  <select class="form-select" formControlName="dailyStartTime">
+                    <option value="">Select Time</option>
                     <option value="06:00">6:00 AM</option>
                     <option value="07:00">7:00 AM</option>
                     <option value="08:00">8:00 AM</option>
@@ -141,10 +207,13 @@
                     <option value="19:00">7:00 PM</option>
                   </select>
                 </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Daily end time</label>
-                  <select class="form-select" [formControl]="generalDetailsForm.get('dailyEndTime')">
-                    <option value="">Select</option>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Daily End Time</label>
+                  <select class="form-select" formControlName="dailyEndTime">
+                    <option value="">Select Time</option>
                     <option value="07:30">7:30 AM</option>
                     <option value="08:30">8:30 AM</option>
                     <option value="09:30">9:30 AM</option>
@@ -153,13 +222,10 @@
                     <option value="21:30">9:30 PM</option>
                   </select>
                 </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-4 mb-3">
+                <div class="col-md-6 mb-3">
                   <label class="form-label">Spiritual Orator</label>
-                  <select class="form-select" [formControl]="generalDetailsForm.get('spiritualOrator')">
-                    <option value="">Select</option>
+                  <select class="form-select" formControlName="spiritualOrator">
+                    <option value="">Select Orator</option>
                     <option value="dr-anya-sharma">Dr. Anya Sharma</option>
                     <option value="mr-rohan-verma">Mr. Rohan Verma</option>
                     <option value="swami-ji">Swami Ji</option>
@@ -167,712 +233,153 @@
                 </div>
               </div>
 
-              <h5 class="mb-4 mt-4">Venue</h5>
               <div class="row">
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Country *</label>
-                  <select class="form-select" [formControl]="generalDetailsForm.get('country')">
-                    <option value="">Select</option>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Country</label>
+                  <select class="form-select" formControlName="country">
+                    <option value="">Select Country</option>
                     <option *ngFor="let country of countries" [value]="country">{{country}}</option>
                   </select>
                 </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Pincode</label>
-                  <input type="text" class="form-control" [formControl]="generalDetailsForm.get('pincode')"
-                    placeholder="Pincode">
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Post office *</label>
-                  <select class="form-select" [formControl]="generalDetailsForm.get('postOffice')">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">State</label>
+                  <select class="form-select" formControlName="state">
+                    <option value="">Select State</option>
                     <option *ngFor="let state of states" [value]="state">{{state}}</option>
                   </select>
                 </div>
               </div>
 
               <div class="row">
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Thana</label>
-                  <input type="text" class="form-control" [formControl]="generalDetailsForm.get('thana')"
-                    placeholder="Enter">
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Tehsil</label>
-                  <input type="text" class="form-control" [formControl]="generalDetailsForm.get('tehsil')"
-                    placeholder="Enter">
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">State *</label>
-                  <select class="form-select" [formControl]="generalDetailsForm.get('state')">
-                    <option *ngFor="let state of states" [value]="state">{{state}}</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-4 mb-3">
+                <div class="col-md-6 mb-3">
                   <label class="form-label">City</label>
-                  <select class="form-select" [formControl]="generalDetailsForm.get('city')">
+                  <select class="form-select" formControlName="city">
+                    <option value="">Select City</option>
                     <option *ngFor="let city of cities" [value]="city">{{city}}</option>
                   </select>
                 </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Address type *</label>
-                  <select class="form-select" [formControl]="generalDetailsForm.get('addressType')">
-                    <option value="">Select</option>
-                    <option *ngFor="let type of addressTypes" [value]="type">{{type}}</option>
-                  </select>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Address *</label>
-                  <input type="text" class="form-control" [formControl]="generalDetailsForm.get('address')"
-                    placeholder="Enter">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Address</label>
+                  <input type="text" class="form-control" formControlName="address" placeholder="Enter address">
                 </div>
               </div>
 
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label class="form-label">Prachar *</label>
-                  <div class="form-control" style="min-height: 38px;">
-                    <span class="badge bg-primary me-2" *ngFor="let item of generalDetailsForm.get('prachar')?.value">
-                      {{item}} <i class="fas fa-times ms-1" style="cursor: pointer;"></i>
-                    </span>
-                  </div>
-                  <small class="text-muted">This hint text is only for Peace Procession:</small>
+                  <label class="form-label">Area Covered</label>
+                  <input type="text" class="form-control" formControlName="areaCovered" placeholder="0.00 Sq km">
                 </div>
                 <div class="col-md-6 mb-3">
-                  <label class="form-label">Area covered</label>
-                  <input type="text" class="form-control" [formControl]="generalDetailsForm.get('areaCovered')"
-                    placeholder="0.00 Sq km">
+                  <label class="form-label">Pincode</label>
+                  <input type="text" class="form-control" formControlName="pincode" placeholder="Enter pincode">
                 </div>
               </div>
-
-              <h5 class="mb-4 mt-4">Donations</h5>
-              <div class="row">
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Donation type</label>
-                  <select class="form-select" [formControl]="generalDetailsForm.get('donationType')">
-                    <option *ngFor="let type of donationTypeOptions" [value]="type">{{type}}</option>
-                  </select>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Amount</label>
-                  <div class="input-group">
-                    <span class="input-group-text">₹</span>
-                    <input type="number" class="form-control" [formControl]="generalDetailsForm.get('cashAmount')"
-                      placeholder="Amount in Rupees">
-                  </div>
-                  <small class="text-muted">Keep the cash by default added</small>
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Donation type</label>
-                  <select class="form-select" [formControl]="generalDetailsForm.get('inKindType')">
-                    <option value="In-kind">In-kind</option>
-                  </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">In-kind type</label>
-                  <div class="form-control" style="min-height: 38px;">
-                    <span class="badge bg-primary me-2"
-                      *ngFor="let item of generalDetailsForm.get('inKindItems')?.value">
-                      {{item}} <i class="fas fa-times ms-1" style="cursor: pointer;"></i>
-                    </span>
-                  </div>
-                  <small class="text-muted">Write material type then Quantity, e.g Rice 5kg, bed-sheet - 2</small>
-                </div>
-                <div class="col-md-2 mb-3">
-                  <label class="form-label">Estimated Amount</label>
-                  <div class="input-group">
-                    <span class="input-group-text">₹</span>
-                    <input type="number" class="form-control" [formControl]="generalDetailsForm.get('estimatedAmount')"
-                      placeholder="Amount in Rupees">
-                  </div>
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <button type="button" class="btn btn-outline-primary" (click)="addDonationType()">
-                    <i class="fas fa-plus me-2"></i>Add donation type
-                  </button>
-                </div>
-              </div>
-
-              <!-- Dynamic Donation Types -->
-              <div class="row" *ngFor="let donation of donationTypes; let i = index">
-                <div class="col-md-3 mb-3">
-                  <label class="form-label">Donation Type</label>
-                  <select class="form-select" [(ngModel)]="donation.type">
-                    <option *ngFor="let type of ['Cash', 'In-kind', 'Bank Transfer', 'Cheque']" [value]="type">{{type}}
-                    </option>
-                  </select>
-                </div>
-                <div class="col-md-3 mb-3">
-                  <label class="form-label">Amount</label>
-                  <input type="text" class="form-control" [(ngModel)]="donation.amount" placeholder="Enter amount">
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">Description</label>
-                  <input type="text" class="form-control" [(ngModel)]="donation.description"
-                    placeholder="Enter description">
-                </div>
-                <div class="col-md-2 mb-3 d-flex align-items-end">
-                  <button type="button" class="btn btn-outline-danger" (click)="removeDonationType(i)"
-                    *ngIf="donationTypes.length > 1">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </div>
-              </div>
-
-              <h5 class="mb-4 mt-4">Sold items</h5>
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Number of Akhand gyan</label>
-                  <input type="number" class="form-control" [formControl]="generalDetailsForm.get('akhandGyan')"
-                    placeholder="Enter number">
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Sell Amount</label>
-                  <input type="number" class="form-control" [formControl]="generalDetailsForm.get('sellAmount')"
-                    placeholder="Enter number">
-                </div>
-              </div>
-              <small class="text-muted">Section specific to others-book fair</small>
-            </div>
+            </form>
           </div>
 
 
           <!-- Step 2: Media & Promotion -->
           <div *ngIf="currentStep === 2">
-            <h5 class="mb-4">Event media</h5>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Media coverage type</label>
-                <select class="form-select" [formControl]="mediaPromotionForm.get('mediaCoverageType')">
-                  <option value="">Select</option>
-                  <option *ngFor="let type of mediaCoverageTypes" [value]="type">{{type}}</option>
-                </select>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Organization/ Company name</label>
-                <input type="text" class="form-control" [formControl]="mediaPromotionForm.get('organizationName')"
-                  placeholder="Enter">
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Media Email</label>
-                <select class="form-select" [formControl]="mediaPromotionForm.get('mediaEmail')">
-                  <option value="">Select</option>
-                  <option value="info&#64;example.com">info&#64;example.com</option>
-                  <option value="media&#64;example.com">media&#64;example.com</option>
-                </select>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Media Website</label>
-                <input type="text" class="form-control" [formControl]="mediaPromotionForm.get('mediaWebsite')"
-                  placeholder="Enter">
-              </div>
-            </div>
-
-            <h5 class="mb-4 mt-4">Provide details of media person</h5>
-            <div class="row">
-              <div class="col-md-2 mb-3">
-                <label class="form-label">Prefix</label>
-                <select class="form-select" formControlName="prefix">
-                  <option value="">Select</option>
-                  <option *ngFor="let prefix of prefixes" [value]="prefix">{{prefix}}</option>
-                </select>
-              </div>
-              <div class="col-md-3 mb-3">
-                <label class="form-label">Media person's first name</label>
-                <input type="text" class="form-control" formControlName="firstName" placeholder="Enter">
-              </div>
-              <div class="col-md-3 mb-3">
-                <label class="form-label">Middle name</label>
-                <input type="text" class="form-control" formControlName="middleName" placeholder="Enter">
-              </div>
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Last name</label>
-                <input type="text" class="form-control" formControlName="lastName" placeholder="Enter">
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Designation</label>
-                <input type="text" class="form-control" formControlName="designation" placeholder="Enter designation">
-              </div>
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Media person's contact</label>
-                <input type="text" class="form-control" formControlName="contact" placeholder="Enter phone number">
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Media person's email</label>
-                <input type="email" class="form-control" formControlName="email" placeholder="Enter email">
-              </div>
-            </div>
-
-            <h5 class="mb-4 mt-4">Provide details of reference person</h5>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Reference branch ID</label>
-                <select class="form-select" formControlName="referenceBranchId">
-                  <option value="">Enter</option>
-                  <option value="BR001">BR001</option>
-                  <option value="BR002">BR002</option>
-                </select>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Reference member ID</label>
-                <input type="text" class="form-control" formControlName="referenceMemberId" placeholder="Enter">
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Reference person's name</label>
-                <input type="text" class="form-control" formControlName="referencePersonName" value="--------" readonly>
-              </div>
-            </div>
-
-            <h5 class="mb-4 mt-4">Promotional material used</h5>
-            <div class="row">
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Material type</label>
-                <select class="form-select" formControlName="materialType">
-                  <option value="">Select</option>
-                  <option *ngFor="let type of materialTypeOptions" [value]="type">{{type}}</option>
-                </select>
-              </div>
-              <div class="col-md-3 mb-3">
-                <label class="form-label">Quantity</label>
-                <input type="number" class="form-control" formControlName="quantity" placeholder="Add number">
-              </div>
-              <div class="col-md-3 mb-3">
-                <label class="form-label">Size</label>
-                <select class="form-select" formControlName="size">
-                  <option value="">Select</option>
-                  <option *ngFor="let size of materialSizes" [value]="size">{{size}}</option>
-                </select>
-              </div>
-              <div class="col-md-2 mb-3 d-flex align-items-end">
-                <button type="button" class="btn btn-outline-danger">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <button type="button" class="btn btn-outline-primary" (click)="addMaterialType()">
-                  <i class="fas fa-plus me-2"></i>Add material type
-                </button>
-              </div>
-            </div>
-
-            <!-- Dynamic Material Types -->
-            <div class="row" *ngFor="let material of materialTypes; let i = index">
-              <div class="col-md-2 mb-3">
-                <label class="form-label">Type</label>
-                <select class="form-select" [(ngModel)]="material.type">
-                  <option value="">Select</option>
-                  <option *ngFor="let type of ['Banner', 'Pamphlet', 'Poster', 'Social Media Post', 'TV Advertisement']"
-                    [value]="type">{{type}}</option>
-                </select>
-              </div>
-              <div class="col-md-2 mb-3">
-                <label class="form-label">Quantity</label>
-                <input type="number" class="form-control" [(ngModel)]="material.quantity" placeholder="Qty">
-              </div>
-              <div class="col-md-2 mb-3">
-                <label class="form-label">Size</label>
-                <select class="form-select" [(ngModel)]="material.size">
-                  <option value="">Select</option>
-                  <option *ngFor="let size of materialSizes" [value]="size">{{size}}</option>
-                </select>
-              </div>
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Description</label>
-                <input type="text" class="form-control" [(ngModel)]="material.description"
-                  placeholder="Enter description">
-              </div>
-              <div class="col-md-2 mb-3 d-flex align-items-end">
-                <button type="button" class="btn btn-outline-danger" (click)="removeMaterialType(i)"
-                  *ngIf="materialTypes.length > 1">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
-            </div>
-
-            <h5 class="mb-4 mt-4">Media and Documentation</h5>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Event photos</label>
-                <div class="input-group">
-                  <input type="file" class="form-control" multiple accept="image/*"
-                    (change)="onFileSelected($event, 'eventPhotos')" style="display: none;" #eventPhotosInput>
-                  <input type="text" class="form-control"
-                    [value]="uploadedFiles.eventPhotos.length > 0 ? uploadedFiles.eventPhotos.length + ' file(s) selected' : 'No file chosen'"
-                    readonly>
-                  <button type="button" class="btn btn-outline-primary"
-                    (click)="eventPhotosInput.click()">Upload</button>
-                </div>
-                <small class="text-muted"
-                  *ngIf="uploadedFiles.eventPhotos.length > 0">{{uploadedFiles.eventPhotos.length}} file(s)
-                  selected</small>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Video Coverage</label>
-                <div class="input-group">
-                  <input type="text" class="form-control" [(ngModel)]="uploadedFiles.videoCoverage"
-                    placeholder="YouTube link/ channel link" (input)="onVideoCoverageChange($event)">
-                </div>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Press Release</label>
-                <div class="input-group">
-                  <input type="file" class="form-control" multiple accept=".pdf,.doc,.docx"
-                    (change)="onFileSelected($event, 'pressRelease')" style="display: none;" #pressReleaseInput>
-                  <input type="text" class="form-control"
-                    [value]="uploadedFiles.pressRelease.length > 0 ? uploadedFiles.pressRelease.length + ' file(s) selected' : 'No file chosen'"
-                    readonly>
-                  <button type="button" class="btn btn-outline-primary"
-                    (click)="pressReleaseInput.click()">Upload</button>
-                </div>
-                <small class="text-muted"
-                  *ngIf="uploadedFiles.pressRelease.length > 0">{{uploadedFiles.pressRelease.length}} file(s)
-                  selected</small>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Testimonials</label>
-                <div class="input-group">
-                  <input type="file" class="form-control" multiple accept=".pdf,.doc,.docx,.txt"
-                    (change)="onFileSelected($event, 'testimonials')" style="display: none;" #testimonialsInput>
-                  <input type="text" class="form-control"
-                    [value]="uploadedFiles.testimonials.length > 0 ? uploadedFiles.testimonials.length + ' file(s) selected' : 'No file chosen'"
-                    readonly>
-                  <button type="button" class="btn btn-outline-primary"
-                    (click)="testimonialsInput.click()">Upload</button>
-                </div>
-                <small class="text-muted"
-                  *ngIf="uploadedFiles.testimonials.length > 0">{{uploadedFiles.testimonials.length}} file(s)
-                  selected</small>
-              </div>
-            </div>
-          </div>
-
-          <!-- Step 3: Involved Participants -->
-          <div *ngIf="currentStep === 3">
-            <h5 class="mb-4">Add Special Guests</h5>
-
-            <!-- Add Guest Button -->
-            <!-- <div class="row mb-3">
-              <div class="col-12">
-                <button type="button" class="btn btn-outline-primary" (click)="addSpecialGuest()">
-                  <i class="fas fa-plus me-2"></i>Add Special Guest
-                </button>
-              </div>
-            </div> -->
-
-            <!-- Dynamic Special Guests -->
-            <div *ngFor="let guest of specialGuests; let i = index" class="guest-section mb-4 p-3 border rounded">
-              <h6 class="mb-3">Guest {{i + 1}}</h6>
+            <h5 class="mb-4">Media & Promotion</h5>
+            <form [formGroup]="mediaPromotionForm">
               <div class="row">
-                <div class="col-md-2 mb-3">
-                  <label class="form-label">Gender</label>
-                  <select class="form-select" [(ngModel)]="guest.gender">
-                    <option value="">Select</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Media Coverage Type</label>
+                  <select class="form-select" formControlName="mediaCoverageType">
+                    <option value="">Select Type</option>
+                    <option *ngFor="let type of mediaCoverageTypes" [value]="type">{{type}}</option>
                   </select>
                 </div>
-                <div class="col-md-2 mb-3">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Organization Name</label>
+                  <input type="text" class="form-control" formControlName="organizationName" placeholder="Enter organization name">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Media Email</label>
+                  <select class="form-select" formControlName="mediaEmail">
+                    <option value="">Select Email</option>
+                    <option value="info&#64;example.com">info&#64;example.com</option>
+                    <option value="media&#64;example.com">media&#64;example.com</option>
+                  </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Media Website</label>
+                  <input type="text" class="form-control" formControlName="mediaWebsite" placeholder="Enter website">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-4 mb-3">
                   <label class="form-label">Prefix</label>
-                  <select class="form-select" [(ngModel)]="guest.prefix">
+                  <select class="form-select" formControlName="prefix">
                     <option value="">Select</option>
                     <option *ngFor="let prefix of prefixes" [value]="prefix">{{prefix}}</option>
                   </select>
                 </div>
-                <div class="col-md-2 mb-3">
-                  <label class="form-label">First name</label>
-                  <input type="text" class="form-control" [(ngModel)]="guest.firstName" placeholder="Enter">
-                </div>
-                <div class="col-md-2 mb-3">
-                  <label class="form-label">Middle name</label>
-                  <input type="text" class="form-control" [(ngModel)]="guest.middleName" placeholder="Enter">
-                </div>
-                <div class="col-md-2 mb-3">
-                  <label class="form-label">Last name</label>
-                  <input type="text" class="form-control" [(ngModel)]="guest.lastName" placeholder="Enter">
-                </div>
-                <div class="col-md-2 mb-3">
-                  <label class="form-label">Designation</label>
-                  <input type="text" class="form-control" [(ngModel)]="guest.designation" placeholder="Enter">
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-3 mb-3">
-                  <label class="form-label">Organization</label>
-                  <input type="text" class="form-control" [(ngModel)]="guest.organization" placeholder="Enter">
-                </div>
-                <div class="col-md-3 mb-3">
-                  <label class="form-label">Email</label>
-                  <input type="email" class="form-control" [(ngModel)]="guest.email" placeholder="Enter">
-                </div>
-                <div class="col-md-3 mb-3">
-                  <label class="form-label">Personal number</label>
-                  <input type="text" class="form-control" [(ngModel)]="guest.contact" placeholder="Enter">
-                </div>
-                <div class="col-md-3 mb-3">
-                  <label class="form-label">Contact person</label>
-                  <input type="text" class="form-control" [(ngModel)]="guest.contactPerson" placeholder="Enter">
-                </div>
-              </div>
-
-              <!-- Remove Guest Button -->
-              <div class="row">
-                <div class="col-12 text-end">
-                  <button type="button" class="btn btn-outline-danger btn-sm" (click)="removeSpecialGuest(i)">
-                    <i class="fas fa-trash me-1"></i>Remove Guest
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-md-3 mb-3">
-                <label class="form-label">Contact number</label>
-                <input type="text" class="form-control" placeholder="Enter">
-              </div>
-              <div class="col-md-3 mb-3">
-                <label class="form-label">Reference member ID</label>
-                <input type="text" class="form-control" placeholder="Enter">
-              </div>
-              <div class="col-md-3 mb-3">
-                <label class="form-label">City</label>
-                <select class="form-select">
-                  <option value="">Select</option>
-                  <option *ngFor="let city of cities" [value]="city">{{city}}</option>
-                </select>
-              </div>
-              <div class="col-md-3 mb-3">
-                <label class="form-label">State</label>
-                <input type="text" class="form-control" value="Karnataka" readonly>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-md-3 mb-3">
-                <label class="form-label">Reference branch ID</label>
-                <select class="form-select">
-                  <option value="">Select</option>
-                  <option value="BR001">BR001</option>
-                  <option value="BR002">BR002</option>
-                </select>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Reference person name</label>
-                <input type="text" class="form-control" value="--------" readonly>
-              </div>
-              <div class="col-md-3 mb-3 d-flex align-items-end">
-                <button type="button" class="btn btn-primary" (click)="addSpecialGuest()">
-                  <i class="fas fa-plus me-2"></i>Add guest
-                </button>
-              </div>
-            </div>
-
-            <div class="row mb-4">
-              <div class="col-12">
-                <h6>List of Special Guests (1)</h6>
-                <div class="table-responsive">
-                  <table class="table table-bordered">
-                    <thead class="table-light">
-                      <tr>
-                        <th>Action</th>
-                        <th>Name (Phone no.)</th>
-                        <th>Gender</th>
-                        <th>Designation</th>
-                        <th>Organization</th>
-                        <th>Email</th>
-                        <th>City, State</th>
-                        <th>Personal no.</th>
-                        <th>Contact Person (Phone no.)</th>
-                        <th>Reference Person (Phone no.)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td><button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button></td>
-                        <td>Jane Doe (000000000)</td>
-                        <td>Female</td>
-                        <td>Manager</td>
-                        <td>ABC Corp</td>
-                        <td>jane&#64;example.com</td>
-                        <td>Bangalore, Karnataka</td>
-                        <td>000000000</td>
-                        <td>John Doe (000000000)</td>
-                        <td>John Doe (000000000)</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <h5 class="mb-4">Beneficiaries (0)</h5>
-            <small class="text-muted mb-3 d-block">People who attended</small>
-            <div class="row">
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Men</label>
-                <input type="number" class="form-control"
-                  [formControl]="involvedParticipantsForm.get('beneficiariesMen')" min="0">
-              </div>
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Women</label>
-                <input type="number" class="form-control"
-                  [formControl]="involvedParticipantsForm.get('beneficiariesWomen')" min="0">
-              </div>
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Children</label>
-                <input type="number" class="form-control"
-                  [formControl]="involvedParticipantsForm.get('beneficiariesChildren')" min="0">
-              </div>
-            </div>
-
-            <h5 class="mb-4 mt-4">Initiation (0)</h5>
-            <small class="text-muted mb-3 d-block">People who took Gyan</small>
-            <div class="row">
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Men</label>
-                <input type="number" class="form-control" [formControl]="involvedParticipantsForm.get('initiationMen')"
-                  min="0">
-              </div>
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Women</label>
-                <input type="number" class="form-control"
-                  [formControl]="involvedParticipantsForm.get('initiationWomen')" min="0">
-              </div>
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Children</label>
-                <input type="number" class="form-control"
-                  [formControl]="involvedParticipantsForm.get('initiationChildren')" min="0">
-              </div>
-            </div>
-
-            <h5 class="mb-4 mt-4">Add Volunteer</h5>
-            <div class="row">
-              <div class="col-md-3 mb-3">
-                <label class="form-label">Branch ID</label>
-                <select class="form-select">
-                  <option value="">Select</option>
-                  <option value="BR001">BR001</option>
-                  <option value="BR002">BR002</option>
-                </select>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Search Member</label>
-                <div class="input-group">
-                  <input type="text" class="form-control" placeholder="Search by name, email or mobile no.">
-                  <span class="input-group-text">
-                    <i class="fas fa-search"></i>
-                  </span>
-                </div>
-              </div>
-              <div class="col-md-3 mb-3">
-                <label class="form-label">Volunteer's name</label>
-                <input type="text" class="form-control" value="--------" readonly>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-md-4 mb-3">
-                <label class="form-label">No. of Days</label>
-                <input type="number" class="form-control" placeholder="Enter number" min="1">
-              </div>
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Seva Involved</label>
-                <select class="form-select">
-                  <option value="">Select</option>
-                  <option *ngFor="let seva of sevaTypes" [value]="seva">{{seva}}</option>
-                </select>
-              </div>
-              <div class="col-md-4 mb-3 d-flex align-items-end">
-                <button type="button" class="btn btn-primary" (click)="addVolunteer()">
-                  <i class="fas fa-plus me-2"></i>Add Volunteer
-                </button>
-              </div>
-            </div>
-
-            <!-- Dynamic Volunteers -->
-            <div *ngFor="let volunteer of volunteers; let i = index" class="volunteer-section mb-4 p-3 border rounded">
-              <h6 class="mb-3">Volunteer {{i + 1}}</h6>
-              <div class="row">
                 <div class="col-md-4 mb-3">
-                  <label class="form-label">Name</label>
-                  <input type="text" class="form-control" [(ngModel)]="volunteer.name"
-                    placeholder="Enter volunteer name">
+                  <label class="form-label">First Name</label>
+                  <input type="text" class="form-control" formControlName="firstName" placeholder="Enter first name">
                 </div>
                 <div class="col-md-4 mb-3">
-                  <label class="form-label">No. of Days</label>
-                  <input type="number" class="form-control" [(ngModel)]="volunteer.days" placeholder="Enter number"
-                    min="1">
-                </div>
-                <div class="col-md-3 mb-3">
-                  <label class="form-label">Seva Involved</label>
-                  <select class="form-select" [(ngModel)]="volunteer.seva">
-                    <option value="">Select</option>
-                    <option *ngFor="let seva of sevaTypes" [value]="seva">{{seva}}</option>
-                  </select>
-                </div>
-                <div class="col-md-1 mb-3 d-flex align-items-end">
-                  <button type="button" class="btn btn-outline-danger btn-sm" (click)="removeVolunteer(i)">
-                    <i class="fas fa-trash"></i>
-                  </button>
+                  <label class="form-label">Last Name</label>
+                  <input type="text" class="form-control" formControlName="lastName" placeholder="Enter last name">
                 </div>
               </div>
-            </div>
-
-            <div class="row mb-4" *ngIf="volunteers.length > 0">
-              <div class="col-12">
-                <h6>List of Volunteers ({{volunteers.length}})</h6>
-                <div class="table-responsive">
-                  <table class="table table-bordered">
-                    <thead class="table-light">
-                      <tr>
-                        <th>Action</th>
-                        <th>Name</th>
-                        <th>No. of Days</th>
-                        <th>Seva Involved</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr *ngFor="let volunteer of volunteers; let i = index">
-                        <td><button class="btn btn-sm btn-outline-danger" (click)="removeVolunteer(i)"><i
-                              class="fas fa-trash"></i></button></td>
-                        <td>{{volunteer.name || 'Not specified'}}</td>
-                        <td>{{volunteer.days || 0}}</td>
-                        <td>{{volunteer.seva || 'Not specified'}}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            </form>
           </div>
 
-        </form>
+          <!-- Step 3: Involved Participants -->
+          <div *ngIf="currentStep === 3">
+            <h5 class="mb-4">Involved Participants</h5>
+            <form [formGroup]="involvedParticipantsForm">
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Beneficiaries - Men</label>
+                  <input type="number" class="form-control" formControlName="beneficiariesMen" min="0" placeholder="Enter number">
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Beneficiaries - Women</label>
+                  <input type="number" class="form-control" formControlName="beneficiariesWomen" min="0" placeholder="Enter number">
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Beneficiaries - Children</label>
+                  <input type="number" class="form-control" formControlName="beneficiariesChildren" min="0" placeholder="Enter number">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Initiation - Men</label>
+                  <input type="number" class="form-control" formControlName="initiationMen" min="0" placeholder="Enter number">
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Initiation - Women</label>
+                  <input type="number" class="form-control" formControlName="initiationWomen" min="0" placeholder="Enter number">
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Initiation - Children</label>
+                  <input type="number" class="form-control" formControlName="initiationChildren" min="0" placeholder="Enter number">
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-outline-primary" (click)="previousStep()" *ngIf="currentStep > 1">
+              <i class="fas fa-arrow-left me-2"></i>Previous
+            </button>
+            <button type="button" class="btn btn-primary" (click)="nextStep()" *ngIf="currentStep < totalSteps">
+              Next<i class="fas fa-arrow-right ms-2"></i>
+            </button>
+            <button type="button" class="btn btn-success" (click)="onSubmit()" *ngIf="currentStep === totalSteps">
+              <i class="fas fa-check me-2"></i>Submit Event
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

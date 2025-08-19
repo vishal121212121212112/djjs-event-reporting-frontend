@@ -1,7 +1,7 @@
 <div class="row">
   <div class="col-12">
     <div class="page-title-box d-flex align-items-center justify-content-between">
-      <h4 class="mb-0">User</h4>
+      <h4 class="mb-0">Users</h4>
       <div class="page-title-right">
         <button class="btn btn-primary" (click)="addUser()">
           <i class="fas fa-plus me-2"></i>Add User
@@ -10,94 +10,77 @@
     </div>
   </div>
 </div>
-<div class="row mb-3">
-  
-  <div class="col-md-6">
-    <div class="form-group">
-      <label class="form-label">Search</label>
-      <div class="input-group">
-        <span class="input-group-text">
-          <i class="fas fa-search"></i>
-        </span>
-        <input type="text" class="form-control" [(ngModel)]="globalFilterValue" placeholder="Search by email, name, type" (input)="applyFilter()">
+
+<p-toast></p-toast>
+
+<!-- Card wrapping search + table -->
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+
+        <!-- Search Bar -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="form-label">Search</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-search"></i>
+                </span>
+                <input type="text" class="form-control" [(ngModel)]="globalFilterValue"
+                  placeholder="Search by email, name, type" (input)="applyFilter()">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Table -->
+        <p-table [value]="users" [rowHover]="true" [paginator]="true" [rows]="rows" [first]="first"
+          [rowsPerPageOptions]="rowsPerPageOptions" [globalFilterFields]="['branchEmail', 'name', 'type']"
+          (onPageChange)="onPageChange($event)" (onSort)="onSort($event)" [sortMode]="'multiple'"
+          [tableStyle]="{ 'min-width': '100%' }">
+
+          <!-- Table Header -->
+          <ng-template pTemplate="header">
+            <tr>
+              <th pSortableColumn="branchEmail">Email <p-sortIcon field="branchEmail"></p-sortIcon></th>
+              <th pSortableColumn="name">Name <p-sortIcon field="name"></p-sortIcon></th>
+              <th pSortableColumn="type">Type <p-sortIcon field="type"></p-sortIcon></th>
+              <th pSortableColumn="createdBy">Created By <p-sortIcon field="createdBy"></p-sortIcon></th>
+              <th pSortableColumn="updatedBy">Updated By <p-sortIcon field="updatedBy"></p-sortIcon></th>
+              <th>Actions</th>
+            </tr>
+          </ng-template>
+
+          <!-- Table Body -->
+          <ng-template pTemplate="body" let-user>
+            <tr>
+              <td>{{ user.branchEmail }}</td>
+              <td>{{ user.name }}</td>
+              <td>{{ user.type }}</td>
+              <td>{{ user.createdBy }}</td>
+              <td>{{ user.updatedBy }}</td>
+              <td>
+                <div class="d-flex gap-1">
+                  <p-button type="button" icon="pi pi-pencil" size="small" severity="secondary" (onClick)="editUser(user.id)"
+                    pTooltip="Edit User" tooltipPosition="top"></p-button>
+                  <p-button type="button" icon="pi pi-trash" size="small" severity="danger" (onClick)="deleteUser(user.id)"
+                    pTooltip="Delete User" tooltipPosition="top"></p-button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+
+          <!-- Empty Message -->
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="6" class="text-center p-4 text-muted">No users found.</td>
+            </tr>
+          </ng-template>
+        </p-table>
+
       </div>
     </div>
   </div>
 </div>
-
-<!-- PrimeNG Table -->
-<p-toast />
-<p-table 
-  [value]="users" 
-  dataKey="id" 
-  [expandedRowKeys]="expandedRows" 
-  (onRowExpand)="onRowExpand($event)" 
-  (onRowCollapse)="onRowCollapse($event)"
-  [rowHover]="true"
-  [paginator]="true"
-  [rows]="rows"
-  [first]="first"
-  [rowsPerPageOptions]="rowsPerPageOptions"
-  [globalFilterFields]="['email', 'name', 'type']"
-  (onPageChange)="onPageChange($event)"
-  (onSort)="onSort($event)"
-  [sortMode]="'multiple'"
-  [tableStyle]="{ 'min-width': '100%' }">
-
-  <!-- Header with Sortable Columns -->
-  <ng-template pTemplate="header">
-    <tr>
-      <th style="width: 5rem"></th>
-      <th pSortableColumn="branchEmail">Email <p-sortIcon field="branchEmail"></p-sortIcon></th>
-      <th pSortableColumn="name">Name <p-sortIcon field="name"></p-sortIcon></th>
-      <th pSortableColumn="type">Type <p-sortIcon field="type"></p-sortIcon></th>
-      <th pSortableColumn="createdBy">Created By <p-sortIcon field="createdBy"></p-sortIcon></th>
-      <th pSortableColumn="updatedBy">Updated By <p-sortIcon field="updatedBy"></p-sortIcon></th>
-      <th>Actions</th>
-    </tr>
-  </ng-template>
-
-  <!-- Body -->
-  <ng-template pTemplate="body" let-user let-expanded="expanded">
-    <tr>
-      <td>
-        <p-button 
-          type="button" 
-          pRipple 
-          [pRowToggler]="user" 
-          [text]="true" 
-          severity="secondary"  
-          [rounded]="true" 
-          [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
-      </td>
-      <td>{{ user.branchEmail }}</td>
-      <td>{{ user.name }}</td>
-      <td>{{ user.type }}</td>
-      <td>{{ user.createdBy }}</td>
-      <td>{{ user.updatedBy }}</td>
-      <td *ngIf="users.length > 0">
-        <button (click)="editUser(user.id)">Edit</button>
-        <button (click)="deleteUser(user.id)">Delete</button>
-      </td>
-    </tr>
-  </ng-template>
-
-  <!-- Row Expansion -->
-  <ng-template pTemplate="rowexpansion" let-user>
-    <tr>
-      <td colspan="7">
-        <div class="p-4">
-          <p>Details for user: {{ user.name }}</p>
-          <!-- Add details here -->
-        </div>
-      </td>
-    </tr>
-  </ng-template>
-
-  <!-- Empty Message -->
-  <ng-template pTemplate="emptymessage">
-    <tr>
-      <td colspan="7" class="text-center p-4 text-muted">No users found.</td>
-    </tr>
-  </ng-template>
-</p-table>

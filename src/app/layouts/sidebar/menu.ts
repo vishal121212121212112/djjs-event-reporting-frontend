@@ -34,27 +34,13 @@ export const MENU: MenuItem[] = [
         id: 6,
         label: 'MENUITEMS.BRANCH.TEXT',
         icon: 'bx bx-git-pull-request',
-        link: '',
-        subItems: [
-            {
-                id: 61,
-                label: 'Branch List',
-                link: '/branch',
-                parentId: 6
-            },
-            {
-                id: 62,
-                label: 'User',
-                link: '/branch/branchAssistance',
-                parentId: 6
-            },
-        ]
+        link: '/branch'
     },
     {
         id: 7,
         label: 'Users',
         icon: 'bx-user',
-        link: '/users',
+        link: '/branch/branchAssistance',
     },
 
     

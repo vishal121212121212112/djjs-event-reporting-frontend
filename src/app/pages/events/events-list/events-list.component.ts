@@ -1033,20 +1033,25 @@ export class EventsListComponent implements OnInit {
   }
 
   openMoreDetailsModal(event: EventData): void {
-    this.selectedEvent = event;
-    this.isMoreDetailsModalOpen = true; // Track that More Details modal is open
-    // Use a more reliable method to open the modal
-    const modal = document.getElementById('moreDetailsModal');
-    if (modal) {
-      modal.classList.add('show');
-      modal.style.display = 'block';
-      modal.setAttribute('aria-hidden', 'false');
-      // Add backdrop
-      document.body.classList.add('modal-open');
-      const backdrop = document.createElement('div');
-      backdrop.className = 'modal-backdrop fade show';
-      document.body.appendChild(backdrop);
-    }
+    // this.selectedEvent = event;
+    // this.isMoreDetailsModalOpen = true; // Track that More Details modal is open
+    // // Use a more reliable method to open the modal
+    // const modal = document.getElementById('moreDetailsModal');
+    // if (modal) {
+    //   modal.classList.add('show');
+    //   modal.style.display = 'block';
+    //   modal.setAttribute('aria-hidden', 'false');
+    //   // Add backdrop
+    //   document.body.classList.add('modal-open');
+    //   const backdrop = document.createElement('div');
+    //   backdrop.className = 'modal-backdrop fade show';
+    //   document.body.appendChild(backdrop);
+    // }
+     this.router.navigate(['/view']);
+  }
+
+   openGallery(event: EventData): void {   
+     this.router.navigate(['/gallery']);
   }
 
   // Open media content modal

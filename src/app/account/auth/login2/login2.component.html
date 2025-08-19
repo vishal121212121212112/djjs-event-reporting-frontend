@@ -82,16 +82,13 @@
                                 <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
 
                                     <div class="mb-3">
-                                        <label for="email">Email</label>
-                                        <input type="email" class="form-control" id="email" formControlName="email" [ngClass]="{ 'is-invalid': submitted && f.email.errors }" placeholder="Enter email">
-                                        @if(submitted && f.password.errors){
+                                        <label for="identifier">Email or Username</label>
+                                        <input type="text" class="form-control" id="identifier" formControlName="identifier" [ngClass]="{ 'is-invalid': submitted && f.identifier.errors }" placeholder="Enter email or username">
+                                        @if(submitted && f.identifier.errors){
                                         <div class="invalid-feedback">
-                                            @if(f.email.errors.required){
-                                            <div>Email is required</div>
+                                            @if(f.identifier.errors.required){
+                                            <div>Email or username is required</div>
                                             }
-                                            @if(f.email.errors.email){
-                                            <div>Email must be a valid email address
-                                            </div>}
                                         </div>}
                                     </div>
 

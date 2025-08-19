@@ -1,14 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 22.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 225 225" style="enable-background:new 0 0 225 225;" xml:space="preserve">
+	 viewBox="0 0 200 200" style="enable-background:new 0 0 200 200;" xml:space="preserve">
 <style type="text/css">
-	.st0{fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-miterlimit:3;}
+	.globe{fill:#4A90E2;}
+	.land{fill:#7ED321;}
+	.conch{fill:#F5F5DC;}
+	.flame{fill:url(#flameGradient);}
+	.ring{fill:#FFFFFF;}
+	.ring-text{fill:#000000;font-family:Arial, sans-serif;font-size:12px;font-weight:bold;}
+	.sunburst{fill:url(#sunburstGradient);}
+	.eyes{fill:#8B4513;}
+	.eyebrow{fill:#654321;}
 </style>
-<g transform="matrix( 1, 0, 0, 1, 0,0) ">
-	<g>
-		<path id="Layer0_0_1_STROKES" class="st0" d="M173.8,151.5l13.6-13.6 M35.4,89.9l29.1-29 M89.4,34.9v1 M137.4,187.9l-0.6-0.4
-			 M36.6,138.7l0.2-0.2 M56.1,169.1l27.7-27.6 M63.8,111.5l74.3-74.4 M87.1,188.1L187.6,87.6 M110.8,114.5l57.8-57.8"/>
-	</g>
+
+<defs>
+	<radialGradient id="flameGradient" cx="50%" cy="50%" r="50%">
+		<stop offset="0%" style="stop-color:#FFFF00;stop-opacity:1" />
+		<stop offset="50%" style="stop-color:#FF8C00;stop-opacity:1" />
+		<stop offset="100%" style="stop-color:#FFD700;stop-opacity:1" />
+	</radialGradient>
+	<radialGradient id="sunburstGradient" cx="50%" cy="50%" r="50%">
+		<stop offset="0%" style="stop-color:#FF6B35;stop-opacity:1" />
+		<stop offset="100%" style="stop-color:#FF4500;stop-opacity:1" />
+	</radialGradient>
+</defs>
+
+<!-- Sunburst rays -->
+<g class="sunburst">
+	<path d="M0,100 Q50,80 100,100 Q150,80 200,100 Q150,120 100,100 Q50,120 0,100 Z"/>
+	<path d="M100,0 Q120,50 100,100 Q120,150 100,200 Q80,150 100,100 Q80,50 100,0 Z"/>
+	<path d="M20,20 Q60,40 100,100 Q140,60 180,20 Q140,80 100,100 Q60,80 20,20 Z"/>
+	<path d="M180,180 Q140,160 100,100 Q60,140 20,180 Q60,120 100,100 Q140,120 180,180 Z"/>
+</g>
+
+<!-- White ring with text -->
+<circle class="ring" cx="100" cy="100" r="70"/>
+<text class="ring-text" x="100" y="85" text-anchor="middle">DIVINE LIGHT</text>
+<text class="ring-text" x="100" y="100" text-anchor="middle">WORLD</text>
+
+<!-- Globe -->
+<circle class="globe" cx="100" cy="100" r="50"/>
+
+<!-- Land masses -->
+<path class="land" d="M70,80 Q85,75 90,85 Q95,95 85,105 Q75,110 70,100 Q65,90 70,80 Z"/>
+<path class="land" d="M110,90 Q125,85 130,95 Q135,105 125,115 Q115,120 110,110 Q105,100 110,90 Z"/>
+<path class="land" d="M80,110 Q95,105 100,115 Q105,125 95,135 Q85,140 80,130 Q75,120 80,110 Z"/>
+
+<!-- Conch shell -->
+<path class="conch" d="M95,85 Q100,80 105,85 Q110,90 105,95 Q100,100 95,95 Q90,90 95,85 Z"/>
+
+<!-- Flame -->
+<path class="flame" d="M95,75 Q100,65 105,75 Q100,85 95,75 Z"/>
+
+<!-- Eyes at bottom -->
+<g transform="translate(70,150)">
+	<path class="eyebrow" d="M0,0 Q10,-5 20,0"/>
+	<ellipse class="eyes" cx="10" cy="8" rx="3" ry="4"/>
+</g>
+<g transform="translate(130,150)">
+	<path class="eyebrow" d="M0,0 Q10,-5 20,0"/>
+	<ellipse class="eyes" cx="10" cy="8" rx="3" ry="4"/>
 </g>
 </svg>

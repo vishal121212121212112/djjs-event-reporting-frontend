@@ -2,7 +2,6 @@ import { Component, OnInit, Output, EventEmitter, Inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { DOCUMENT } from '@angular/common';
 import { AuthenticationService } from '../../core/services/auth.service';
-import { AuthfakeauthenticationService } from '../../core/services/authfake.service';
 import { environment } from '../../../environments/environment';
 import { CookieService } from 'ngx-cookie-service';
 import { LanguageService } from '../../core/services/language.service';
@@ -33,9 +32,12 @@ export class TopbarComponent implements OnInit {
   layout: string;
   dataLayout$: Observable<string>;
   // Define layoutMode as a property
+  
+  // User information
+  currentUser: any = null;
+  isAuthenticated: boolean = false;
 
   constructor(@Inject(DOCUMENT) private document: any, private router: Router, private authService: AuthenticationService,
-    private authFackservice: AuthfakeauthenticationService,
     public languageService: LanguageService,
     public translate: TranslateService,
     public _cookiesService: CookieService, public store: Store<RootReducerState>) {
@@ -62,6 +64,12 @@ export class TopbarComponent implements OnInit {
     })
     this.openMobileMenu = false;
     this.element = document.documentElement;
+
+    // Subscribe to authentication state
+    this.authService.getAuthState().subscribe(authState => {
+      this.isAuthenticated = authState.isLoggedIn;
+      this.currentUser = authState.user;
+    });
 
     this.cookieValue = this._cookiesService.get('lang');
     const val = this.listLang.filter(x => x.lang === this.cookieValue);
@@ -99,11 +107,10 @@ export class TopbarComponent implements OnInit {
    * Logout the user
    */
   logout() {
-    if (environment.defaultauth === 'firebase') {
-      this.authService.logout();
-    } else {
-      this.authFackservice.logout();
-    }
+    // Use the new authentication service for logout
+    this.authService.logout();
+    
+    // Navigate to login page
     this.router.navigate(['/auth/login']);
   }
 

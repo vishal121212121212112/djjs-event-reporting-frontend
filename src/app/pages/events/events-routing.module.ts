@@ -3,6 +3,8 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { EventsListComponent } from './events-list/events-list.component';
 import { AddEventComponent } from './add-event/add-event.component';
+import { ViewEventComponent } from './view-event/view-event.component';
+import { GalleryComponent } from './gallery/gallery.component';
 
 const routes: Routes = [
   {
@@ -12,6 +14,14 @@ const routes: Routes = [
   {
     path: 'add',
     component: AddEventComponent
+  },
+  {
+    path: 'view',
+    component: ViewEventComponent
+  },
+  {
+    path: 'gallery',
+    component: GalleryComponent
   }
 ];
 
