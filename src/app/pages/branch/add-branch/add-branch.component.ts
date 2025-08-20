@@ -3,13 +3,22 @@ import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms'
 
 
 @Component({
-  selector: 'app-add-branch',
-  templateUrl: './add-branch.component.html',
-  styleUrls: ['./add-branch.component.scss']
+    selector: 'app-add-branch',
+    templateUrl: './add-branch.component.html',
+    styleUrls: ['./add-branch.component.scss']
 })
 export class AddBranchComponent implements OnInit {
     branchForm: FormGroup;
     activeMemberType: 'preacher' | 'samarpit' = 'samarpit';
+    activeTab: string = 'branch';   // default tab
+
+    //Track progress
+    completion = 0; // example, bind dynamically based on form fill %
+    circumference = 2 * Math.PI * 45; // radius = 45
+
+    branchName = "Delhi Branch";
+    branchEmail = "delhi.branch@example.com";
+    coordinatorName = "John Doe";
 
     countryOptions = ['India', 'Nepal', 'USA'];
     stateOptionsMap = {
@@ -49,6 +58,12 @@ export class AddBranchComponent implements OnInit {
     districtOptions: string[] = [];
 
     constructor(private fb: FormBuilder) { }
+
+    //for Tabs
+    setActiveTab(tab: string) {
+        this.activeTab = tab;
+    }
+
 
     ngOnInit(): void {
         this.branchForm = this.fb.group({
@@ -122,6 +137,28 @@ export class AddBranchComponent implements OnInit {
             this.districtOptions = city ? this.districtOptionsMap[city] || [] : [];
             this.branchForm.patchValue({ districts: '' });
         });
+
+        // Watch form changes
+        this.branchForm.valueChanges.subscribe(() => {
+            this.updateCompletion();
+        });
+
+        this.updateCompletion(); // run once on load
+
+    }
+
+    updateCompletion() {
+        const controls = this.branchForm.controls;
+        const total = Object.keys(controls).length;
+        let filled = 0;
+
+        Object.keys(controls).forEach(key => {
+            if (controls[key].value && controls[key].value.toString().trim() !== '') {
+                filled++;
+            }
+        });
+
+        this.completion = Math.round((filled / total) * 100);
     }
 
     get infrastructure(): FormArray {
@@ -175,5 +212,5 @@ export class AddBranchComponent implements OnInit {
             console.log(this.branchForm.value);
         }
     }
-  
+
 }
