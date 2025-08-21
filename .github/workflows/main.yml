@@ -7,17 +7,15 @@ on:
 jobs:
   ci-cd:
     runs-on: [self-hosted, linux]
-
     env:
       NODE_VERSION: '18'
       IMAGE_NAME: djjs-frontend
       CONTAINER_NAME: djjs-frontend
-      APP_PORT: 8081        # container internal port (nginx)
-      HOST_PORT: 8081       # EC2 host port to expose
+      APP_PORT: 8081
+      HOST_PORT: 8081
       REGISTRY: docker.io
       DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
-      # optional: speed up Angular builds that use more memory
-      NODE_OPTIONS: --max_old_space_size=3072
+      DOCKER_CONFIG: ${{ github.workspace }}/.docker   # <-- make it job-wide
 
     steps:
       - name: Checkout
@@ -32,29 +30,27 @@ jobs:
       - name: Install deps
         run: npm ci --no-audit --no-fund
 
-      # ---- Skip tests to avoid Google Maps / Chrome issues in CI ----
       - name: Skip tests
         run: echo "Skipping tests"
 
       - name: Build app
-        # Use your existing build script; add configuration if you have one
         run: npm run build --if-present
 
-      # Use an isolated Docker config so no system credential helper is used
+      # 1) Prepare a clean Docker config (NO credential helpers)
       - name: Prepare Docker config (no credsStore)
         run: |
-          mkdir -p "$GITHUB_WORKSPACE/.docker"
-          echo '{}' > "$GITHUB_WORKSPACE/.docker/config.json"
-        env:
-          DOCKER_CONFIG: ${{ github.workspace }}/.docker
+          mkdir -p "$DOCKER_CONFIG"
+          # ensure no system/global config interferes
+          rm -f ~/.docker/config.json || true
+          # minimal config with no cred helpers
+          echo '{"auths":{}}' > "$DOCKER_CONFIG/config.json"
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}   # Docker Hub PAT
-        env:
-          DOCKER_CONFIG: ${{ github.workspace }}/.docker
+      # 2) Login using that config
+      - name: Login to Docker Hub (manual)
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | \
+            docker --config "$DOCKER_CONFIG" login \
+              -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Setup Buildx (BuildKit)
         uses: docker/setup-buildx-action@v3
@@ -68,21 +64,16 @@ jobs:
           cache-from: type=registry,ref=${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
 
-      # --- Deploy on the SAME EC2 (self-hosted runner) ---
       - name: Pull & (re)start container on EC2
         run: |
           set -e
           docker pull ${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:latest
-
-          # Stop & remove old container if present
           if [ "$(docker ps -q -f name=${{ env.CONTAINER_NAME }})" ]; then
             docker stop ${{ env.CONTAINER_NAME }} || true
             docker rm   ${{ env.CONTAINER_NAME }} || true
           elif [ "$(docker ps -aq -f name=${{ env.CONTAINER_NAME }})" ]; then
             docker rm   ${{ env.CONTAINER_NAME }} || true
           fi
-
-          # Start fresh container
           docker run -d --name ${{ env.CONTAINER_NAME }} \
             -p ${{ env.HOST_PORT }}:${{ env.APP_PORT }} \
             --restart unless-stopped \
