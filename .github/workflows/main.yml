@@ -1,27 +1,35 @@
-name: Build and Push Docker Image
+name: CI/CD - Build and Deploy DJJS Frontend
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
+  build-and-deploy:
+    runs-on: [self-hosted, linux]
+
+    env:
+      IMAGE_NAME: djjs-frontend
+      IMAGE_TAG: ${{ github.sha }}
+      REGISTRY: docker.io
+      DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USERNAME }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Install libsecret (fix Docker credential helper)
+      # If your runner had the libsecret error earlier, keep this:
+      - name: Install libsecret (for docker credential helper)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libsecret-1-0
-        # This ensures docker-credential-secretservice can load the required library.  
-        # Without this, `docker/login-action` fails with:
-        # "docker-credential-secretservice: error while loading shared libraries: libsecret-1.so.0" :contentReference[oaicite:1]{index=1}
+          if command -v apt-get >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y libsecret-1-0
+          fi
 
-      - name: Create isolated Docker config (disable credential helper)
+      # Use isolated docker config so no credsStore interferes
+      - name: Prepare Docker config
         run: |
           mkdir -p "$GITHUB_WORKSPACE/.docker"
           echo '{}' > "$GITHUB_WORKSPACE/.docker/config.json"
@@ -32,19 +40,30 @@ jobs:
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}  # use PAT, not password
         env:
           DOCKER_CONFIG: ${{ github.workspace }}/.docker
-        # Using a fresh Docker config ensures no credsHelper is triggered,
-        # so login will succeed without failing due to missing libsecret.
-        # This works even without installing the secretservice helper. :contentReference[oaicite:2]{index=2}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
+      # Optional pre-check to catch lockfile issues early (outside Docker)
+      - name: Lockfile sync check
+        run: |
+          if [ ! -f package-lock.json ]; then
+            echo "package-lock.json missing. npm ci will fail."; exit 1
+          fi
+          # npm docs: npm ci fails if lockfile != package.json; this line surfaces it earlier
+          npm ci --dry-run || (echo "Lockfile out of sync. Run 'npm install' locally and commit the new package-lock.json." && exit 1)
+        shell: bash
+
+      - name: Build image
+        uses: docker/build-push-action@v6
         with:
           context: .
+          file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-image:latest
+          tags: ${{ env.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }},${{ env.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:latest
+          # Better build cache
+          cache-from: type=registry,ref=${{ env.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKERHUB_USER }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
