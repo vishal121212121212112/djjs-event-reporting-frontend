@@ -1,68 +1,50 @@
-name: CI/CD - Build and Deploy DJJS Frontend
+name: Build and Push Docker Image
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
-  build-and-deploy:
-    runs-on: [self-hosted, linux]
-
-    env:
-      CONTAINER_NAME: djjs-frontend
-      APP_PORT: 8081               # container ke andar NGINX listen karega
-      HOST_PORT: 8081              # host par wahi port expose karna
-      IMAGE_TAG: ${{ github.sha }} # tag = latest commit sha
+  build-and-push:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Setup Node.js (with npm cache)
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'             # npm cache support. Speeds up installs. :contentReference[oaicite:0]{index=0}
+      - name: Install libsecret (fix Docker credential helper)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsecret-1-0
+        # This ensures docker-credential-secretservice can load the required library.  
+        # Without this, `docker/login-action` fails with:
+        # "docker-credential-secretservice: error while loading shared libraries: libsecret-1.so.0" :contentReference[oaicite:1]{index=1}
 
-      # Angular deps install — aapke project me peer-deps conflict aa raha tha,
-      # isliye CI ko unblock karne ke liye temporary flag use kar rahe hain.
-      - name: Install deps
-        run: npm ci --legacy-peer-deps
-        # (Long-term: @angular/fire ko Angular 18 ke compatible version par upgrade karein.)
+      - name: Create isolated Docker config (disable credential helper)
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/.docker"
+          echo '{}' > "$GITHUB_WORKSPACE/.docker/config.json"
+        env:
+          DOCKER_CONFIG: ${{ github.workspace }}/.docker
 
-      - name: Build frontend
-        run: npm run build
-
-      # ---------- Docker Hub login ----------
-      - name: Login to Docker Hub
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-        # PAT (token) use karna recommended; password nahi. :contentReference[oaicite:1]{index=1}
+        env:
+          DOCKER_CONFIG: ${{ github.workspace }}/.docker
+        # Using a fresh Docker config ensures no credsHelper is triggered,
+        # so login will succeed without failing due to missing libsecret.
+        # This works even without installing the secretservice helper. :contentReference[oaicite:2]{index=2}
 
-      # ---------- Build & Push image to Docker Hub ----------
-      - name: Build & Push
-        uses: docker/build-push-action@v6
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
         with:
           context: .
-          file: Dockerfile           # agar Dockerfile root me hai to 'Dockerfile'
           push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/djjs-frontend:${{ env.IMAGE_TAG }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/djjs-frontend:latest
-        # Official Docker actions for build/push. :contentReference[oaicite:2]{index=2}
-
-      # ---------- Replace running container on same server ----------
-      - name: Stop & remove old container if present
-        run: |
-          docker ps -q --filter "name=${CONTAINER_NAME}" | grep -q . && docker stop ${CONTAINER_NAME} || true
-          docker ps -a -q --filter "name=${CONTAINER_NAME}" | grep -q . && docker rm ${CONTAINER_NAME} || true
-
-      - name: Run new container (8081 -> 8081)
-        run: |
-          docker run -d --name ${CONTAINER_NAME} \
-            -p ${HOST_PORT}:${APP_PORT} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/djjs-frontend:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-image:latest
