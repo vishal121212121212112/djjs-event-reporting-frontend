@@ -48,7 +48,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: docker/Dockerfile           # agar Dockerfile root me hai to 'Dockerfile'
+          file: Dockerfile           # agar Dockerfile root me hai to 'Dockerfile'
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/djjs-frontend:${{ env.IMAGE_TAG }}
