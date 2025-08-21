@@ -8,14 +8,14 @@ on:
 
 jobs:
   build-and-deploy:
-    # same as backend: self-hosted Linux runner (optionally add your custom label `frontend`)
-    runs-on: [self-hosted, linux]  # or [self-hosted, linux, frontend]
+    runs-on: [self-hosted, linux]
 
     env:
       CONTAINER_NAME: djjs-frontend
       IMAGE_NAME: djjs-frontend
-      APP_PORT: 3000          # Next.js default inside container
-      HOST_PORT: 8081         # public port on EC2 (map as per Nginx/SG)
+      APP_PORT: 3000
+      HOST_PORT: 8081
+      # keep NODE_ENV for the running container, but DON'T use it during npm ci
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
 
@@ -26,21 +26,23 @@ jobs:
       - name: Set Docker Image Tag (Git SHA)
         run: echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
-      # Node install + cache (fast npm ci)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'          # caches node_modules based on lockfile
+          node-version: '18'          # pick a version compatible with your Angular
+          cache: 'npm'
+
+      # IMPORTANT: install devDependencies
       - name: Install deps
-        run: npm ci
+        run: npm ci --include=dev     # or just `npm ci`
+        env:
+          NODE_ENV: ""                # override the job-level NODE_ENV
+
       - name: Build frontend
         run: npm run build
 
-      # Build a production image (expects a Dockerfile in repo root)
       - name: Build Docker image
-        run: |
-          docker build -t ${IMAGE_NAME}:${{ env.IMAGE_TAG }} .
+        run: docker build -t ${IMAGE_NAME}:${{ env.IMAGE_TAG }} .
 
       - name: Stop & remove old container if present
         run: |
