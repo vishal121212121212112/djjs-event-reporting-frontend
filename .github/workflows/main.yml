@@ -4,14 +4,22 @@ on:
   push:
     branches: [ main ]
 
+# Prevent overlapping deploys to the same runner
+concurrency:
+  group: djjs-frontend-deploy
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     runs-on: [self-hosted, linux]
 
+    permissions:
+      contents: read
+
     env:
       IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/djjs-frontend
       CONTAINER_NAME: djjs-frontend
-      HOST_PORT: "8081"   # Nginx reverse-proxy hits http://127.0.0.1:8081
+      HOST_PORT: "8081"   # Nginx reverse proxy hits http://127.0.0.1:8081
       APP_PORT: "80"      # Container internal Nginx listens on 80
 
     steps:
@@ -24,7 +32,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Use BuildKit buildx with docker-container driver (required for registry cache export)
+      # Buildx with docker-container driver so registry cache works
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
         with:
