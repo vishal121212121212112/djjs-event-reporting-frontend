@@ -1,87 +1,63 @@
-name: CI/CD - Build, Dockerize & Deploy (EC2 self-hosted)
+name: CI/CD - Build & Deploy DJJS Frontend
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  ci-cd:
+  build-and-deploy:
     runs-on: [self-hosted, linux]
 
     env:
-      NODE_VERSION: '18'
-      IMAGE_NAME: djjs-frontend
+      IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/djjs-frontend
       CONTAINER_NAME: djjs-frontend
-      APP_PORT: 8081                 # container internal port (match your image/NGINX)
-      HOST_PORT: 8081                # host port to expose
-      REGISTRY: docker.io
-      DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+      HOST_PORT: "8081"   # host par expose
+      APP_PORT: "8081"    # container ke andar NGINX listen karega (Dockerfile/nginx.conf ke hisaab se)
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Node install + cache (agar Angular/Node build hai to rakho; pure Nginx copy Dockerfile se bhi chalega)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          node-version: "18"
+          cache: "npm"
 
       - name: Install deps
-        run: npm ci --no-audit --no-fund
-
-      - name: Build app
-        run: npm run build --if-present
-
-      # --- CRITICAL FIX: remove/avoid credential helpers on the runner ---
-      - name: Force plain Docker config (no credential helpers)
         run: |
-          mkdir -p "$HOME/.docker"
-          [ -f "$HOME/.docker/config.json" ] && cp "$HOME/.docker/config.json" "$HOME/.docker/config.json.bak" || true
-          cat > "$HOME/.docker/config.json" <<'JSON'
-          { "auths": {} }
-          JSON
-      # -------------------------------------------------------------------
+          npm ci --legacy-peer-deps
+
+      - name: Build (Angular)
+        run: |
+          npm run build -- --configuration=production
+        # NOTE: Agar aap Dockerfile me khud build karte ho (multi-stage), to upar ke 2 steps hata sakte ho.
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          registry: docker.io
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}   # Docker Hub PAT (recommended), not account password
-      # Ref: official login action & guidance to use PAT. :contentReference[oaicite:1]{index=1}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Setup Buildx (BuildKit)
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build & Push image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          cache-from: type=registry,ref=${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
-      # Ref: official build-push action docs. :contentReference[oaicite:2]{index=2}
-
-      - name: Pull & (re)start container on EC2
+      - name: Build Docker image
         run: |
-          set -e
+          docker build -t $IMAGE_NAME:${{ github.sha }} -t $IMAGE_NAME:latest .
 
-          docker pull ${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:latest
+      - name: Push Docker image
+        run: |
+          docker push $IMAGE_NAME:${{ github.sha }}
+          docker push $IMAGE_NAME:latest
 
-          # Stop & remove existing container if present
-          if [ "$(docker ps -q -f name=${{ env.CONTAINER_NAME }})" ]; then
-            docker stop ${{ env.CONTAINER_NAME }} || true
-            docker rm   ${{ env.CONTAINER_NAME }} || true
-          elif [ "$(docker ps -aq -f name=${{ env.CONTAINER_NAME }})" ]; then
-            docker rm   ${{ env.CONTAINER_NAME }} || true
-          fi
+      # Deploy on the same self-hosted runner server
+      - name: Stop old container (if any)
+        run: |
+          docker rm -f $CONTAINER_NAME || true
 
-          # Run fresh container
-          docker run -d --name ${{ env.CONTAINER_NAME }} \
-            -p ${{ env.HOST_PORT }}:${{ env.APP_PORT }} \
+      - name: Run new container
+        run: |
+          docker pull $IMAGE_NAME:${{ github.sha }}
+          docker run -d --name $CONTAINER_NAME \
+            -p ${HOST_PORT}:${APP_PORT} \
             --restart unless-stopped \
-            ${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:latest
+            $IMAGE_NAME:${{ github.sha }}
