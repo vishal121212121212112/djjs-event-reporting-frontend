@@ -1,22 +1,23 @@
 # --------- Build Stage ---------
-FROM node:18-alpine AS builder
-
+FROM node:20-alpine AS build
 WORKDIR /app
 
-# Install dependencies (cache-efficient steps)
 COPY package*.json ./
-RUN npm ci --only=production
+# IMPORTANT: build needs devDependencies, and peer deps are conflicting
+RUN npm ci --legacy-peer-deps
 
-# Copy source code & build the app
 COPY . .
-RUN npm run build
+# If you have prod config:
+RUN npm run build -- --configuration=production
 
 # --------- Runtime Stage ---------
-FROM nginx:stable-alpine AS runtime
+FROM nginx:alpine
 
-# Copy built static files from builder
-COPY --from=builder /app/dist /usr/share/nginx/html
+# (Optional but good) SPA nginx config
+# COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Adjust dist path if your Angular outputs into a subfolder
+COPY --from=build /app/dist/ /usr/share/nginx/html/
 
 EXPOSE 8081
-
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["nginx","-g","daemon off;"]
