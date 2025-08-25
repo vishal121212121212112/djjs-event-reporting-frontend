@@ -15,7 +15,6 @@ jobs:
       HOST_PORT: 8081
       REGISTRY: docker.io
       DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKER_CONFIG: ${{ github.workspace }}/.docker   # <-- make it job-wide
 
     steps:
       - name: Checkout
@@ -30,27 +29,16 @@ jobs:
       - name: Install deps
         run: npm ci --no-audit --no-fund
 
-      - name: Skip tests
-        run: echo "Skipping tests"
-
       - name: Build app
         run: npm run build --if-present
 
-      # 1) Prepare a clean Docker config (NO credential helpers)
-      - name: Prepare Docker config (no credsStore)
-        run: |
-          mkdir -p "$DOCKER_CONFIG"
-          # ensure no system/global config interferes
-          rm -f ~/.docker/config.json || true
-          # minimal config with no cred helpers
-          echo '{"auths":{}}' > "$DOCKER_CONFIG/config.json"
-
-      # 2) Login using that config
-      - name: Login to Docker Hub (manual)
-        run: |
-          echo "${{ secrets.DOCKERHUB_TOKEN }}" | \
-            docker --config "$DOCKER_CONFIG" login \
-              -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+      # ✅ Official login action (reliable with Buildx)
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}   # Docker Hub PAT (not account password)
 
       - name: Setup Buildx (BuildKit)
         uses: docker/setup-buildx-action@v3
@@ -60,7 +48,9 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:latest,${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          tags: |
+            ${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
 
@@ -68,12 +58,14 @@ jobs:
         run: |
           set -e
           docker pull ${{ env.DOCKER_USER }}/${{ env.IMAGE_NAME }}:latest
+
           if [ "$(docker ps -q -f name=${{ env.CONTAINER_NAME }})" ]; then
             docker stop ${{ env.CONTAINER_NAME }} || true
             docker rm   ${{ env.CONTAINER_NAME }} || true
           elif [ "$(docker ps -aq -f name=${{ env.CONTAINER_NAME }})" ]; then
             docker rm   ${{ env.CONTAINER_NAME }} || true
           fi
+
           docker run -d --name ${{ env.CONTAINER_NAME }} \
             -p ${{ env.HOST_PORT }}:${{ env.APP_PORT }} \
             --restart unless-stopped \
