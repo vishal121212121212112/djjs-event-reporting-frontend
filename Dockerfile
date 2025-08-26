@@ -15,7 +15,7 @@ RUN yarn install
 COPY . .
 
 # Expose port 4200 (Angular dev server default)
-EXPOSE 8081
+EXPOSE 4200
 
 # Start the development server on all interfaces
 CMD ["yarn", "start", "--host", "0.0.0.0"]
