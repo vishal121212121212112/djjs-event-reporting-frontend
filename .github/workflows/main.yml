@@ -16,7 +16,7 @@ jobs:
       IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/djjs-frontend
       CONTAINER_NAME: djjs-frontend
       HOST_PORT: "8081"   # host port (Nginx proxy_pass -> http://127.0.0.1:8081)
-      APP_PORT: "80"      # container internal port
+      APP_PORT: "8081"      # container internal port
 
     steps:
       - name: Checkout
