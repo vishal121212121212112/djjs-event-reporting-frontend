@@ -1,0 +1,99 @@
+<!-- Add Area Modal -->
+<div
+  class="modal fade"
+  id="addAreaModal"
+  tabindex="-1"
+  aria-labelledby="addAreaModalLabel"
+  aria-hidden="true"
+  (click)="$event.target === $event.currentTarget && closeModal()"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addAreaModalLabel">
+          {{ isEditMode ? "Edit Area" : "Add Area" }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="closeModal()"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <div class="modal-body">
+        <form
+          class="needs-validation"
+          (ngSubmit)="validSubmit()"
+          [formGroup]="addAreaForm"
+        >
+          <!-- Area Name -->
+          <div class="mb-3">
+            <label for="areaName" class="form-label">Area Name</label>
+            <input
+              type="text"
+              class="form-control"
+              id="areaName"
+              formControlName="areaName"
+              placeholder="Enter area name"
+              [ngClass]="{ 'is-invalid': submit && form.areaName.errors }"
+            />
+            <div
+              *ngIf="submit && form.areaName.errors"
+              class="invalid-feedback"
+            >
+              <span *ngIf="form.areaName.errors.required"
+                >Area name is required.</span
+              >
+              <span *ngIf="form.areaName.errors.pattern"
+                >Please enter a valid area name.</span
+              >
+            </div>
+          </div>
+
+          <!-- District -->
+
+          <!-- Area Coverage -->
+          <div class="mb-3">
+            <label for="areaCoverage" class="form-label">Area Coverage</label>
+            <div class="input-group">
+              <input
+                type="number"
+                class="form-control"
+                id="areaCoverage"
+                formControlName="areaCoverage"
+                placeholder="Enter area coverage"
+                step="0.01"
+                [ngClass]="{ 'is-invalid': submit && form.areaCoverage.errors }"
+              />
+              <span class="input-group-text">Sq km</span>
+              <div
+                *ngIf="submit && form.areaCoverage.errors"
+                class="invalid-feedback"
+              >
+                <span *ngIf="form.areaCoverage.errors.required"
+                  >Area coverage is required.</span
+                >
+                <span *ngIf="form.areaCoverage.errors.pattern"
+                  >Please enter a valid number.</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="d-grid gap-2">
+            <button class="btn btn-form" type="submit">
+              <i
+                class="fas"
+                [class.fa-plus]="!isEditMode"
+                [class.fa-save]="isEditMode"
+              ></i>
+              {{ isEditMode ? "Update Area" : "Add Area" }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

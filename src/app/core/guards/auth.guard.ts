@@ -1,40 +1,64 @@
 import { Injectable } from '@angular/core';
-import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-
-// Auth Services
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
+import { Observable } from 'rxjs';
 import { AuthenticationService } from '../services/auth.service';
-import { AuthfakeauthenticationService } from '../services/authfake.service';
-import { environment } from '../../../environments/environment';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class AuthGuard implements CanActivate {
-    constructor(
-        private router: Router,
-        private authenticationService: AuthenticationService,
-        private authFackservice: AuthfakeauthenticationService
-    ) { }
 
-    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+  constructor(
+    private authService: AuthenticationService,
+    private router: Router
+  ) {}
 
-        if (environment.defaultauth === 'firebase') {
-            const currentUser = this.authenticationService.currentUser();
-            if (currentUser) {
-                // logged in so return true
-                return true;
-            }
-        } else {
-            const currentUser = this.authFackservice.currentUserValue;
-            if (currentUser) {
-                // logged in so return true
-                return true;
-            }
-            // check if user data is in storage is logged in via API.
-            if (localStorage.getItem('currentUser')) {
-                return true;
-            }
-        }
-        // not logged in so redirect to login page with the return url
-        this.router.navigate(['/auth/login'], { queryParams: { returnUrl: state.url } });
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): Observable<boolean> | Promise<boolean> | boolean {
+    
+    // Check if user is authenticated
+    if (this.authService.isAuthenticated()) {
+      // Additional check: verify token is still valid
+      const token = this.authService.getToken();
+      if (token && this.isTokenValid(token)) {
+        return true;
+      } else {
+        // Token is expired or invalid, logout and redirect
+        this.authService.logout();
+        this.router.navigate(['/auth/login'], {
+          queryParams: { returnUrl: state.url, reason: 'expired' }
+        });
         return false;
+      }
     }
+
+    // If not authenticated, redirect to login with return URL
+    this.router.navigate(['/auth/login'], {
+      queryParams: { returnUrl: state.url }
+    });
+    
+    return false;
+  }
+
+  /**
+   * Basic token validation - checks if token exists and has valid format
+   * In a production app, you might want to check expiration time as well
+   */
+  private isTokenValid(token: string): boolean {
+    if (!token) return false;
+    
+    try {
+      // Basic JWT format validation (3 parts separated by dots)
+      const parts = token.split('.');
+      if (parts.length !== 3) return false;
+      
+      // Optional: Check if token is expired (if it has expiration)
+      // This is a basic check - you might want to implement proper JWT validation
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
 }

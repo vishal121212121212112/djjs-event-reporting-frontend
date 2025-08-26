@@ -1,0 +1,294 @@
+<div class="container-fluid">
+  <!-- Header Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <!-- Row 1: Greeting -->
+      <div>
+        <h2 class="mb-1">JMJK, Welcome Back!</h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-11">
+      <!-- Row 2: Filters -->
+      <div
+        class="d-flex align-items-center justify-content-center gap-3 filters"
+      >
+        <!-- Time Filter -->
+        <div class="btn-group" role="group">
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            [class.active]="selectedTimeFilter === 'Week'"
+            (click)="selectTimeFilter('Week')"
+          >
+            Week
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            [class.active]="selectedTimeFilter === 'Month'"
+            (click)="selectTimeFilter('Month')"
+          >
+            Month
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            [class.active]="selectedTimeFilter === 'Year'"
+            (click)="selectTimeFilter('Year')"
+          >
+            Year
+          </button>
+        </div>
+
+        <!-- Year Dropdown -->
+        <select class="form-select" style="width: auto">
+          <option>2025</option>
+          <option>2024</option>
+          <option>2023</option>
+        </select>
+
+        <!-- Branch Filter -->
+      </div>
+    </div>
+    <div class="col-1 d-flex justify-content-end">
+      <select class="form-select" style="width: auto">
+        <option>All branches</option>
+        <option>Branch 1</option>
+        <option>Branch 2</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- KPI Cards Section -->
+  <div class="row mb-4 d-flex align-items-stretch justify-content-between">
+    <!-- Branches Card -->
+    <div class="col-lg-3 col-md-4 mb-3">
+      <!-- Branches Card -->
+      <div class="card mb-3">
+        <div class="card-body text-center">
+          <h3 class="card-title text-muted mb-2">Branches</h3>
+          <h1 class="display-4 text-primary mb-0">97</h1>
+        </div>
+      </div>
+
+      <!-- Preachers Card -->
+      <div class="card">
+        <div class="card-body text-center">
+          <h3 class="card-title text-muted mb-2">Preachers</h3>
+          <h1 class="display-4 text-success mb-0">1,080</h1>
+        </div>
+      </div>
+    </div>
+
+    <!-- Events Card -->
+    <div class="col-lg-4 col-md-6 mb-3">
+      <div class="card">
+        <div class="card-body">
+          <!-- Title -->
+          <div class="d-flex align-items-center flex-grow-1">
+            <div class="flex-grow-1">
+              <h3 class="card-title text-muted mb-2">Events</h3>
+
+              <!-- Value and Change -->
+              <div class="d-flex align-items-center mb-2">
+                <h2 class="mb-0 me-2">4,200</h2>
+                <span class="text-success fw-bold">12% ↑</span>
+              </div>
+
+              <!-- View All Button -->
+              <button class="btn btn-sm btn-warning text-white mb-3">
+                View all →
+              </button>
+
+              <!-- Chart + Legend -->
+              <div class="d-flex align-items-center flex-grow-1">
+                <!-- Legend -->
+                <div class="chart-legend flex-grow-1">
+                  <div>
+                    <span class="legend-color bg-success"></span> Spiritual:
+                    1,200
+                  </div>
+                  <div>
+                    <span class="legend-color bg-danger"></span> Peace
+                    procession: 2,300
+                  </div>
+                  <div>
+                    <span class="legend-color bg-primary"></span> Cultural:
+                    1,100
+                  </div>
+                  <div>
+                    <span class="legend-color bg-warning"></span> Peace
+                    assembly: 2,000
+                  </div>
+                </div>
+
+                <!-- Donut Chart -->
+              </div>
+            </div>
+            <div class="ms-auto d-flex align-items-center">
+              <apx-chart
+                #eventsDonutChart
+                [series]="eventsChartOptions.series"
+                [chart]="eventsChartOptions.chart"
+                [labels]="eventsChartOptions.labels"
+                [colors]="eventsChartOptions.colors"
+                [plotOptions]="eventsChartOptions.plotOptions"
+                [dataLabels]="eventsChartOptions.dataLabels"
+                [legend]="eventsChartOptions.legend"
+                [responsive]="eventsChartOptions.responsive"
+              ></apx-chart>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Initiation Card -->
+    <div class="col-lg-4 col-md-6 mb-3">
+      <div class="card">
+        <div class="card-body">
+          <!-- Title -->
+          <div class="d-flex align-items-center flex-grow-1">
+            <div class="flex-grow-1">
+              <h3 class="card-title text-muted mb-2">Initiation</h3>
+
+              <!-- Value and Change -->
+              <div class="d-flex align-items-center mb-2">
+                <h2 class="mb-0 me-2">2,500</h2>
+                <span class="text-success fw-bold">12% ↑</span>
+              </div>
+
+              <!-- View All Button -->
+              <button class="btn btn-sm btn-warning text-white mb-3">
+                View all →
+              </button>
+
+              <!-- Chart + Legend -->
+              <div class="d-flex align-items-center flex-grow-1">
+                <!-- Legend -->
+                <div class="chart-legend flex-grow-1">
+                  <div>
+                    <span class="legend-color bg-success"></span> Male: 1,400
+                  </div>
+                  <div>
+                    <span class="legend-color bg-danger"></span> Female: 1,200
+                  </div>
+                  <div>
+                    <span class="legend-color bg-primary"></span> Kids: 600
+                  </div>
+                </div>
+
+                <!-- Donut Chart -->
+              </div>
+            </div>
+            <div class="ms-auto">
+              <apx-chart
+                #initiationDonutChart
+                [series]="initiationChartOptions.series"
+                [chart]="initiationChartOptions.chart"
+                [labels]="initiationChartOptions.labels"
+                [colors]="initiationChartOptions.colors"
+                [plotOptions]="initiationChartOptions.plotOptions"
+                [dataLabels]="initiationChartOptions.dataLabels"
+                [legend]="initiationChartOptions.legend"
+                [responsive]="initiationChartOptions.responsive"
+              ></apx-chart>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Section -->
+  <div class="row">
+    <!-- Top 10 Branches Chart - Left Side (Half Width) -->
+    <div class="col-lg-6 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title mb-4">Top 10 branches by event type</h5>
+          <apx-chart
+            [series]="topBranchesChartOptions.series"
+            [chart]="topBranchesChartOptions.chart"
+            [plotOptions]="topBranchesChartOptions.plotOptions"
+            [dataLabels]="topBranchesChartOptions.dataLabels"
+            [stroke]="topBranchesChartOptions.stroke"
+            [xaxis]="topBranchesChartOptions.xaxis"
+            [yaxis]="topBranchesChartOptions.yaxis"
+            [tooltip]="topBranchesChartOptions.tooltip"
+            [legend]="topBranchesChartOptions.legend"
+            [fill]="topBranchesChartOptions.fill"
+          ></apx-chart>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side Charts - Half Width, Two Rows -->
+    <div class="col-lg-6 mb-4">
+      <!-- Event Trend Chart - Top Row -->
+      <div class="row mb-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-4">Event trend</h5>
+            <apx-chart
+              [series]="eventTrendChartOptions.series"
+              [chart]="eventTrendChartOptions.chart"
+              [plotOptions]="eventTrendChartOptions.plotOptions"
+              [dataLabels]="eventTrendChartOptions.dataLabels"
+              [stroke]="eventTrendChartOptions.stroke"
+              [xaxis]="eventTrendChartOptions.xaxis"
+              [yaxis]="eventTrendChartOptions.yaxis"
+              [fill]="eventTrendChartOptions.fill"
+              [tooltip]="eventTrendChartOptions.tooltip"
+              [legend]="eventTrendChartOptions.legend"
+            ></apx-chart>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Volunteers Trend Chart - Bottom Row -->
+      <div class="row">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="card-title mb-0">
+                Active volunteers trend (year to date)
+              </h5>
+              <div class="text-center">
+                <h3 class="mb-0">42</h3>
+                <span class="badge bg-danger">12% ↓</span>
+              </div>
+            </div>
+            <div
+              class="chart-container"
+              style="
+                /* min-height: 300px; */
+                border: 1px solid #ddd;
+                background-color: #f8f9fa;
+              "
+            >
+              <div class="text-center" style="color: #666">
+                <p>Chart Container - Height: 300px</p>
+                <p>Data: [50, 25, 48, 58, 30, 48, 75, 50]</p>
+              </div>
+              <apx-chart
+                [series]="volunteersTrendChartOptions.series"
+                [chart]="volunteersTrendChartOptions.chart"
+                [plotOptions]="volunteersTrendChartOptions.plotOptions"
+                [dataLabels]="volunteersTrendChartOptions.dataLabels"
+                [stroke]="volunteersTrendChartOptions.stroke"
+                [xaxis]="volunteersTrendChartOptions.xaxis"
+                [yaxis]="volunteersTrendChartOptions.yaxis"
+                [fill]="volunteersTrendChartOptions.fill"
+                [tooltip]="volunteersTrendChartOptions.tooltip"
+              ></apx-chart>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

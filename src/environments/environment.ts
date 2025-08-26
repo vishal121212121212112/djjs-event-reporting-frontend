@@ -14,7 +14,8 @@ export const environment = {
     messagingSenderId: "",
     appId: "",
     measurementId: ""
-  }
+  } ,
+  apiBaseUrl : "https://eventsreportingapidev.djjs.org"
 };
 
 /*

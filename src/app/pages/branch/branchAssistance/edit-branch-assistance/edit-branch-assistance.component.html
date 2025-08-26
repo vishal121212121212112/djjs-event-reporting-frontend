@@ -1,0 +1,82 @@
+<div class="row">
+  <div class="col-12">
+    <div class="page-title-box d-flex align-items-center justify-content-between">
+      <h4 class="mb-0">Update User</h4>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <form [formGroup]="updateUserForm" (ngSubmit)="onSubmit()">
+
+          <div class="row mb-3">
+            <!-- Username Field -->
+            <div class="col-md-4">
+              <label for="Username" class="form-label">Username</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                formControlName="Username" 
+                placeholder="Enter Username" 
+                required 
+              />
+              <!-- Error Message for Username -->
+              <div *ngIf="updateUserForm.get('Username')?.touched && updateUserForm.get('Username')?.invalid" class="text-danger">
+                <small *ngIf="updateUserForm.get('Username')?.hasError('required')">Username is required.</small>
+              </div>
+            </div>
+
+            <!-- Contact Number Field -->
+            <div class="col-md-4">
+              <label for="Contact_Number" class="form-label">Contact Number</label>
+              <input 
+                type="number" 
+                class="form-control" 
+                formControlName="Contact_Number" 
+                placeholder="Enter Contact Number" 
+                required 
+              />
+              <!-- Error Message for Contact Number -->
+              <div *ngIf="updateUserForm.get('Contact_Number')?.touched && updateUserForm.get('Contact_Number')?.invalid" class="text-danger">
+                <small *ngIf="updateUserForm.get('Contact_Number')?.hasError('required')">Contact Number is required.</small>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="row mb-3">
+            <!-- Password Field -->
+            <div class="col-md-4">
+              <label for="Password" class="form-label">Password</label>
+              <input 
+                type="password" 
+                class="form-control" 
+                formControlName="Password" 
+                placeholder="Enter Password" 
+                required 
+              />
+              <!-- Error Message for Password -->
+              <div *ngIf="updateUserForm.get('Password')?.touched && updateUserForm.get('Password')?.invalid" class="text-danger">
+                <small *ngIf="updateUserForm.get('Password')?.hasError('required')">Password is required.</small>
+                <small *ngIf="updateUserForm.get('Password')?.hasError('minlength')">Password must be at least 6 characters long.</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="row">
+            <div class="col-md-12 mt-2">
+              <button type="submit" class="btn btn-primary" [disabled]="updateUserForm.invalid">
+                Update User
+              </button>
+            </div>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

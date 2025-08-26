@@ -1,0 +1,812 @@
+<section class="event-stepper">
+  <!-- Page Title -->
+  <div class="row">
+    <div class="col-12">
+      <div class="page-title-box d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+          <button class="btn btn-link text-decoration-none me-3" (click)="goBack()">
+            <i class="fas fa-arrow-left"></i>
+          </button>
+          <h4 class="mb-0">ADD EVENT</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stepper Progress -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="stepper-progress">
+        <div class="step" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+          <div class="step-number">1</div>
+          <div class="step-label">General Details</div>
+        </div>
+        <div class="step" [class.active]="currentStep === 2" [class.completed]="currentStep > 2">
+          <div class="step-number">2</div>
+          <div class="step-label">Media & promotion</div>
+        </div>
+        <div class="step" [class.active]="currentStep === 3" [class.completed]="currentStep > 3">
+          <div class="step-number">3</div>
+          <div class="step-label">Special guests</div>
+        </div>
+        <div class="step" [class.active]="currentStep === 4">
+          <div class="step-number">4</div>
+          <div class="step-label">Volunteers</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STEP 1 : GENERAL DETAILS ================= -->
+<div *ngIf="currentStep === 1">
+
+  <form [formGroup]="generalDetailsForm">
+    <div class="common-stepper">
+      <h5 class="mb-3">Event details</h5>
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Type</label>
+          <select class="form-select" formControlName="type">
+            <option value="">Select</option>
+            <option *ngFor="let type of eventTypes" [value]="type">{{ type }}</option>
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Event category</label>
+          <select class="form-select" formControlName="eventCategory">
+            <option value="">Select</option>
+            <option *ngFor="let cat of eventCategories" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Event sub category</label>
+          <select class="form-select" formControlName="eventSubCategory">
+            <option value="">Select</option>
+            <option *ngFor="let sub of subCategories" [value]="sub">{{ sub }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Scale</label>
+          <select class="form-select" formControlName="scale">
+            <option value="">Select</option>
+            <option *ngFor="let s of scales" [value]="s">{{ s }}</option>
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Theme</label>
+          <select class="form-select" formControlName="theme">
+            <option value="">Select</option>
+            <option *ngFor="let t of themes" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Language</label>
+          <select class="form-select" formControlName="language">
+            <option value="">Select</option>
+            <option *ngFor="let l of languages" [value]="l">{{ l }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4 mb-3"> <label class="form-label">Duration</label> <input type="text" class="form-control"
+            formControlName="duration" placeholder="dd MMM yyyy - dd MMM, yyyy"> </div>
+        <div class="col-md-4 mb-3"> <label class="form-label">Daily Start Time</label> <select class="form-select"
+            formControlName="dailyStartTime">
+            <option value="">Select Time</option>
+            <option value="06:00">6:00 AM</option>
+            <option value="07:00">7:00 AM</option>
+            <option value="08:00">8:00 AM</option>
+            <option value="17:30">5:30 PM</option>
+            <option value="18:00">6:00 PM</option>
+            <option value="19:00">7:00 PM</option>
+          </select> 
+        </div>
+       
+      
+        <div class="col-md-4 mb-3"> <label class="form-label">Daily End Time</label> <select class="form-select"
+            formControlName="dailyEndTime">
+            <option value="">Select Time</option>
+            <option value="07:30">7:30 AM</option>
+            <option value="08:30">8:30 AM</option>
+            <option value="09:30">9:30 AM</option>
+            <option value="19:30">7:30 PM</option>
+            <option value="20:30">8:30 PM</option>
+            <option value="21:30">9:30 PM</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12 mb-3">
+          <label class="form-label">Spiritual Orator</label>
+          <select class="form-select" formControlName="spiritualOrator">
+            <option value="">Select</option>
+            <option *ngFor="let orator of orators" [value]="orator">{{ orator }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <!-- Venue Section -->
+    <div class="common-stepper">
+      <h5 class=" mb-3">Venue</h5>
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Country</label>
+          <select class="form-select" formControlName="country">
+            <option value="">Select</option>
+            <option *ngFor="let c of countries" [value]="c">{{ c }}</option>
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Pincode</label>
+          <input type="text" class="form-control" formControlName="pincode" placeholder="Enter pincode">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Address type</label>
+          <input type="text" class="form-control" formControlName="addressType" placeholder="City / Village">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Post office</label>
+          <input type="text" class="form-control" formControlName="postOffice">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Police station</label>
+          <input type="text" class="form-control" formControlName="policeStation">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">District</label>
+          <select class="form-select" formControlName="district">
+            <option *ngFor="let d of districts" [value]="d">{{ d }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label class="form-label">State</label>
+          <select class="form-select" formControlName="state">
+            <option *ngFor="let s of states" [value]="s">{{ s }}</option>
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">City</label>
+          <select class="form-select" formControlName="city">
+            <option *ngFor="let c of cities" [value]="c">{{ c }}</option>
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Address</label>
+          <input type="text" class="form-control" formControlName="address">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Prachar</label>
+          <select class="form-select" multiple formControlName="prachar">
+            <option *ngFor="let area of pracharAreas" [value]="area">{{ area }}</option>
+          </select>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Area covered</label>
+          <input type="text" class="form-control" formControlName="areaCovered" placeholder="0.00 Sq km">
+        </div>
+      </div>
+    </div>
+    <!-- Donations -->
+    <!-- <div class="common-stepper">
+      <h5 class="mt-4 mb-3">Donations</h5>
+      
+      <div class="row">
+        <div class="col-md-3 mb-3">
+          <label class="form-label">Donation type</label>
+          <select class="form-select" formControlName="donationType">
+            <option value="cash">Cash</option>
+            <option value="in-kind">In-kind</option>
+          </select>
+        </div>
+        <div class="col-md-3 mb-3">
+          <label class="form-label">Amount</label>
+          <input type="number" class="form-control" formControlName="amount" placeholder="Amount in Rupees">
+        </div>
+        <div class="col-md-3 mb-3">
+          <label class="form-label">In-kind type</label>
+          <input type="text" class="form-control" formControlName="inKindType" placeholder="Rice 5kg, Bedsheet 2...">
+        </div>
+        <div class="col-md-3 mb-3">
+          <label class="form-label">Estimated material value</label>
+          <input type="number" class="form-control" formControlName="materialValue" placeholder="Amount in Rupees">
+        </div>
+      </div>
+</div> -->
+    <!-- Donations -->
+    <div class="common-stepper">
+      <h5 class=" mb-3">Donations</h5>
+
+      <!-- Dynamic Donation Entries -->
+      <div *ngFor="let donation of donationTypes; let i = index" class="row mb-3">
+        <!-- Donation Type -->
+        <div class="col-md-3">
+          <label class="form-label">Donation type</label>
+          <select class="form-select" [(ngModel)]="donation.type" (change)="onDonationTypeChange(i)">
+            <option value="cash">Cash</option>
+            <option value="in-kind">In-kind</option>
+          </select>
+        </div>
+
+        <!-- Cash Amount Field (shown only for cash type) -->
+        <div class="col-md-3" *ngIf="donation.type === 'cash'">
+          <label class="form-label">Amount</label>
+          <div class="input-group">
+            <span class="input-group-text">₹</span>
+            <input type="number" class="form-control" [(ngModel)]="donation.amount" placeholder="Amount in Rupees">
+          </div>
+        </div>
+
+        <!-- In-kind Type Field (shown only for in-kind type) -->
+        <div class="col-md-3" *ngIf="donation.type === 'in-kind'">
+          <label class="form-label">In-kind type</label>
+          <div class="tag-input-container">
+            <div class="tags-display">
+              <span *ngFor="let tag of donation.tags; let tagIndex = index" class="tag-item">
+                {{ tag }}
+                <button type="button" class="tag-remove" (click)="removeTag(i, tagIndex)">
+                  <i class="fas fa-times"></i>
+                </button>
+              </span>
+              <input type="text" class="tag-input" [(ngModel)]="donation.currentInput"
+                (keydown)="onTagInputKeydown($event, i)" placeholder="Type and press Enter/Space">
+            </div>
+            <small class="form-text text-muted">Write material type then Quantity, e.g Rice 5kg, be...</small>
+          </div>
+        </div>
+
+        <!-- Estimated Material Value Field (shown only for in-kind type) -->
+        <div class="col-md-3" *ngIf="donation.type === 'in-kind'">
+          <label class="form-label">Estimated material value</label>
+          <div class="input-group">
+            <span class="input-group-text">₹</span>
+            <input type="number" class="form-control" [(ngModel)]="donation.materialValue"
+              placeholder="Amount in Rupees">
+          </div>
+        </div>
+
+        <!-- Delete Button -->
+        <div class="col-md-3 d-flex align-items-end">
+          <button type="button" class="btn btn-warning btn-xs" (click)="removeDonationType(i)"
+            [disabled]="donationTypes.length === 1">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Add Donation Type Button -->
+      <div class="mt-3">
+        <button type="button" class="btn btn-warning btn-sm" (click)="addDonationType()">
+          + Add donation type
+        </button>
+      </div>
+    </div>
+    <!-- Beneficiaries -->
+    <div class="common-stepper">
+      <h5 class=" mb-3">Beneficiaries (0)</h5>
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Men</label>
+          <input type="number" class="form-control" formControlName="beneficiariesMen">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Women</label>
+          <input type="number" class="form-control" formControlName="beneficiariesWomen">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Children</label>
+          <input type="number" class="form-control" formControlName="beneficiariesChildren">
+        </div>
+      </div>
+    </div>
+    <!-- Initiations -->
+    <div class="common-stepper">
+      <h5 class=" mb-3">Initiations (0)</h5>
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Men</label>
+          <input type="number" class="form-control" formControlName="initiationsMen">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Women</label>
+          <input type="number" class="form-control" formControlName="initiationsWomen">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Children</label>
+          <input type="number" class="form-control" formControlName="initiationsChildren">
+        </div>
+      </div>
+    </div>
+    <!-- Navigation + Autosave -->
+    <div class="d-flex justify-content-between align-items-center mt-4 common-stepper">
+      <!-- Autosave Message -->
+      <div class="text-success small">
+        <i class="bi bi-check-circle"></i> All changes are autosaved
+      </div>
+
+      <!-- Next Button -->
+      <button type="button" class="btn btn-primary" (click)="nextStep()">
+        Next
+      </button>
+    </div>
+  </form>
+</div>
+
+
+<!-- ================= STEP 2 : MEDIA & PROMOTION ================= -->
+<!-- Step 2: Media & Promotion -->
+<div *ngIf="currentStep === 2">
+  <div class="common-stepper">
+  <h5 class="mb-3">Event Media</h5>
+  <div class="row g-3">
+    <!-- Media Coverage Type -->
+    <div class="col-md-3">
+      <label class="form-label sub-heading">Media Coverage Type</label>
+      <select class="form-select" formControlName="mediaCoverageType">
+        <option value="">Select</option>
+        <option *ngFor="let type of mediaTypes" [value]="type">{{ type }}</option>
+      </select>
+    </div>
+
+    <!-- Company Info -->
+    <div class="col-md-3">
+      <label class="form-label">Company name</label>
+      <input type="text" class="form-control" formControlName="companyName" placeholder="Enter" />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Company email</label>
+      <input type="email" class="form-control" formControlName="companyEmail" placeholder="Enter" />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Company website</label>
+      <input type="url" class="form-control" formControlName="companyWebsite" placeholder="Enter" />
+    </div>
+  </div>
+
+  <!-- Media Person Details -->
+  <h6 class="mt-4 sub-heading">Provide Details of Media Person</h6>
+  <div class="row g-3">
+    <div class="col-md-2">
+      <label class="form-label">Gender</label>
+      <select class="form-select" formControlName="mediaGender">
+        <option value="">Select</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Prefix</label>
+      <select class="form-select" formControlName="mediaPrefix">
+        <option value="">Select</option>
+        <option>Mr.</option>
+        <option>Mrs.</option>
+        <option>Ms.</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">First name</label>
+      <input type="text" class="form-control" formControlName="mediaFirstName" />
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Middle name</label>
+      <input type="text" class="form-control" formControlName="mediaMiddleName" />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Last name</label>
+      <input type="text" class="form-control" formControlName="mediaLastName" />
+    </div>
+  </div>
+
+  <div class="row g-3 mt-2">
+    <div class="col-md-4">
+      <label class="form-label">Designation</label>
+      <input type="text" class="form-control" formControlName="mediaDesignation" placeholder="Enter designation" />
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Contact</label>
+      <input type="text" class="form-control" formControlName="mediaContact" placeholder="Enter phone number" />
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-control" formControlName="mediaEmail" placeholder="Enter email" />
+    </div>
+  </div>
+
+  <!-- Reference Person -->
+  <h6 class="mt-4 sub-heading">Provide Details of Reference Person</h6>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <label class="form-label">Reference branch ID</label>
+      <input type="text" class="form-control" formControlName="referenceBranchId" />
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Reference volunteer ID</label>
+      <input type="text" class="form-control" formControlName="referenceVolunteerId" />
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Reference person’s name</label>
+      <input type="text" class="form-control" formControlName="referencePersonName" />
+    </div>
+  </div>
+
+  <!-- Add Event Media -->
+  <div class="mt-3">
+    <button class="btn btn-warning btn-sm" type="button" (click)="addEventMedia()">+ Add Event Media</button>
+  </div>
+
+  <!-- Event Media Table -->
+  <div class="table-responsive mt-3">
+    <h6 class="mt-4">List of Event Media (1)</h6>
+    <table class="table table-bordered align-middle">
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Media Coverage Type</th>
+          <th>Company Name</th>
+          <th>Company Email</th>
+          <th>Company Website</th>
+          <th>Media Person’s Gender</th>
+          <th>Media Person’s Designation</th>
+          <th>Media Person’s Contact</th>
+          <th>Reference Person</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let media of eventMediaList; let i = index">
+          <td><button class="btn btn-danger btn-sm" (click)="removeEventMedia(i)">Remove</button></td>
+          <td>{{ media.mediaCoverageType }}</td>
+          <td>{{ media.companyName }}</td>
+          <td>{{ media.companyEmail }}</td>
+          <td>{{ media.companyWebsite }}</td>
+          <td>{{ media.gender }}</td>
+          <td>{{ media.designation }}</td>
+          <td>{{ media.contact }}</td>
+          <td>{{ media.referencePersonName }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+  <!-- Promotional Material Used -->
+   <div class="common-stepper">
+  <h5 class=" mb-3">Promotional Material Used</h5>
+  
+  <div class="row g-3">
+    <div class="col-md-3">
+      <label class="form-label">Material type</label>
+      <select class="form-select" formControlName="materialType">
+        <option>Select</option>
+        <option *ngFor="let material of materialTypes" [value]="material">{{ material }}</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Quantity</label>
+      <input type="text" class="form-control" formControlName="materialQuantity" />
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Size</label>
+      <input type="text" class="form-control" formControlName="materialSize" />
+    </div>
+    <div class="col-md-5">
+      <label class="form-label">Custom dimension</label>
+      <div class="input-group">
+        <input type="number" class="form-control" placeholder="Height" formControlName="customHeight" />
+        <span class="input-group-text">x</span>
+        <input type="number" class="form-control" placeholder="Width" formControlName="customWidth" />
+        <span class="input-group-text">inch</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-3">
+    <button class="btn btn-warning btn-sm" type="button" (click)="addMaterialType()">+ Add material
+      type</button>
+  </div>
+
+  <!-- Media and Documentation -->
+  <h5 class=" mb-3 mt-4">Media and Documentation</h5>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <label class="form-label">Event photos</label>
+      <input type="file" class="form-control" formControlName="eventPhotos" />
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Video coverage</label>
+      <input type="file" class="form-control" formControlName="videoCoverage" />
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Press release</label>
+      <input type="file" class="form-control" formControlName="pressRelease" />
+    </div>
+  </div>
+  </div>
+  <div class="d-flex justify-content-between align-items-center mt-4 common-stepper">
+    <div class="text-success small">
+      <i class="bi bi-check-circle"></i> All changes are autosaved
+    </div>
+    <div>
+      <button class="btn btn-warning me-2" (click)="previousStep()">Back</button>
+      <button class="btn btn-primary" (click)="nextStep()">Next</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================= STEP 3 : SPECIAL GUESTS ================= -->
+<!-- Step 3: Special Guests -->
+<div *ngIf="currentStep === 3">
+  <div class="common-stepper">
+  <h5 class="mb-3">Add Special Guests</h5>
+  <div class="row g-3">
+    <!-- Gender -->
+    <div class="col-md-2">
+      <label class="form-label">Gender</label>
+      <select class="form-select" formControlName="guestGender">
+        <option value="">Select</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Other</option>
+      </select>
+    </div>
+
+    <!-- Prefix -->
+    <div class="col-md-2">
+      <label class="form-label">Prefix</label>
+      <select class="form-select" formControlName="guestPrefix">
+        <option value="">Select</option>
+        <option>Mr.</option>
+        <option>Mrs.</option>
+        <option>Ms.</option>
+      </select>
+    </div>
+
+    <!-- Names -->
+    <div class="col-md-3">
+      <label class="form-label">First name</label>
+      <input type="text" class="form-control" formControlName="guestFirstName" />
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Middle name</label>
+      <input type="text" class="form-control" formControlName="guestMiddleName" />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Last name</label>
+      <input type="text" class="form-control" formControlName="guestLastName" />
+    </div>
+  </div>
+
+  <div class="row g-3 mt-2">
+    <!-- Designation -->
+    <div class="col-md-4">
+      <label class="form-label">Designation</label>
+      <input type="text" class="form-control" formControlName="guestDesignation" placeholder="Enter designation" />
+    </div>
+
+    <!-- Organization -->
+    <div class="col-md-4">
+      <label class="form-label">Organization</label>
+      <input type="text" class="form-control" formControlName="guestOrganization" placeholder="Enter organization" />
+    </div>
+
+    <!-- Email -->
+    <div class="col-md-4">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-control" formControlName="guestEmail" placeholder="Enter email" />
+    </div>
+  </div>
+
+  <div class="row g-3 mt-2">
+    <!-- City -->
+    <div class="col-md-2">
+      <label class="form-label">City</label>
+      <select class="form-select" formControlName="guestCity">
+        <option value="">Select</option>
+        <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
+      </select>
+    </div>
+
+    <!-- State -->
+    <div class="col-md-2">
+      <label class="form-label">State</label>
+      <select class="form-select" formControlName="guestState">
+        <option value="">Select</option>
+        <option *ngFor="let state of states" [value]="state">{{ state }}</option>
+      </select>
+    </div>
+
+    <!-- Personal Number -->
+    <div class="col-md-4">
+      <label class="form-label">Personal number</label>
+      <input type="text" class="form-control" formControlName="guestPersonalNumber" placeholder="Enter number" />
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Contact person</label>
+      <input type="text" class="form-control" formControlName="guestContactPerson" />
+    </div>
+  </div>
+
+  <div class="row g-3 mt-2">
+    <!-- Contact Person -->
+    
+
+    <div class="col-md-3">
+      <label class="form-label">Contact person’s number</label>
+      <input type="text" class="form-control" formControlName="guestContactPersonNumber" />
+    </div>
+
+    <!-- Reference Branch -->
+    <div class="col-md-3">
+      <label class="form-label">Reference branch ID</label>
+      <input type="text" class="form-control" formControlName="guestReferenceBranchId" />
+    </div>
+
+    <!-- Reference Volunteer -->
+    <div class="col-md-3">
+      <label class="form-label">Reference volunteer ID</label>
+      <input type="text" class="form-control" formControlName="guestReferenceVolunteerId" />
+    </div>
+       <div class="col-md-3">
+      <label class="form-label">Reference person name</label>
+      <input type="text" class="form-control" formControlName="guestReferencePersonName" />
+    </div>
+  </div>
+
+ 
+
+  <!-- Add Guest Button -->
+  <div class="mt-3">
+    <button class="btn btn-warning btn-sm" type="button" (click)="addSpecialGuest()">+ Add guest</button>
+  </div>
+
+  <!-- Special Guest Table -->
+  <div class="table-responsive mt-3">
+    <table class="table table-bordered align-middle">
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Name (Phone no.)</th>
+          <th>Gender</th>
+          <th>Designation</th>
+          <th>Organization</th>
+          <th>Email</th>
+          <th>City, State</th>
+          <th>Personal no.</th>
+          <th>Contact Person (Phone no.)</th>
+          <th>Reference Person (Phone no.)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let guest of specialGuestList; let i = index">
+          <td><button class="btn btn-danger btn-sm" (click)="removeSpecialGuest(i)">Remove</button></td>
+          <td>{{ guest.firstName }} {{ guest.lastName }} ({{ guest.personalNumber }})</td>
+          <td>{{ guest.gender }}</td>
+          <td>{{ guest.designation }}</td>
+          <td>{{ guest.organization }}</td>
+          <td>{{ guest.email }}</td>
+          <td>{{ guest.city }}, {{ guest.state }}</td>
+          <td>{{ guest.personalNumber }}</td>
+          <td>{{ guest.contactPerson }} ({{ guest.contactPersonNumber }})</td>
+          <td>{{ guest.referencePersonName }} ({{ guest.referenceVolunteerId }})</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  </div>
+  <div class="d-flex justify-content-between align-items-center mt-4 common-stepper">
+   
+    <div class="text-success small">
+      <i class="bi bi-check-circle"></i> All changes are autosaved
+    </div>
+    <div>
+      <button class="btn btn-warning me-2" (click)="previousStep()">Back</button>
+      <button class="btn btn-primary" (click)="nextStep()">Next</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================= STEP 4 : VOLUNTEERS ================= -->
+<!-- Step 4: Volunteers -->
+<div *ngIf="currentStep === 4">
+  <div class="common-stepper">
+  <h5 class="mb-3">Add Volunteer</h5>
+  <div class="row g-3">
+    <!-- Branch ID -->
+    <div class="col-md-3">
+      <label class="form-label">Branch ID</label>
+      <input type="text" class="form-control" formControlName="volBranchId" placeholder="Enter" />
+    </div>
+
+    <!-- Search Member -->
+    <div class="col-md-4">
+      <label class="form-label">Search Member</label>
+      <input type="text" class="form-control" formControlName="volSearchMember"
+        placeholder="Search by name, email or mobile no." />
+    </div>
+
+    <!-- Volunteer’s Name -->
+    <div class="col-md-5">
+      <label class="form-label">Volunteer's name</label>
+      <input type="text" class="form-control" formControlName="volName" placeholder="Enter" />
+    </div>
+  </div>
+
+  <div class="row g-3 mt-2">
+    <!-- No. of Days -->
+    <div class="col-md-2">
+      <label class="form-label">No. of Days</label>
+      <input type="number" class="form-control" formControlName="volDays" placeholder="Enter number" />
+    </div>
+
+    <!-- Seva Involved -->
+    <div class="col-md-3">
+      <label class="form-label">Seva involved</label>
+      <select class="form-select" formControlName="volSeva">
+        <option value="">Select</option>
+        <option>Others</option>
+        <option>Media</option>
+        <option>Decoration</option>
+        <option>Logistics</option>
+        <option>Hospitality</option>
+      </select>
+    </div>
+
+    <!-- Mention Seva -->
+    <div class="col-md-7">
+      <label class="form-label">Mention seva</label>
+      <input type="text" class="form-control" formControlName="volMentionSeva" placeholder="Enter" />
+    </div>
+  </div>
+
+  <!-- Add Volunteer Button -->
+  <div class="mt-3">
+    <button class="btn btn-warning btn-sm" type="button" (click)="addVolunteer()">+ Add Volunteer</button>
+  </div>
+
+  <!-- Volunteer List Table -->
+  <div class="table-responsive mt-3">
+    <table class="table table-bordered align-middle">
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Name</th>
+          <th>Contact no.</th>
+          <th>No. of Days</th>
+          <th>Seva involved</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let vol of volunteerList; let i = index">
+          <td>
+            <button class="btn btn-danger btn-sm" (click)="removeVolunteer(i)">Remove</button>
+          </td>
+          <td>{{ vol.name }}</td>
+          <td>{{ vol.contact }}</td>
+          <td>{{ vol.days }}</td>
+          <td>{{ vol.seva }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+  <!-- Navigation Buttons -->
+  <div class="d-flex justify-content-between mt-3 common-stepper">
+    <button class="btn btn-warning" (click)="previousStep()">Back</button>
+    <button class="btn btn-success" (click)="markComplete()">Mark complete</button>
+  </div>
+</div>
