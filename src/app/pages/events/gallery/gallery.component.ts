@@ -14,7 +14,7 @@ interface GalleryItem {
 })
 export class GalleryComponent {
   // File type filter tabs
-  types = ['All', 'image', 'video', 'audio', 'file'];
+  types = [];
 
   // Category filter tabs
   categories = ['All', 'Event Photos', 'Video Coverage', 'Testimonials','Press Release'];

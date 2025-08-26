@@ -442,3 +442,23 @@ margin-bottom: 20px;
   color:#495057;
   font-size: 14px;
 }
+
+.custom-modal {
+  max-width: 962px;
+}
+
+.modal-content {
+  height: 650px;
+  padding: 24px 20px;
+  gap: 24px;
+  opacity: 1;
+  border-radius: 12px;
+  
+}
+
+
+
+.modal-body {
+  overflow-y: auto;
+  max-height: calc(581px - 120px); // scrollable inside modal
+}

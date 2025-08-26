@@ -261,6 +261,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray } from '@angular/forms';
 import { Router } from '@angular/router';
+import * as bootstrap from 'bootstrap';
 
 @Component({
   selector: 'app-add-event',
@@ -304,6 +305,8 @@ export class AddEventComponent implements OnInit {
     testimonials: []
   };
 
+   eventMediaForm!: FormGroup;
+  eventMediaList: any[] = [];
   // Mock data for testing
   mockEvents = [
     {
@@ -618,7 +621,33 @@ export class AddEventComponent implements OnInit {
       volunteers: this.fb.array([])
     });
   }
+saveEventMedia() {
+    if (this.eventMediaForm.valid) {
+      this.eventMediaList.push(this.eventMediaForm.value);
+      this.eventMediaForm.reset();
 
+      // Close modal programmatically
+      const modalEl = document.getElementById('eventMediaModal');
+      if (modalEl) {
+        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modal.hide();
+      }
+    }
+  }
+
+  // 👉 Remove media
+  removeEventMedia(index: number) {
+    this.eventMediaList.splice(index, 1);
+  }
+
+  // 👉 Open modal
+  openMediaModal() {
+    const modalEl = document.getElementById('eventMediaModal');
+    if (modalEl) {
+      const modal = new bootstrap.Modal(modalEl);
+      modal.show();
+    }
+  }
   setupFormValueChanges(): void {
     // Listen for event type changes
     this.generalDetailsForm.get('eventType')?.valueChanges.subscribe(eventType => {

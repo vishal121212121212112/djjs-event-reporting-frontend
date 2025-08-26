@@ -45,21 +45,28 @@
     <div class="common-stepper">
       <h5 class="mb-3">Event details</h5>
       <div class="row">
-        <div class="col-md-4 mb-3">
+        <div class="col-md-3 mb-3">
+          <label class="form-label">Level</label>
+          <select class="form-select" formControlName="type">
+            <option value="">Select</option>
+            <option *ngFor="let type of LevelType" [value]="type">{{ type }}</option>
+          </select>
+        </div>
+        <div class="col-md-3 mb-3">
           <label class="form-label">Type</label>
           <select class="form-select" formControlName="type">
             <option value="">Select</option>
             <option *ngFor="let type of eventTypes" [value]="type">{{ type }}</option>
           </select>
         </div>
-        <div class="col-md-4 mb-3">
+        <div class="col-md-3 mb-3">
           <label class="form-label">Event category</label>
           <select class="form-select" formControlName="eventCategory">
             <option value="">Select</option>
             <option *ngFor="let cat of eventCategories" [value]="cat">{{ cat }}</option>
           </select>
         </div>
-        <div class="col-md-4 mb-3">
+        <div class="col-md-3 mb-3">
           <label class="form-label">Event sub category</label>
           <select class="form-select" formControlName="eventSubCategory">
             <option value="">Select</option>
@@ -351,103 +358,137 @@
 <!-- Step 2: Media & Promotion -->
 <div *ngIf="currentStep === 2">
   <div class="common-stepper">
-  <h5 class="mb-3">Event Media</h5>
-  <div class="row g-3">
-    <!-- Media Coverage Type -->
-    <div class="col-md-3">
-      <label class="form-label sub-heading">Media Coverage Type</label>
-      <select class="form-select" formControlName="mediaCoverageType">
-        <option value="">Select</option>
-        <option *ngFor="let type of mediaTypes" [value]="type">{{ type }}</option>
-      </select>
-    </div>
-
-    <!-- Company Info -->
-    <div class="col-md-3">
-      <label class="form-label">Company name</label>
-      <input type="text" class="form-control" formControlName="companyName" placeholder="Enter" />
-    </div>
-    <div class="col-md-3">
-      <label class="form-label">Company email</label>
-      <input type="email" class="form-control" formControlName="companyEmail" placeholder="Enter" />
-    </div>
-    <div class="col-md-3">
-      <label class="form-label">Company website</label>
-      <input type="url" class="form-control" formControlName="companyWebsite" placeholder="Enter" />
-    </div>
-  </div>
-
-  <!-- Media Person Details -->
-  <h6 class="mt-4 sub-heading">Provide Details of Media Person</h6>
-  <div class="row g-3">
-    <div class="col-md-2">
-      <label class="form-label">Gender</label>
-      <select class="form-select" formControlName="mediaGender">
-        <option value="">Select</option>
-        <option>Male</option>
-        <option>Female</option>
-        <option>Other</option>
-      </select>
-    </div>
-    <div class="col-md-2">
-      <label class="form-label">Prefix</label>
-      <select class="form-select" formControlName="mediaPrefix">
-        <option value="">Select</option>
-        <option>Mr.</option>
-        <option>Mrs.</option>
-        <option>Ms.</option>
-      </select>
-    </div>
-    <div class="col-md-3">
-      <label class="form-label">First name</label>
-      <input type="text" class="form-control" formControlName="mediaFirstName" />
-    </div>
-    <div class="col-md-2">
-      <label class="form-label">Middle name</label>
-      <input type="text" class="form-control" formControlName="mediaMiddleName" />
-    </div>
-    <div class="col-md-3">
-      <label class="form-label">Last name</label>
-      <input type="text" class="form-control" formControlName="mediaLastName" />
-    </div>
-  </div>
-
-  <div class="row g-3 mt-2">
-    <div class="col-md-4">
-      <label class="form-label">Designation</label>
-      <input type="text" class="form-control" formControlName="mediaDesignation" placeholder="Enter designation" />
-    </div>
-    <div class="col-md-4">
-      <label class="form-label">Contact</label>
-      <input type="text" class="form-control" formControlName="mediaContact" placeholder="Enter phone number" />
-    </div>
-    <div class="col-md-4">
-      <label class="form-label">Email</label>
-      <input type="email" class="form-control" formControlName="mediaEmail" placeholder="Enter email" />
-    </div>
-  </div>
-
-  <!-- Reference Person -->
-  <h6 class="mt-4 sub-heading">Provide Details of Reference Person</h6>
-  <div class="row g-3">
-    <div class="col-md-4">
-      <label class="form-label">Reference branch ID</label>
-      <input type="text" class="form-control" formControlName="referenceBranchId" />
-    </div>
-    <div class="col-md-4">
-      <label class="form-label">Reference volunteer ID</label>
-      <input type="text" class="form-control" formControlName="referenceVolunteerId" />
-    </div>
-    <div class="col-md-4">
-      <label class="form-label">Reference person’s name</label>
-      <input type="text" class="form-control" formControlName="referencePersonName" />
-    </div>
-  </div>
-
-  <!-- Add Event Media -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Event Media</h5>
   <div class="mt-3">
-    <button class="btn btn-warning btn-sm" type="button" (click)="addEventMedia()">+ Add Event Media</button>
+    <button class="btn btn-warning btn-sm" type="button" (click)="openMediaModal()">+ Add Event Media</button>
   </div>
+  </div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="eventMediaModal" tabindex="-1" aria-labelledby="eventMediaModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl custom-modal">
+    <div class="modal-content">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="eventMediaModalLabel">Add Event Media</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Body with your form -->
+      <form [formGroup]="eventMediaForm" (ngSubmit)="saveEventMedia()">
+        <div class="modal-body">
+          
+          <!-- ========== your provided form content ========== -->
+          <div class="row g-3">
+            <!-- Media Coverage Type -->
+            <div class="col-md-3">
+              <label class="form-label sub-heading">Media Coverage Type</label>
+              <select class="form-select" formControlName="mediaCoverageType">
+                <option value="">Select</option>
+                <option *ngFor="let type of mediaTypes" [value]="type">{{ type }}</option>
+              </select>
+            </div>
+
+            <!-- Company Info -->
+            <div class="col-md-3">
+              <label class="form-label">Company name</label>
+              <input type="text" class="form-control" formControlName="companyName" placeholder="Enter" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Company email</label>
+              <input type="email" class="form-control" formControlName="companyEmail" placeholder="Enter" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Company website</label>
+              <input type="url" class="form-control" formControlName="companyWebsite" placeholder="Enter" />
+            </div>
+          </div>
+
+          <!-- Media Person Details -->
+          <h6 class="mt-4 sub-heading">Provide Details of Media Person</h6>
+          <div class="row g-3">
+            <div class="col-md-2">
+              <label class="form-label">Gender</label>
+              <select class="form-select" formControlName="mediaGender">
+                <option value="">Select</option>
+                <option>Male</option>
+                <option>Female</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Prefix</label>
+              <select class="form-select" formControlName="mediaPrefix">
+                <option value="">Select</option>
+                <option>Mr.</option>
+                <option>Mrs.</option>
+                <option>Ms.</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">First name</label>
+              <input type="text" class="form-control" formControlName="mediaFirstName" />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Middle name</label>
+              <input type="text" class="form-control" formControlName="mediaMiddleName" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Last name</label>
+              <input type="text" class="form-control" formControlName="mediaLastName" />
+            </div>
+          </div>
+
+          <div class="row g-3 mt-2">
+            <div class="col-md-4">
+              <label class="form-label">Designation</label>
+              <input type="text" class="form-control" formControlName="mediaDesignation" placeholder="Enter designation" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Contact</label>
+              <input type="text" class="form-control" formControlName="mediaContact" placeholder="Enter phone number" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" formControlName="mediaEmail" placeholder="Enter email" />
+            </div>
+          </div>
+
+          <!-- Reference Person -->
+          <h6 class="mt-4 sub-heading">Provide Details of Reference Person</h6>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Reference branch ID</label>
+              <input type="text" class="form-control" formControlName="referenceBranchId" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Reference volunteer ID</label>
+              <input type="text" class="form-control" formControlName="referenceVolunteerId" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Reference person’s name</label>
+              <input type="text" class="form-control" formControlName="referencePersonName" />
+            </div>
+          </div>
+          <!-- ========== end of your form ========== -->
+
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-warning me-2" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="addEventMedia()">Save Media</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
 
   <!-- Event Media Table -->
   <div class="table-responsive mt-3">
@@ -551,127 +592,139 @@
 <!-- Step 3: Special Guests -->
 <div *ngIf="currentStep === 3">
   <div class="common-stepper">
-  <h5 class="mb-3">Add Special Guests</h5>
-  <div class="row g-3">
-    <!-- Gender -->
-    <div class="col-md-2">
-      <label class="form-label">Gender</label>
-      <select class="form-select" formControlName="guestGender">
-        <option value="">Select</option>
-        <option>Male</option>
-        <option>Female</option>
-        <option>Other</option>
-      </select>
-    </div>
-
-    <!-- Prefix -->
-    <div class="col-md-2">
-      <label class="form-label">Prefix</label>
-      <select class="form-select" formControlName="guestPrefix">
-        <option value="">Select</option>
-        <option>Mr.</option>
-        <option>Mrs.</option>
-        <option>Ms.</option>
-      </select>
-    </div>
-
-    <!-- Names -->
-    <div class="col-md-3">
-      <label class="form-label">First name</label>
-      <input type="text" class="form-control" formControlName="guestFirstName" />
-    </div>
-    <div class="col-md-2">
-      <label class="form-label">Middle name</label>
-      <input type="text" class="form-control" formControlName="guestMiddleName" />
-    </div>
-    <div class="col-md-3">
-      <label class="form-label">Last name</label>
-      <input type="text" class="form-control" formControlName="guestLastName" />
-    </div>
-  </div>
-
-  <div class="row g-3 mt-2">
-    <!-- Designation -->
-    <div class="col-md-4">
-      <label class="form-label">Designation</label>
-      <input type="text" class="form-control" formControlName="guestDesignation" placeholder="Enter designation" />
-    </div>
-
-    <!-- Organization -->
-    <div class="col-md-4">
-      <label class="form-label">Organization</label>
-      <input type="text" class="form-control" formControlName="guestOrganization" placeholder="Enter organization" />
-    </div>
-
-    <!-- Email -->
-    <div class="col-md-4">
-      <label class="form-label">Email</label>
-      <input type="email" class="form-control" formControlName="guestEmail" placeholder="Enter email" />
-    </div>
-  </div>
-
-  <div class="row g-3 mt-2">
-    <!-- City -->
-    <div class="col-md-2">
-      <label class="form-label">City</label>
-      <select class="form-select" formControlName="guestCity">
-        <option value="">Select</option>
-        <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
-      </select>
-    </div>
-
-    <!-- State -->
-    <div class="col-md-2">
-      <label class="form-label">State</label>
-      <select class="form-select" formControlName="guestState">
-        <option value="">Select</option>
-        <option *ngFor="let state of states" [value]="state">{{ state }}</option>
-      </select>
-    </div>
-
-    <!-- Personal Number -->
-    <div class="col-md-4">
-      <label class="form-label">Personal number</label>
-      <input type="text" class="form-control" formControlName="guestPersonalNumber" placeholder="Enter number" />
-    </div>
-    <div class="col-md-4">
-      <label class="form-label">Contact person</label>
-      <input type="text" class="form-control" formControlName="guestContactPerson" />
-    </div>
-  </div>
-
-  <div class="row g-3 mt-2">
-    <!-- Contact Person -->
-    
-
-    <div class="col-md-3">
-      <label class="form-label">Contact person’s number</label>
-      <input type="text" class="form-control" formControlName="guestContactPersonNumber" />
-    </div>
-
-    <!-- Reference Branch -->
-    <div class="col-md-3">
-      <label class="form-label">Reference branch ID</label>
-      <input type="text" class="form-control" formControlName="guestReferenceBranchId" />
-    </div>
-
-    <!-- Reference Volunteer -->
-    <div class="col-md-3">
-      <label class="form-label">Reference volunteer ID</label>
-      <input type="text" class="form-control" formControlName="guestReferenceVolunteerId" />
-    </div>
-       <div class="col-md-3">
-      <label class="form-label">Reference person name</label>
-      <input type="text" class="form-control" formControlName="guestReferencePersonName" />
-    </div>
-  </div>
-
- 
-
-  <!-- Add Guest Button -->
+     <div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Add Special Guests</h5>
   <div class="mt-3">
-    <button class="btn btn-warning btn-sm" type="button" (click)="addSpecialGuest()">+ Add guest</button>
+    <button class="btn btn-warning btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#guestModal">
+  + Add guest
+</button>
+
   </div>
+  </div>
+<!-- Popup Modal -->
+<div class="modal fade" id="guestModal" tabindex="-1" aria-labelledby="guestModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title" id="guestModalLabel">Add Guest Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Guest Form -->
+      <form [formGroup]="guestForm" (ngSubmit)="saveGuest()">
+        <div class="modal-body">
+          
+          <!-- Row 1 -->
+          <div class="row g-3">
+            <div class="col-md-2">
+              <label class="form-label">Gender</label>
+              <select class="form-select" formControlName="guestGender">
+                <option value="">Select</option>
+                <option>Male</option>
+                <option>Female</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Prefix</label>
+              <select class="form-select" formControlName="guestPrefix">
+                <option value="">Select</option>
+                <option>Mr.</option>
+                <option>Mrs.</option>
+                <option>Ms.</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">First name</label>
+              <input type="text" class="form-control" formControlName="guestFirstName" />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Middle name</label>
+              <input type="text" class="form-control" formControlName="guestMiddleName" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Last name</label>
+              <input type="text" class="form-control" formControlName="guestLastName" />
+            </div>
+          </div>
+
+          <!-- Row 2 -->
+          <div class="row g-3 mt-2">
+            <div class="col-md-4">
+              <label class="form-label">Designation</label>
+              <input type="text" class="form-control" formControlName="guestDesignation" placeholder="Enter designation" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Organization</label>
+              <input type="text" class="form-control" formControlName="guestOrganization" placeholder="Enter organization" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" formControlName="guestEmail" placeholder="Enter email" />
+            </div>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="row g-3 mt-2">
+            <div class="col-md-2">
+              <label class="form-label">City</label>
+              <select class="form-select" formControlName="guestCity">
+                <option value="">Select</option>
+                <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">State</label>
+              <select class="form-select" formControlName="guestState">
+                <option value="">Select</option>
+                <option *ngFor="let state of states" [value]="state">{{ state }}</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Personal number</label>
+              <input type="text" class="form-control" formControlName="guestPersonalNumber" placeholder="Enter number" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Contact person</label>
+              <input type="text" class="form-control" formControlName="guestContactPerson" />
+            </div>
+          </div>
+
+          <!-- Row 4 -->
+          <div class="row g-3 mt-2">
+            <div class="col-md-3">
+              <label class="form-label">Contact person’s number</label>
+              <input type="text" class="form-control" formControlName="guestContactPersonNumber" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Reference branch ID</label>
+              <input type="text" class="form-control" formControlName="guestReferenceBranchId" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Reference volunteer ID</label>
+              <input type="text" class="form-control" formControlName="guestReferenceVolunteerId" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Reference person name</label>
+              <input type="text" class="form-control" formControlName="guestReferencePersonName" />
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-warning me-2" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Guest</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
 
   <!-- Special Guest Table -->
   <div class="table-responsive mt-3">
@@ -717,7 +770,9 @@
       <button class="btn btn-primary" (click)="nextStep()">Next</button>
     </div>
   </div>
-</div>
+
+
+  
 
 
 <!-- ================= STEP 4 : VOLUNTEERS ================= -->
