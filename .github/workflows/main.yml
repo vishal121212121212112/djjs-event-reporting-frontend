@@ -2,7 +2,7 @@ name: CI/CD - Build & Deploy DJJS Frontend
 
 on:
   push:
-    branches: [ development ]
+    branches: [ main ]
 
 # Prevent overlapping deploys to the same runner
 concurrency:
