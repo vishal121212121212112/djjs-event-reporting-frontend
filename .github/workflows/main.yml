@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 env:
-  IMAGE_NAME: aiinterview-admin
-  CONTAINER_NAME: aiinterview-admin
+  IMAGE_NAME: djjs-frontend
+  CONTAINER_NAME: djjs-frontend
   HOST_PORT: 8081
   CONTAINER_PORT: 8081
   ECR_REPOSITORY: 775727899931.dkr.ecr.ap-south-1.amazonaws.com/djjs-event-reporting-frontend
@@ -92,22 +92,30 @@ jobs:
           echo "❌ AWS CLI not found in deploy stage"
           exit 1
 
-      - name: Pull & run container
+      - name: Pull & run container (Using Custom Network)
         run: |
           TAG=${{ needs.debug_and_push.outputs.image-tag }}
           if [ -z "$TAG" ]; then
             echo "❌ TAG missing, cannot deploy"
             exit 1
           fi
+
           IMAGE_URI="${ECR_REPOSITORY}:${TAG}"
+
           $AWS_BIN ecr get-login-password --region ${AWS_REGION} | \
             docker login --username AWS --password-stdin ${ECR_REPOSITORY}
+
           docker pull ${IMAGE_URI}
+
           docker ps -aq -f name=${CONTAINER_NAME} | xargs -r docker stop
           docker rm -f ${CONTAINER_NAME} || true
+
+          echo "🚀 Running container on custom network djjs-net..."
           docker run -d --name ${CONTAINER_NAME} \
+            --network djjs-net \
             -p ${HOST_PORT}:${CONTAINER_PORT} \
-            --restart=always ${IMAGE_URI}
+            --restart=always \
+            ${IMAGE_URI}
 
       - name: Health check
         run: curl -I --max-time 10 http://127.0.0.1:${HOST_PORT} | head -n1
