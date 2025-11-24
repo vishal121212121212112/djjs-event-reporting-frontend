@@ -1,19 +1,14 @@
-# Stage 1: Build Angular app
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package*.json yarn.lock ./
-RUN yarn install
-COPY . .
-RUN yarn build --configuration production
-
-# Stage 2: Serve Angular with Nginx
+# In Dockerfile at Stage 2
 FROM nginx:alpine
 COPY --from=builder /app/dist/skote /usr/share/nginx/html
-# Custom nginx config to handle Angular routes
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Update default.conf inside container to listen on 8081
+# e.g., change `listen 80;` to `listen 8081;` inside nginx.conf
 
 EXPOSE 8081
 CMD ["nginx", "-g", "daemon off;"]
+
 
 
 
