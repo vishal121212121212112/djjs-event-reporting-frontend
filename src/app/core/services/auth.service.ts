@@ -27,22 +27,22 @@ export class AuthenticationService {
   ) {}
 
   /**
-   * Login user with identifier and password
-   * @param credentials LoginRequest object containing identifier and password
+   * Login user with email and password
+   * @param credentials LoginRequest object containing email and password
    */
   login(credentials: LoginRequest): Observable<LoginResponse> {
     // Dispatch login action
     this.store.dispatch(login({ credentials }));
 
-    const url = `${this.apiUrl}/admin/users/login`;  // Updated endpoint back to /admin/users/login
+    const url = `${this.apiUrl}/login`;
     
     return this.http.post<LoginResponse>(url, credentials).pipe(
       tap(response => {
         // Store token in localStorage
         this.storeToken(response.token);
         
-        // Dispatch success action
-        this.store.dispatch(loginSuccess({ response }));
+        // Dispatch success action with email from credentials
+        this.store.dispatch(loginSuccess({ response, email: credentials.email }));
         
         console.log('Login successful:', response);
       }),

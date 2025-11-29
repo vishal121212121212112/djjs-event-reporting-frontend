@@ -38,20 +38,23 @@
           }
           
           <div class="form-group">
-            <label for="identifier" class="form-label">Email or Username</label>
+            <label for="email" class="form-label">Email</label>
             <input 
-              type="text" 
-              formControlName="identifier" 
+              type="email" 
+              formControlName="email" 
               class="form-input" 
-              id="identifier" 
-              placeholder="Enter email or username"
-              [ngClass]="{ 'is-invalid': submitted && f.identifier.errors }" 
+              id="email" 
+              placeholder="Enter email"
+              [ngClass]="{ 'is-invalid': submitted && f.email.errors }" 
               [disabled]="loading"
             />
-            @if(submitted && f.identifier.errors){
+            @if(submitted && f.email.errors){
             <div class="error-message">
-              @if(f.identifier.errors.required){
-              <div>Email or username is required</div>
+              @if(f.email.errors.required){
+              <div>Email is required</div>
+              }
+              @if(f.email.errors.email){
+              <div>Please enter a valid email address</div>
               }
             </div>
             }

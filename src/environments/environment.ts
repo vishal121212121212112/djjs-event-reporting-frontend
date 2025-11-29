@@ -15,7 +15,7 @@ export const environment = {
     appId: "",
     measurementId: ""
   } ,
-  apiBaseUrl : "https://eventsreportingapidev.djjs.org"
+  apiBaseUrl : "https://eventsreportingapi.djjs.org"
 };
 
 /*

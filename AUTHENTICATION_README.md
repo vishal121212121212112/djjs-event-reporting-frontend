@@ -51,8 +51,9 @@ src/
 
 ### **Login Endpoint**
 ```
-POST https://eventsreportingapidev.djjs.org/admin/users/login
+POST {apiBaseUrl}/login
 ```
+Example: `https://eventsreportingapi.djjs.org/login`
 
 ### **Request Format**
 ```json
@@ -65,11 +66,11 @@ POST https://eventsreportingapidev.djjs.org/admin/users/login
 ### **Response Format**
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "userId": "b7fe6b99-0c1d-45b2-8d49-d56e735a5443",
-  "type": "hoadmin"
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
+
+**Note:** The JWT token contains user information (user_id, role_id, exp) in its payload, which is automatically decoded and stored in the application state.
 
 ## 🚀 **Usage Guide**
 

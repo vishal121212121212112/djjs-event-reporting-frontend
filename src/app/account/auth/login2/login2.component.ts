@@ -31,7 +31,7 @@ export class Login2Component implements OnInit {
   ngOnInit(): void {
     document.body.classList.add("auth-body-bg");
     this.loginForm = this.formBuilder.group({
-      identifier: ['admin@djjs.org', [Validators.required]],  // Changed from email to identifier, removed email validation
+      email: ['admin@djjs.org', [Validators.required, Validators.email]],
       password: ['admin123', [Validators.required]],
     });
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
@@ -54,7 +54,7 @@ export class Login2Component implements OnInit {
   onSubmit() {
     this.submitted = true;
     const credentials = {
-      identifier: this.f['identifier'].value,  // Changed from email to identifier
+      email: this.f['email'].value,
       password: this.f['password'].value
     };
     this.authenticationService.login(credentials).subscribe({

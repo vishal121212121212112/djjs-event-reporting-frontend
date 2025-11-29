@@ -1,12 +1,10 @@
 export interface LoginRequest {
-  identifier: string;  // Can be email or username
+  email: string;
   password: string;
 }
 
 export interface LoginResponse {
   token: string;
-  userId: string;
-  type: string;
 }
 
 export class User {

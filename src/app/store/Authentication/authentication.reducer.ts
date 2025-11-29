@@ -50,13 +50,27 @@ export const authenticationReducer = createReducer(
       error: null, 
       loading: true 
     })),
-    on(loginSuccess, (state, { response }) => {
+    on(loginSuccess, (state, { response, email }) => {
+      // Decode JWT token to extract user information
+      let userInfo: any = {};
+      try {
+        const base64Url = response.token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        userInfo = JSON.parse(jsonPayload);
+      } catch (error) {
+        console.error('Error decoding token:', error);
+      }
+
       const user: User = {
-        userId: response.userId,
-        email: '', // Will be set from login form
+        userId: userInfo.user_id?.toString() || userInfo.userId?.toString() || '',
+        email: email,
         token: response.token,
-        type: response.type
+        type: userInfo.role_id?.toString() || ''
       };
+      
       return { 
         ...state, 
         isLoggedIn: true, 
