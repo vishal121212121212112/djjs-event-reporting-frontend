@@ -57,21 +57,9 @@ export class EditBranchComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        // Get branch ID from route
-        const idParam = this.route.snapshot.paramMap.get('id');
-        if (idParam) {
-            this.branchId = parseInt(idParam, 10);
-            if (isNaN(this.branchId)) {
-                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Invalid branch ID' });
-                this.router.navigate(['/branch']);
-                return;
-            }
-        } else {
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Branch ID is required' });
-            this.router.navigate(['/branch']);
-            return;
-        }
-
+        console.log('EditBranchComponent - ngOnInit called');
+        
+        // Initialize form first
         this.branchForm = this.fb.group({
             coordinator: ['', Validators.required],
             establishedOn: ['', Validators.required],
@@ -99,12 +87,39 @@ export class EditBranchComponent implements OnInit {
             members: this.fb.array([])
         });
 
+        // Get branch ID from route
+        const idParam = this.route.snapshot.paramMap.get('id');
+        console.log('Edit Branch - Route ID param:', idParam);
+        
+        if (idParam) {
+            this.branchId = parseInt(idParam, 10);
+            if (isNaN(this.branchId)) {
+                console.error('Invalid branch ID:', idParam);
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Invalid branch ID' });
+                setTimeout(() => {
+                    this.router.navigate(['/branch']);
+                }, 2000);
+                return;
+            }
+            console.log('Edit Branch - Parsed branch ID:', this.branchId);
+        } else {
+            console.error('Branch ID is missing from route');
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Branch ID is required' });
+            setTimeout(() => {
+                this.router.navigate(['/branch']);
+            }, 2000);
+            return;
+        }
+
         // Load countries and coordinators on init
         this.loadCountries();
         this.loadCoordinators();
-
-        // Load branch data
-        this.loadBranchData();
+        
+        // Load branch data after a short delay to ensure coordinators are loaded
+        // This ensures findCoordinatorId can find the coordinator
+        setTimeout(() => {
+            this.loadBranchData();
+        }, 500);
 
         // Listen for changes to reset dependent selects
         this.branchForm.get('country')?.valueChanges.subscribe(countryId => {
@@ -166,8 +181,9 @@ export class EditBranchComponent implements OnInit {
                         const country = countries.find(c => c.name === branch.country);
                         if (country) {
                             // Set basic form values first
+                            const coordinatorId = this.findCoordinatorId(branch.coordinator_name);
                             this.branchForm.patchValue({
-                                coordinator: this.findCoordinatorId(branch.coordinator_name),
+                                coordinator: coordinatorId || '',
                                 establishedOn: branch.established_on ? branch.established_on.split('T')[0] : '',
                                 ashramArea: branch.aashram_area || 0,
                                 country: country.id,
@@ -206,9 +222,16 @@ export class EditBranchComponent implements OnInit {
             },
             error: (error) => {
                 console.error('Error loading branch:', error);
-                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load branch data' });
+                this.messageService.add({ 
+                    severity: 'error', 
+                    summary: 'Error', 
+                    detail: error.error?.message || 'Failed to load branch data. Please try again.' 
+                });
                 this.loadingBranch = false;
-                this.router.navigate(['/branch']);
+                // Don't navigate away immediately - let user see the error
+                // setTimeout(() => {
+                //     this.router.navigate(['/branch']);
+                // }, 3000);
             }
         });
     }

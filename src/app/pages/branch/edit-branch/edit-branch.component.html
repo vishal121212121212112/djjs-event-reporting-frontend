@@ -7,7 +7,12 @@
   <p class="text-muted mt-2">Loading branch data...</p>
 </div>
 
-<form *ngIf="!loadingBranch" [formGroup]="branchForm" (ngSubmit)="onSubmit()" class="branch-form">
+<div *ngIf="!branchId && !loadingBranch" class="alert alert-danger m-3">
+  <h5>Error</h5>
+  <p>Branch ID is required. Redirecting to branch list...</p>
+</div>
+
+<form *ngIf="branchId && !loadingBranch" [formGroup]="branchForm" (ngSubmit)="onSubmit()" class="branch-form">
 <div class="card profile-completion-card">
   <div class="card-body d-flex align-items-center">
 
