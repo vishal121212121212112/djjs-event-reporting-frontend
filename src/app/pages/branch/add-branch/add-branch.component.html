@@ -419,8 +419,9 @@
   </div>
   <!-- Actions -->
   <div class="d-flex justify-content-end mb-5">
-    <button type="submit" class="btn btn-primary" [disabled]="branchForm.invalid">
-      Save & proceed
+    <button type="submit" class="btn btn-primary" [disabled]="branchForm.invalid || isSubmitting">
+      <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      {{ isSubmitting ? 'Saving...' : 'Save & proceed' }}
     </button>
   </div>
 </form>

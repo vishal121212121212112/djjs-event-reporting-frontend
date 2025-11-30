@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core'
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms'
 import { LocationService, Country, State, District, City, Coordinator } from 'src/app/core/services/location.service'
+import { TokenStorageService } from 'src/app/core/services/token-storage.service'
+import { Router } from '@angular/router'
 
 @Component({
     selector: 'app-add-branch',
@@ -34,9 +36,14 @@ export class AddBranchComponent implements OnInit {
     loadingCities = false;
     loadingCoordinators = false;
 
+    // Submitting state
+    isSubmitting = false;
+
     constructor(
         private fb: FormBuilder,
-        private locationService: LocationService
+        private locationService: LocationService,
+        private tokenStorage: TokenStorageService,
+        private router: Router
     ) { }
 
     //for Tabs
@@ -196,9 +203,84 @@ export class AddBranchComponent implements OnInit {
     }
 
     onSubmit() {
-        if (this.branchForm.valid) {
-            // handle form submission
-            console.log(this.branchForm.value);
+        if (this.branchForm.valid && !this.isSubmitting) {
+            this.isSubmitting = true;
+            
+            const formValue = this.branchForm.value;
+            
+            // Get names from IDs (handle both string and number IDs)
+            const countryId = formValue.country;
+            const stateId = formValue.state;
+            const cityId = formValue.city;
+            const districtId = formValue.districts;
+            const coordinatorId = formValue.coordinator;
+            
+            const country = this.countryList.find(c => c.id == countryId || c.id === Number(countryId));
+            const state = this.stateList.find(s => s.id == stateId || s.id === Number(stateId));
+            const city = this.cityList.find(c => c.id == cityId || c.id === Number(cityId));
+            const district = this.districtOptions.find(d => d.id == districtId || d.id === Number(districtId));
+            const coordinator = this.coordinatorsList.find(c => c.id == coordinatorId || c.id === Number(coordinatorId));
+            
+            // Get current user for created_by and updated_by
+            const currentUser = this.tokenStorage.getUser();
+            const createdBy = currentUser?.email || currentUser?.name || 'system';
+            const currentTimestamp = new Date().toISOString();
+            
+            // Format date (convert to ISO string if needed)
+            let establishedOn = formValue.establishedOn;
+            if (establishedOn && typeof establishedOn === 'string') {
+                // If it's already a string, use it as is
+                establishedOn = establishedOn;
+            } else if (establishedOn) {
+                // If it's a Date object, convert to ISO string
+                establishedOn = new Date(establishedOn).toISOString();
+            }
+            
+            // Prepare API payload
+            const branchData = {
+                aashram_area: parseFloat(formValue.ashramArea) || 0,
+                address: formValue.address || '',
+                city: city?.name || '',
+                contact_number: '', // Not in form, set empty
+                coordinator_name: coordinator?.name || '',
+                country: country?.name || '',
+                created_by: createdBy,
+                created_on: currentTimestamp,
+                daily_end_time: formValue.dailyEndTime || '',
+                daily_start_time: formValue.dailyStartTime || '',
+                district: district?.name || '',
+                email: this.branchEmail || '',
+                established_on: establishedOn || '',
+                id: 0, // Will be set by backend
+                name: this.branchName || '',
+                open_days: formValue.openDays || '',
+                pincode: formValue.pincode || '',
+                police_station: formValue.thana || '',
+                post_office: formValue.postOffice || '',
+                state: state?.name || '',
+                updated_by: createdBy,
+                updated_on: currentTimestamp
+            };
+            
+            // Submit to API
+            this.locationService.createBranch(branchData).subscribe({
+                next: (response) => {
+                    console.log('Branch created successfully:', response);
+                    this.isSubmitting = false;
+                    // Optionally navigate to branch list or show success message
+                    // this.router.navigate(['/branch/list']);
+                },
+                error: (error) => {
+                    console.error('Error creating branch:', error);
+                    this.isSubmitting = false;
+                    // Handle error (show error message to user)
+                }
+            });
+        } else {
+            // Mark all fields as touched to show validation errors
+            Object.keys(this.branchForm.controls).forEach(key => {
+                this.branchForm.get(key)?.markAsTouched();
+            });
         }
     }
 

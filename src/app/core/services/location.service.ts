@@ -88,5 +88,40 @@ export class LocationService {
   getCoordinators(): Observable<Coordinator[]> {
     return this.http.get<Coordinator[]>(`${this.apiBaseUrl}/api/coordinators`);
   }
+
+  /**
+   * Create a new branch
+   */
+  createBranch(branchData: any): Observable<any> {
+    return this.http.post<any>(`${this.apiBaseUrl}/api/branches`, branchData);
+  }
+
+  /**
+   * Get all branches
+   */
+  getAllBranches(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiBaseUrl}/api/branches`);
+  }
+
+  /**
+   * Get branch members by branch ID
+   */
+  getBranchMembers(branchId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiBaseUrl}/api/branch-member/branch/${branchId}`);
+  }
+
+  /**
+   * Get branch by ID
+   */
+  getBranchById(branchId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiBaseUrl}/api/branches/${branchId}`);
+  }
+
+  /**
+   * Update an existing branch
+   */
+  updateBranch(branchId: number, branchData: any): Observable<any> {
+    return this.http.put<any>(`${this.apiBaseUrl}/api/branches/${branchId}`, branchData);
+  }
 }
 

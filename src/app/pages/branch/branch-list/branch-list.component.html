@@ -1,6 +1,11 @@
 <div class="page-title-box d-flex align-items-center justify-content-between">
   <h4 class="mb-0">Branches</h4>
-  <div>
+  <div class="d-flex gap-2">
+    <button class="btn btn-outline-secondary" (click)="createBranchWithMockData()" [disabled]="isCreatingMockBranch">
+      <span *ngIf="isCreatingMockBranch" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      <i *ngIf="!isCreatingMockBranch" class="pi pi-magic me-2"></i>
+      {{ isCreatingMockBranch ? 'Creating...' : 'Add Mock Branch' }}
+    </button>
     <button class="btn btn-primary" (click)="addBranch()">
       <i class="pi pi-plus me-2"></i> Add Branch
     </button>
@@ -165,7 +170,23 @@
               <td colspan="8">
                 <div class="p-4 expanded-content">
                   <h5>Members of {{ branch.branchName }}</h5>
-                  <p-table [value]="branch.members" dataKey="name" [paginator]="true" [rows]="5">
+                  
+                  <!-- Loading State -->
+                  <div *ngIf="loadingMembers[branch.id]" class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted mt-2">Loading members...</p>
+                  </div>
+
+                  <!-- Members Table -->
+                  <p-table 
+                    *ngIf="!loadingMembers[branch.id]" 
+                    [value]="branch.members" 
+                    dataKey="name" 
+                    [paginator]="true" 
+                    [rows]="5"
+                    [loading]="loadingMembers[branch.id]">
                     <ng-template pTemplate="header">
                       <tr>
                         <th>Name</th>
