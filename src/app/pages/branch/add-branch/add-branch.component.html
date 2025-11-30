@@ -72,11 +72,9 @@
           <div class="row g-3">
             <div class="col-md-4">
               <label class="form-label">Coordinator <span class="text-danger">*</span></label>
-              <select class="form-select" formControlName="coordinator">
+              <select class="form-select" formControlName="coordinator" [disabled]="loadingCoordinators">
                 <option value="">Select</option>
-                <option value="Amit Sharma">Amit Sharma</option>
-                <option value="Priya Singh">Priya Singh</option>
-                <option value="Rahul Verma">Rahul Verma</option>
+                <option *ngFor="let coordinator of coordinatorsList" [value]="coordinator.id">{{coordinator.name}}</option>
               </select>
             </div>
             <div class="col-md-4">
@@ -137,9 +135,9 @@
           <div class="row g-3">
             <div class="col-md-4">
               <label class="form-label">Country <span class="text-danger">*</span></label>
-              <select class="form-select" formControlName="country">
+              <select class="form-select" formControlName="country" [disabled]="loadingCountries">
                 <option value="">Select</option>
-                <option *ngFor="let c of countryList" [value]="c">{{c}}</option>
+                <option *ngFor="let c of countryList" [value]="c.id">{{c.name}}</option>
               </select>
             </div>
             <div class="col-md-4">
@@ -159,18 +157,19 @@
               <input class="form-control" formControlName="thana" placeholder="Enter" />
             </div>
             <div class="col-md-4">
-              <label class="form-label">Districts <span class="text-danger">*</span></label>
-              <select class="form-select" formControlName="districts" [disabled]="!districtOptions.length">
+              <label class="form-label">States <span class="text-danger">*</span></label>
+              <select class="form-select" formControlName="state" [disabled]="!stateList.length || loadingStates">
                 <option value="">Select</option>
-                <option *ngFor="let d of districtOptions" [value]="d">{{d}}</option>
+                <option *ngFor="let s of stateList" [value]="s.id">{{s.name}}</option>
               </select>
             </div>
             <div class="col-md-4">
-              <label class="form-label">State <span class="text-danger">*</span></label>
-              <select class="form-select" formControlName="state" [disabled]="!stateList.length">
+              <label class="form-label">Districts <span class="text-danger">*</span></label>
+              <select class="form-select" formControlName="districts" [disabled]="!districtOptions.length || loadingDistricts">
                 <option value="">Select</option>
-                <option *ngFor="let s of stateList" [value]="s">{{s}}</option>
+                <option *ngFor="let d of districtOptions" [value]="d.id">{{d.name}}</option>
               </select>
+              
             </div>
 
           </div>
@@ -178,9 +177,9 @@
           <div class="row g-3 mt-1">
             <div class="col-md-4">
               <label class="form-label">City <span class="text-danger">*</span></label>
-              <select class="form-select" formControlName="city" [disabled]="!cityList.length">
+              <select class="form-select" formControlName="city" [disabled]="!cityList.length || loadingCities">
                 <option value="">Select</option>
-                <option *ngFor="let c of cityList" [value]="c">{{c}}</option>
+                <option *ngFor="let c of cityList" [value]="c.id">{{c.name}}</option>
               </select>
             </div>
             <div class="col-md-8">

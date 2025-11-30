@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core'
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms'
-
+import { LocationService, Country, State, District, City, Coordinator } from 'src/app/core/services/location.service'
 
 @Component({
     selector: 'app-add-branch',
@@ -20,44 +20,24 @@ export class AddBranchComponent implements OnInit {
     branchEmail = "delhi.branch@example.com";
     coordinatorName = "John Doe";
 
-    countryOptions = ['India', 'Nepal', 'USA'];
-    stateOptionsMap = {
-        India: ['Karnataka', 'Delhi', 'Punjab'],
-        Nepal: ['Bagmati', 'Gandaki'],
-        USA: ['California', 'Texas']
-    };
-    cityOptionsMap = {
-        Karnataka: ['Bangalore', 'Mysore', 'Tumkur'],
-        Delhi: ['New Delhi', 'Dwarka'],
-        Punjab: ['Amritsar', 'Ludhiana'],
-        Bagmati: ['Kathmandu', 'Bhaktapur'],
-        Gandaki: ['Pokhara'],
-        California: ['Los Angeles', 'San Francisco'],
-        Texas: ['Houston', 'Dallas']
-    };
-    districtOptionsMap = {
-        Bangalore: ['Bangalore Urban', 'Bangalore Rural'],
-        Mysore: ['Mysore District'],
-        Tumkur: ['Tumkur District'],
-        "New Delhi": ['Central Delhi'],
-        Dwarka: ['South West Delhi'],
-        Amritsar: ['Amritsar District'],
-        Ludhiana: ['Ludhiana District'],
-        Kathmandu: ['Kathmandu District'],
-        Bhaktapur: ['Bhaktapur District'],
-        Pokhara: ['Kaski District'],
-        'Los Angeles': ['LA County'],
-        'San Francisco': ['SF County'],
-        Houston: ['Harris County'],
-        Dallas: ['Dallas County']
-    };
+    // Location data from API
+    countryList: Country[] = [];
+    stateList: State[] = [];
+    cityList: City[] = [];
+    districtOptions: District[] = [];
+    coordinatorsList: Coordinator[] = [];
 
-    countryList = this.countryOptions;
-    stateList: string[] = [];
-    cityList: string[] = [];
-    districtOptions: string[] = [];
+    // Loading states
+    loadingCountries = false;
+    loadingStates = false;
+    loadingDistricts = false;
+    loadingCities = false;
+    loadingCoordinators = false;
 
-    constructor(private fb: FormBuilder) { }
+    constructor(
+        private fb: FormBuilder,
+        private locationService: LocationService
+    ) { }
 
     //for Tabs
     setActiveTab(tab: string) {
@@ -119,23 +99,32 @@ export class AddBranchComponent implements OnInit {
             }));
         });
 
+        // Load countries and coordinators on init
+        this.loadCountries();
+        this.loadCoordinators();
+
         // Listen for changes to reset dependent selects
-        this.branchForm.get('country')?.valueChanges.subscribe(country => {
-            this.stateList = country ? this.stateOptionsMap[country] || [] : [];
+        this.branchForm.get('country')?.valueChanges.subscribe(countryId => {
+            if (countryId) {
+                this.loadStates(countryId);
+            } else {
+                this.stateList = [];
+                this.cityList = [];
+                this.districtOptions = [];
+            }
             this.branchForm.patchValue({ state: '', city: '', districts: '' });
-            this.cityList = [];
-            this.districtOptions = [];
         });
 
-        this.branchForm.get('state')?.valueChanges.subscribe(state => {
-            this.cityList = state ? this.cityOptionsMap[state] || [] : [];
+        this.branchForm.get('state')?.valueChanges.subscribe(stateId => {
+            const countryId = this.branchForm.get('country')?.value;
+            if (stateId && countryId) {
+                this.loadDistricts(stateId, countryId);
+                this.loadCities(stateId);
+            } else {
+                this.cityList = [];
+                this.districtOptions = [];
+            }
             this.branchForm.patchValue({ city: '', districts: '' });
-            this.districtOptions = [];
-        });
-
-        this.branchForm.get('city')?.valueChanges.subscribe(city => {
-            this.districtOptions = city ? this.districtOptionsMap[city] || [] : [];
-            this.branchForm.patchValue({ districts: '' });
         });
 
         // Watch form changes
@@ -211,6 +200,94 @@ export class AddBranchComponent implements OnInit {
             // handle form submission
             console.log(this.branchForm.value);
         }
+    }
+
+    /**
+     * Load countries from API
+     */
+    loadCountries() {
+        this.loadingCountries = true;
+        this.locationService.getCountries().subscribe({
+            next: (countries) => {
+                this.countryList = countries;
+                this.loadingCountries = false;
+            },
+            error: (error) => {
+                console.error('Error loading countries:', error);
+                this.loadingCountries = false;
+            }
+        });
+    }
+
+    /**
+     * Load states by country ID
+     */
+    loadStates(countryId: number) {
+        this.loadingStates = true;
+        this.stateList = [];
+        this.locationService.getStatesByCountry(countryId).subscribe({
+            next: (states) => {
+                this.stateList = states;
+                this.loadingStates = false;
+            },
+            error: (error) => {
+                console.error('Error loading states:', error);
+                this.loadingStates = false;
+            }
+        });
+    }
+
+    /**
+     * Load districts by state ID and country ID
+     */
+    loadDistricts(stateId: number, countryId: number) {
+        this.loadingDistricts = true;
+        this.districtOptions = [];
+        this.locationService.getDistrictsByStateAndCountry(stateId, countryId).subscribe({
+            next: (districts) => {
+                this.districtOptions = districts;
+                this.loadingDistricts = false;
+            },
+            error: (error) => {
+                console.error('Error loading districts:', error);
+                this.loadingDistricts = false;
+            }
+        });
+    }
+
+    /**
+     * Load cities by state ID
+     */
+    loadCities(stateId: number) {
+        this.loadingCities = true;
+        this.cityList = [];
+        this.locationService.getCitiesByState(stateId).subscribe({
+            next: (cities) => {
+                this.cityList = cities;
+                this.loadingCities = false;
+            },
+            error: (error) => {
+                console.error('Error loading cities:', error);
+                this.loadingCities = false;
+            }
+        });
+    }
+
+    /**
+     * Load coordinators from API
+     */
+    loadCoordinators() {
+        this.loadingCoordinators = true;
+        this.locationService.getCoordinators().subscribe({
+            next: (coordinators) => {
+                this.coordinatorsList = coordinators;
+                this.loadingCoordinators = false;
+            },
+            error: (error) => {
+                console.error('Error loading coordinators:', error);
+                this.loadingCoordinators = false;
+            }
+        });
     }
 
 }
