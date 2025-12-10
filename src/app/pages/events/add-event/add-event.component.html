@@ -107,29 +107,15 @@
           <label class="form-label">Duration</label>
           <div class="row g-2">
             <div class="col-6">
-              <input
-                type="text"
-                class="form-control"
-                placeholder="Start Date"
-                [bsValue]="startDate"
-                bsDatepicker
-                (bsValueChange)="onStartDateChange($event)"
-                autocomplete="off">
+              <input type="text" class="form-control" placeholder="Start Date" [bsValue]="startDate" bsDatepicker
+                (bsValueChange)="onStartDateChange($event)" autocomplete="off">
             </div>
             <div class="col-6">
-              <input
-                type="text"
-                class="form-control"
-                placeholder="End Date"
-                [bsValue]="endDate"
-                bsDatepicker
-                (bsValueChange)="onEndDateChange($event)"
-                autocomplete="off">
+              <input type="text" class="form-control" placeholder="End Date" [bsValue]="endDate" bsDatepicker
+                (bsValueChange)="onEndDateChange($event)" autocomplete="off">
             </div>
           </div>
-          <input
-            type="hidden"
-            formControlName="duration">
+          <input type="hidden" formControlName="duration">
           <small class="text-muted" *ngIf="getDurationDisplay()">{{ getDurationDisplay() }}</small>
         </div>
         <div class="col-md-4 mb-3"> <label class="form-label">Daily Start Time</label> <select class="form-select"
@@ -784,7 +770,7 @@
             placeholder="Search by name, email or mobile no." />
         </div>
 
-        <!-- Volunteer’s Name -->
+        <!-- Volunteer's Name -->
         <div class="col-md-5">
           <label class="form-label">Volunteer's name</label>
           <input type="text" class="form-control" formControlName="volName" placeholder="Enter" />
@@ -792,6 +778,13 @@
       </div>
 
       <div class="row g-3 mt-2">
+        <!-- Contact Number -->
+        <div class="col-md-3">
+          <label class="form-label">Contact Number</label>
+          <input type="tel" class="form-control" formControlName="volContact" placeholder="Enter contact number"
+            pattern="[0-9]*" maxlength="15" />
+        </div>
+
         <!-- No. of Days -->
         <div class="col-md-2">
           <label class="form-label">No. of Days</label>
@@ -812,7 +805,7 @@
         </div>
 
         <!-- Mention Seva -->
-        <div class="col-md-7">
+        <div class="col-md-4">
           <label class="form-label">Mention seva</label>
           <input type="text" class="form-control" formControlName="volMentionSeva" placeholder="Enter" />
         </div>

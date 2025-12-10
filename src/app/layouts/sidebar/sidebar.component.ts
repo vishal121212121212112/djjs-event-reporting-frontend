@@ -33,8 +33,32 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges {
       if (event instanceof NavigationEnd) {
         this._activateMenuDropdown();
         this._scrollElement();
+        // Close sidebar on mobile after navigation
+        if (window.innerWidth <= 992) {
+          document.body.classList.remove('sidebar-enable');
+          document.body.style.overflow = '';
+          document.body.style.position = '';
+          document.body.style.width = '';
+          document.body.style.height = '';
+        }
       }
     });
+  }
+
+  /**
+   * Handle menu item click - close sidebar on mobile
+   */
+  onMenuItemClick() {
+    if (window.innerWidth <= 992) {
+      // Small delay to allow navigation to start
+      setTimeout(() => {
+        document.body.classList.remove('sidebar-enable');
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+        document.body.style.height = '';
+      }, 100);
+    }
   }
 
   ngOnInit() {

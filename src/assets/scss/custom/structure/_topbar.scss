@@ -1,6 +1,6 @@
-// 
+//
 // _header.scss
-// 
+//
 
 #page-topbar {
     position: fixed;
@@ -10,6 +10,15 @@
     z-index: 1002;
     background-color: var(--#{$prefix}header-bg);
     box-shadow: $box-shadow;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+
+    // Hide on scroll down (optional - uncomment if needed)
+    // &.hidden {
+    //     transform: translateY(-100%);
+    // }
 }
 
 .navbar-header {
@@ -22,30 +31,168 @@
     padding: 0 calc(#{$grid-gutter-width} * 0.5) 0 0
     /*rtl: 0 0 0 calc(#{$grid-gutter-width} / 2) */
     ;
+    transition: height 0.3s ease, padding 0.3s ease;
 
     .dropdown .show {
         &.header-item {
             background-color: var(--#{$prefix}tertiary-bg);
+            transition: background-color 0.3s ease;
         }
+    }
+
+    // Responsive height
+    @media (max-width: 576px) {
+        height: 60px;
+        padding: 0 12px 0 0;
     }
 }
 
 .navbar-brand-box {
     padding: 0 1.5rem;
-    text-align: center;
+    text-align: center !important;
     width: $navbar-brand-box-width;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-direction: column;
+    // CRITICAL: Synchronized with sidebar - exact same timing, force GPU layer
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0s, padding 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0s;
+    position: relative;
+    overflow: visible;
+    will-change: width, padding;
+    // Force GPU acceleration to prevent layout timing differences
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    height: $header-height;
+    box-sizing: border-box;
 }
 
 .logo {
     line-height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    margin: 0 auto;
+    position: relative;
+
+    img {
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+        object-fit: contain;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
 
     .logo-sm {
         display: none;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        text-align: center;
+
+        img {
+            margin: 0 auto;
+            display: block;
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+            visibility: visible;
+            opacity: 1;
+        }
+    }
+
+    .logo-lg {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+        width: 100%;
+
+        img {
+            margin: 0 auto;
+            display: block;
+            visibility: visible;
+            opacity: 1;
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+    }
+}
+
+// Ensure logo stays centered when sidebar is expanded (not collapsed)
+body:not(.vertical-collpsed) {
+    .navbar-brand-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        // CRITICAL: Synchronized with sidebar expansion - exact same timing
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0s, padding 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0s;
+        will-change: width, padding;
+        // Force GPU acceleration
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+
+        .logo {
+            .logo-lg {
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                opacity: 1;
+                visibility: visible;
+                transition: opacity 0.3s ease 0s, visibility 0.3s ease 0s;
+
+                img {
+                    margin: 0 auto;
+                    display: block;
+                    object-fit: contain;
+                }
+            }
+
+            .logo-sm {
+                display: none !important;
+                opacity: 0 !important;
+                visibility: hidden !important;
+                transition: opacity 0.3s ease 0s, visibility 0.3s ease 0s;
+                pointer-events: none;
+            }
+
+            .logo-light {
+                display: none !important;
+            }
+
+            .logo-dark {
+                display: flex !important;
+            }
+        }
     }
 }
 
 .logo-light {
-    display: none;
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+.logo-dark {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    visibility: visible;
+    opacity: 1;
 }
 
 /* Search */
@@ -90,16 +237,90 @@
 @media (max-width: 992px) {
     .navbar-brand-box {
         width: auto;
+        padding: 0 1rem;
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: auto;
+        overflow: visible;
+
+        @media (max-width: 576px) {
+            padding: 0 0.75rem;
+        }
+
+        @media (max-width: 480px) {
+            padding: 0 0.5rem;
+        }
     }
 
     .logo {
+        line-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
 
-        span.logo-lg {
-            display: none;
+        @media (max-width: 576px) {
+            line-height: 50px;
         }
 
-        span.logo-sm {
-            display: inline-block;
+        @media (max-width: 480px) {
+            line-height: 45px;
+        }
+
+        .logo-lg {
+            display: none !important;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .logo-sm {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            opacity: 1 !important;
+            visibility: visible !important;
+            width: 100%;
+            height: 100%;
+
+            img {
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
+                max-width: 50px !important;
+                max-height: 50px !important;
+                min-width: 40px !important;
+                min-height: 40px !important;
+                width: auto !important;
+                height: auto !important;
+                object-fit: contain !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                display: block !important;
+
+                @media (max-width: 576px) {
+                    max-width: 45px !important;
+                    max-height: 45px !important;
+                    min-width: 35px !important;
+                    min-height: 35px !important;
+                }
+
+                @media (max-width: 480px) {
+                    max-width: 40px !important;
+                    max-height: 40px !important;
+                    min-width: 30px !important;
+                    min-height: 30px !important;
+                }
+            }
+        }
+
+        .logo-light {
+            display: none !important;
+        }
+
+        .logo-dark {
+            display: flex;
+            width: 100%;
         }
     }
 }
@@ -113,10 +334,34 @@
     box-shadow: none !important;
     color: var(--#{$prefix}header-item-color);
     border: 0;
-    border-radius: 0px;
+    border-radius: 0.375rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    // Touch-friendly on mobile
+    @media (max-width: 768px) {
+        min-width: 44px;
+        min-height: 44px;
+        height: auto;
+        padding: 0.5rem;
+    }
 
     &:hover {
         color: var(--#{$prefix}header-item-color);
+        background-color: var(--#{$prefix}tertiary-bg);
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(85, 110, 230, 0.25);
     }
 }
 
@@ -128,14 +373,45 @@
 }
 
 .noti-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
     i {
         font-size: 22px;
         color: var(--#{$prefix}header-item-color);
+        display: inline-block;
     }
 
     .badge {
         position: absolute;
-        top: 12px;
+        top: 8px;
+        right: 4px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        font-size: 10px;
+        line-height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--#{$prefix}header-bg, #fff);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+
+        // Ensure it's always visible
+        z-index: 10;
+
+        // Mobile adjustments
+        @media (max-width: 576px) {
+            top: 6px;
+            right: 2px;
+            min-width: 16px;
+            height: 16px;
+            font-size: 9px;
+            line-height: 16px;
+            padding: 0 4px;
+        }
     }
 }
 
@@ -264,14 +540,39 @@ body[data-sidebar="dark"] {
             .dropdown-menu {
                 left: 10px !important;
                 right: 10px !important;
+                max-width: calc(100vw - 20px);
+                animation: slideDown 0.3s ease;
             }
         }
+    }
+
+    // Optimize dropdown positioning
+    .dropdown-menu {
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 }
 
 @media (max-width: 380px) {
     .navbar-brand-box {
         display: none;
+    }
+
+    .navbar-header {
+        padding: 0 8px 0 0;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 

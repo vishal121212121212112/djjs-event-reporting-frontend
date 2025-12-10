@@ -1,7 +1,7 @@
 // Lightbox
 @import "~ngx-lightbox/lightbox.css";
 
-// Select 2 
+// Select 2
 @import "~@ng-select/ng-select/themes/default.theme.css";
 
 // Date Picker
@@ -33,6 +33,7 @@
 
 .modal-backdrop {
     z-index: 1002 !important;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .dropdown-toggle::after {
@@ -428,27 +429,29 @@ a.ck.ck-button.ck-on {
     }
 
 }
-.text-end{
-  float: right;
-  .btn {
-  &.add-event-btn {
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-  border: none;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
-  }
-  
-  .pi {
-    margin-right: 0.5rem;
-  }
-}
-}
+
+.text-end {
+    float: right;
+
+    .btn {
+        &.add-event-btn {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+            }
+
+            .pi {
+                margin-right: 0.5rem;
+            }
+        }
+    }
 }

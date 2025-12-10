@@ -735,6 +735,7 @@ export class AddEventComponent implements OnInit, OnDestroy {
       volBranchId: [''],
       volSearchMember: [''],
       volName: [''],
+      volContact: [''],
       volDays: [0],
       volSeva: [''],
       volMentionSeva: ['']
@@ -1620,7 +1621,7 @@ export class AddEventComponent implements OnInit, OnDestroy {
       branchId: formValue.volBranchId || '',
       searchMember: formValue.volSearchMember || '',
       name: formValue.volName || '',
-      contact: '', // Add if available in form
+      contact: formValue.volContact || '',
       days: formValue.volDays || 0,
       seva: formValue.volSeva || '',
       mentionSeva: formValue.volMentionSeva || ''
@@ -1931,13 +1932,13 @@ export class AddEventComponent implements OnInit, OnDestroy {
 
     // Populate volunteers array
     if (response.volunteers && response.volunteers.length > 0) {
-      this.volunteers = response.volunteers.map((vol: Volunteer) => ({
+      this.volunteers = response.volunteers.map((vol: any) => ({
         branchId: vol.branch_id?.toString() || '',
         searchMember: vol.search_member || '',
-        name: vol.name || '',
+        name: vol.volunteer_name || vol.name || '',
         contact: vol.contact || '',
-        days: vol.days || 0,
-        seva: vol.seva || '',
+        days: vol.number_of_days || vol.days || 0,
+        seva: vol.seva_involved || vol.seva || '',
         mentionSeva: vol.mention_seva || ''
       }));
     }
@@ -2179,52 +2180,52 @@ export class AddEventComponent implements OnInit, OnDestroy {
       }
 
       if (this.isEditing && this.eventId) {
-      // Update existing event as draft
-      this.eventApiService.updateEvent(this.eventId, payload, 'incomplete').subscribe({
-        next: () => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Draft Saved',
-            detail: 'Event saved as draft successfully.',
-            life: 3000
-          });
-          this.router.navigate(['/events']);
-        },
-        error: (error) => {
-          console.error('Error saving draft:', error);
-          const errorMessage = error?.error?.error || error?.message || 'Failed to save draft.';
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: errorMessage,
-            life: 5000
-          });
-        }
-      });
-    } else {
-      // Create new event as draft
-      this.eventApiService.createEvent(payload, 'incomplete').subscribe({
-        next: (event) => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Draft Saved',
-            detail: 'Event saved as draft successfully.',
-            life: 3000
-          });
-          this.router.navigate(['/events']);
-        },
-        error: (error) => {
-          console.error('Error creating draft:', error);
-          const errorMessage = error?.error?.error || error?.message || 'Failed to save draft.';
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: errorMessage,
-            life: 5000
-          });
-        }
-      });
-    }
+        // Update existing event as draft
+        this.eventApiService.updateEvent(this.eventId, payload, 'incomplete').subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Draft Saved',
+              detail: 'Event saved as draft successfully.',
+              life: 3000
+            });
+            this.router.navigate(['/events']);
+          },
+          error: (error) => {
+            console.error('Error saving draft:', error);
+            const errorMessage = error?.error?.error || error?.message || 'Failed to save draft.';
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: errorMessage,
+              life: 5000
+            });
+          }
+        });
+      } else {
+        // Create new event as draft
+        this.eventApiService.createEvent(payload, 'incomplete').subscribe({
+          next: (event) => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Draft Saved',
+              detail: 'Event saved as draft successfully.',
+              life: 3000
+            });
+            this.router.navigate(['/events']);
+          },
+          error: (error) => {
+            console.error('Error creating draft:', error);
+            const errorMessage = error?.error?.error || error?.message || 'Failed to save draft.';
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: errorMessage,
+              life: 5000
+            });
+          }
+        });
+      }
     } catch (error: any) {
       // Validation error caught in mapFormDataToApiFormat
       // Error message already shown

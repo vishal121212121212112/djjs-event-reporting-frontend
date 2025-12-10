@@ -54,7 +54,7 @@
     }
 
     &:checked {
-      background-color: var(--#{$prefix}secondary-bg)  !important;
+      background-color: var(--#{$prefix}secondary-bg) !important;
 
       &[type=checkbox] {
         background-image: none;
@@ -87,7 +87,7 @@
     }
 
     &:checked {
-      background-color: var(--#{$prefix}secondary-bg)  !important;
+      background-color: var(--#{$prefix}secondary-bg) !important;
 
       &[type=checkbox] {
         background-image: none;
@@ -178,4 +178,182 @@ $value in $theme-colors {
 
 .input-group-text {
   margin-bottom: 0px;
+}
+
+// ==========================================
+// Enhanced Form Controls with Smooth Transitions
+// ==========================================
+
+.form-control,
+.form-select {
+  transition: border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.3s ease;
+  will-change: border-color, box-shadow;
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 0.2rem rgba($primary, 0.15);
+    outline: none;
+    transform: translateZ(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  // Prevent zoom on iOS
+  @media (max-width: 768px) {
+    font-size: 16px;
+    padding: 0.625rem 0.75rem;
+    min-height: 44px;
+  }
+}
+
+.form-label {
+  transition: color 0.3s ease;
+  margin-bottom: 0.5rem;
+
+  @media (max-width: 576px) {
+    font-size: 0.875rem;
+  }
+}
+
+.form-check {
+  transition: all 0.2s ease;
+
+  &-input {
+    transition: background-color 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+    cursor: pointer;
+
+    &:hover {
+      border-color: $primary;
+    }
+
+    &:checked {
+      background-color: $primary;
+      border-color: $primary;
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 0.2rem rgba($primary, 0.25);
+    }
+  }
+
+  &-label {
+    transition: color 0.2s ease;
+    cursor: pointer;
+    user-select: none;
+
+    @media (max-width: 576px) {
+      font-size: 0.875rem;
+    }
+  }
+}
+
+.form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+  padding-right: 2.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:focus {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23556ee6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  }
+}
+
+.input-group {
+
+  .form-control,
+  .form-select {
+    &:focus {
+      z-index: 3;
+    }
+  }
+
+  @media (max-width: 576px) {
+    flex-wrap: wrap;
+
+    .input-group-text {
+      width: 100%;
+      border-radius: 0.375rem 0.375rem 0 0 !important;
+      margin-bottom: -1px;
+    }
+
+    .form-control {
+      border-radius: 0 0 0.375rem 0.375rem !important;
+    }
+  }
+}
+
+// Form validation states with smooth transitions
+.form-control.is-valid,
+.form-select.is-valid {
+  border-color: $success;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+
+  &:focus {
+    border-color: $success;
+    box-shadow: 0 0 0 0.2rem rgba($success, 0.25);
+  }
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: $danger;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+
+  &:focus {
+    border-color: $danger;
+    box-shadow: 0 0 0 0.2rem rgba($danger, 0.25);
+  }
+}
+
+.invalid-feedback,
+.valid-feedback {
+  animation: fadeInUp 0.3s ease;
+  display: block;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Textarea specific enhancements
+textarea.form-control {
+  resize: vertical;
+  min-height: 100px;
+  transition: height 0.3s ease;
+
+  @media (max-width: 576px) {
+    min-height: 120px;
+  }
+}
+
+// File input enhancements
+.form-control[type="file"] {
+  cursor: pointer;
+
+  &::file-selector-button {
+    transition: all 0.3s ease;
+    cursor: pointer;
+
+    &:hover {
+      background-color: $primary;
+      color: $white;
+    }
+  }
 }

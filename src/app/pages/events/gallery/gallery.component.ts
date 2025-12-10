@@ -234,7 +234,7 @@ export class GalleryComponent implements OnInit {
           this.loading = false;
         }
       });
-      }
+    }
     });
   }
 

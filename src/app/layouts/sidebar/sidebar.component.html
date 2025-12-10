@@ -14,7 +14,10 @@
         }@else if(!item.isTitle && !item.isLayout){
         <li>
           @if(hasItems(item)){
-          <a href="javascript:void(0);" class="is-parent" [ngClass]="{'has-arrow': !item.badge, 'has-dropdown': item.badge}">
+          <a href="javascript:void(0);"
+             class="is-parent"
+             [ngClass]="{'has-arrow': !item.badge, 'has-dropdown': item.badge}"
+             [attr.data-tooltip]="item.label | translate">
             @if(item.icon){
             <i class="bx {{item.icon}}"></i>
             }
@@ -25,7 +28,12 @@
             }
           </a>}
           @else{
-          <a routerLink="{{item.link}}" class="side-nav-link-ref" routerLinkActive="active">
+          <a routerLink="{{item.link}}"
+             class="side-nav-link-ref"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="item.link === '/branch' ? {exact: true} : {exact: false}"
+             [attr.data-tooltip]="item.label | translate"
+             (click)="onMenuItemClick()">
             @if(item.icon){
             <i class="bx {{ item.icon }}"></i>
             }
@@ -47,14 +55,14 @@
               <ul class="sub-menu mm-collapse" aria-expanded="false">
                 @for (subSubitem of subitem.subItems; track $index) {
                 <li>
-                  <a [attr.data-parent]="subSubitem.parentId" routerLink="{{subSubitem.link}}" routerLinkActive="active" class="side-nav-link-ref">
+                  <a [attr.data-parent]="subSubitem.parentId" routerLink="{{subSubitem.link}}" routerLinkActive="active" class="side-nav-link-ref" (click)="onMenuItemClick()">
                     {{ subSubitem.label | translate }}
                   </a>
                 </li>
                 }
               </ul>}
               @else{
-              <a routerLink="{{subitem.link}}" class="side-nav-link-ref" [attr.data-parent]="subitem.parentId" routerLinkActive="active">
+              <a routerLink="{{subitem.link}}" class="side-nav-link-ref" [attr.data-parent]="subitem.parentId" routerLinkActive="active" (click)="onMenuItemClick()">
                 {{ subitem.label | translate}}
                 @if(subitem.badge){
                 <span class="badge rounded-pill bg-{{subitem.badge.variant}} float-end">{{subitem.badge.text |

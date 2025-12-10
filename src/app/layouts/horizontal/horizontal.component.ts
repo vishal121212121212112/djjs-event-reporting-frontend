@@ -67,12 +67,22 @@ export class HorizontalComponent implements OnInit, AfterViewInit {
  * On mobile toggle button clicked
  */
   onToggleMobileMenu() {
-    this.isCondensed = !this.isCondensed;
-    document.body.classList.toggle('sidebar-enable');
-    document.body.classList.toggle('vertical-collpsed');
+    const isMobile = window.innerWidth <= 992;
 
-    if (window.screen.width <= 768) {
-      document.body.classList.remove('vertical-collpsed');
+    if (isMobile) {
+      // Mobile behavior - toggle sidebar overlay
+      document.body.classList.toggle('sidebar-enable');
+      // Prevent body scroll when sidebar is open
+      if (document.body.classList.contains('sidebar-enable')) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+    } else {
+      // Desktop behavior - toggle collapsed state
+      this.isCondensed = !this.isCondensed;
+      document.body.classList.toggle('vertical-collpsed');
+      document.body.classList.remove('sidebar-enable');
     }
   }
 
