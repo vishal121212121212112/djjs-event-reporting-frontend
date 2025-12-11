@@ -1564,7 +1564,8 @@ export class EventsListComponent implements OnInit, AfterViewChecked {
   }
 
    openGallery(event: EventData): void {
-     this.router.navigate(['/gallery']);
+     // Navigate to gallery with event ID
+     this.router.navigate(['/events/gallery'], { queryParams: { eventId: event.id } });
   }
 
   // Open media content modal

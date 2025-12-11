@@ -240,12 +240,38 @@ export class EventApiService {
   }
 
   /**
+   * Upload multiple files to S3 in a single request
+   * @param files Array of files to upload
+   * @param eventId Event ID
+   * @param category File category (Event Photos, Video Coverage, Testimonials, Press Release)
+   */
+  uploadMultipleFiles(files: File[], eventId: number, category?: string): Observable<any> {
+    const formData = new FormData();
+
+    // Append all files
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+
+    formData.append('event_id', eventId.toString());
+    if (category) {
+      formData.append('category', category);
+    }
+
+    return this.http.post(`${this.apiBaseUrl}/api/files/upload-multiple`, formData);
+  }
+
+  /**
    * Delete file from S3
    * @param mediaId Media ID
+   * @param eventId Optional event ID for validation
    * @param deleteRecord Whether to delete the media record (default: true)
    */
-  deleteFile(mediaId: number, deleteRecord: boolean = true): Observable<any> {
-    const params = new HttpParams().set('delete_record', deleteRecord.toString());
+  deleteFile(mediaId: number, eventId?: number, deleteRecord: boolean = true): Observable<any> {
+    let params = new HttpParams().set('delete_record', deleteRecord.toString());
+    if (eventId) {
+      params = params.set('event_id', eventId.toString());
+    }
     return this.http.delete(`${this.apiBaseUrl}/api/files/${mediaId}`, { params });
   }
 }

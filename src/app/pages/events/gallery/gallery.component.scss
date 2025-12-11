@@ -9,35 +9,42 @@
   width: 150px;
   border-right: 1px solid #ccc;
 }
+
 /* Month-Year heading style */
 .gallery-right h3 {
-  font-size: 1rem; /* smaller text */
+  font-size: 1rem;
+  /* smaller text */
   font-weight: 300;
   margin: 8px 0 15px;
- color: black; /* Default black text */
+  color: black;
+  /* Default black text */
   border-bottom: 1px solid #ffe0b2;
   padding-bottom: 2px;
   padding-top: 5px;
 }
+
 .categories-vertical button {
   padding: 8px;
   text-align: left;
   border: none;
   background: none;
   cursor: pointer;
-  color: black; /* Default black text */
+  color: black;
+  /* Default black text */
   font-weight: 500;
   border-radius: 5px;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .categories-vertical button.active {
-  background-color: #ff9800; /* bright orange */
+  background-color: #ff9800;
+  /* bright orange */
   color: white;
 }
 
 .categories-vertical button:hover {
-  background-color: #ffb74d; /* lighter orange */
+  background-color: #ffb74d;
+  /* lighter orange */
   color: white;
 }
 
@@ -112,20 +119,143 @@
   width: 150px;
   text-align: center;
   background: white;
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.05);
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .thumbnail:hover {
   transform: translateY(-3px);
-  box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.thumbnail img,
-.thumbnail video,
-.thumbnail audio {
-  max-width: 100%;
+.image-thumbnail-wrapper {
+  position: relative;
+  width: 100%;
+  height: 150px;
   border-radius: 8px;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.image-thumbnail-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.image-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.image-filename {
+  font-size: 0.7rem;
+  text-align: center;
+  margin-top: 5px;
+  padding: 0 5px;
+  word-break: break-word;
+  color: #666;
+}
+
+.video-thumbnail-wrapper {
+  position: relative;
+  width: 100%;
+  height: 150px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.video-thumbnail-wrapper video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+  display: block;
+}
+
+.video-play-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.thumbnail:hover .video-play-overlay {
+  opacity: 0.8;
+}
+
+.video-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a1a;
+  border-radius: 8px;
+}
+
+.video-filename {
+  font-size: 0.7rem;
+  text-align: center;
+  margin-top: 5px;
+  padding: 0 5px;
+  word-break: break-word;
+  color: #ccc;
+}
+
+.audio-thumbnail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 150px;
+  padding: 10px;
+}
+
+.audio-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.audio-filename {
+  font-size: 0.75rem;
+  text-align: center;
+  margin-top: 5px;
+  word-break: break-word;
+  color: #333;
+}
+
+.file-thumbnail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 150px;
+  padding: 10px;
+}
+
+.file-name {
+  font-size: 0.75rem;
+  text-align: center;
+  margin-top: 5px;
+  word-break: break-word;
+  color: #333;
 }
 
 .thumbnail a {
@@ -148,7 +278,17 @@
   padding: 1rem;
   background: #fff;
   border-bottom: 1px solid #ddd;
-  margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+
+.popup-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  min-height: 0;
+  position: relative;
 }
 
 .popup-header h5 {
@@ -164,15 +304,52 @@
 
 .popup {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.7);
+  /* Position relative to main content area, accounting for sidebar and navbar */
+  top: 70px;
+  /* Account for navbar height ($header-height) */
+  left: 250px;
+  /* Account for sidebar width ($sidebar-width: 250px) */
+  right: 0;
+  bottom: 0;
+  width: calc(100% - 250px);
+  /* Full width minus sidebar */
+  height: calc(100% - 70px);
+  /* Full height minus navbar */
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
+  z-index: 1050;
+  /* Above content but within main content area - sidebar and navbar remain visible */
+  overflow: hidden;
+  /* Smooth transition when sidebar collapses/expands */
+  transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1), width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Handle collapsed sidebar state - note: class name has typo 'collpsed' in original codebase */
+body.vertical-collpsed .popup,
+body[class*="vertical-collpsed"] .popup,
+:host-context(body.vertical-collpsed) .popup {
+  left: 70px !important;
+  /* Account for collapsed sidebar width ($sidebar-collapsed-width: 70px) */
+  width: calc(100% - 70px) !important;
+}
+
+/* Also handle when sidebar is collapsed via data attribute or other methods */
+body[data-sidebar-size="small"] .popup {
+  left: 160px !important;
+  /* $sidebar-width-sm: 160px */
+  width: calc(100% - 160px) !important;
+}
+
+/* Responsive: adjust for mobile/smaller screens */
+@media (max-width: 992px) {
+  .popup {
+    left: 0;
+    top: 70px;
+    width: 100%;
+    height: calc(100% - 70px);
+  }
 }
 
 // .popup-content {
@@ -187,23 +364,103 @@
 
 .popup-content {
   background: white;
-  padding: 10px;
-  border-radius: 8px;
-  width: 85vw;
-  height: 80vh;
+  padding: 0;
+  border-radius: 12px;
+  width: 85%;
+  max-width: 900px;
+  height: 85%;
+  max-height: 700px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0px 8px 32px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  z-index: 1051;
+  /* Centered popup within main content area */
+}
+
+.popup-content>ng-container {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  box-shadow: 0px 4px 20px rgba(0,0,0,0.4);
-  overflow: hidden; /* Prevent content overflow */
+  overflow: auto;
 }
-.popup-content img,
-.popup-content video,
-.popup-content iframe {
+
+.popup-image-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.popup-image {
+  max-width: 100%;
+  max-height: calc(75vh - 100px);
+  /* Account for header */
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: white;
+  padding: 5px;
+  display: block;
+  margin: auto;
+}
+
+.popup-video-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  padding: 20px;
+}
+
+.popup-video {
   max-width: 100%;
   max-height: 100%;
-  object-fit: contain; /* keeps proportions */
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+}
+
+.popup-audio-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  padding: 40px;
+}
+
+.popup-audio {
+  width: 100%;
+  max-width: 600px;
+}
+
+.popup-content iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 8px;
+}
+
+.popup-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 300px;
+  color: #666;
 }
 
 .close-btn {

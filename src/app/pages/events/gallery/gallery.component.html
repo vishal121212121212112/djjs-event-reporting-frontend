@@ -14,30 +14,49 @@
   <!-- Right: Types + Gallery -->
   <div class="gallery-right">
 
-    <!-- Upload Section -->
-    <div class="upload-section mb-3" *ngIf="eventId">
-      <input type="file" #fileInput (change)="onFileSelected($event)" multiple
-             accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-             style="display: none;">
-      <button class="btn btn-primary" (click)="fileInput.click()" [disabled]="uploading">
-        <i class="pi pi-upload me-2"></i>
-        {{ uploading ? 'Uploading...' : 'Upload Files' }}
-      </button>
-      <span class="ms-2 text-muted" *ngIf="!eventId">(Select an event to upload files)</span>
-      <div class="upload-progress mt-2" *ngIf="uploading">
-        <div class="progress">
-          <div class="progress-bar" [style.width.%]="uploadProgress"></div>
+    <!-- Event Info & Upload Section -->
+    <div class="event-gallery-header mb-3">
+      <div class="alert alert-info mb-2" *ngIf="eventId">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <i class="pi pi-images me-2"></i>
+            <strong>Event Gallery</strong> - Event ID: {{ eventId }}
+            <span class="badge bg-primary ms-2">{{ items.length }} file(s)</span>
+          </div>
+          <!-- <button class="btn btn-sm btn-outline-secondary" (click)="eventId = null; loadGalleryItems()">
+            <i class="pi pi-times me-1"></i> Show All Events
+          </button> -->
         </div>
-        <small class="text-muted">{{ uploadProgress }}% - {{ currentUploadFile }}</small>
       </div>
-    </div>
 
-    <!-- Event Info -->
-    <div class="alert alert-info mb-3" *ngIf="eventId">
-      <i class="pi pi-info-circle"></i> Showing gallery for Event ID: {{ eventId }}
-      <button class="btn btn-sm btn-outline-secondary ms-2" (click)="eventId = null; loadGalleryItems()">
-        Show All Events
-      </button>
+      <!-- Upload Section - Only show when event ID is present -->
+      <div class="upload-section" *ngIf="eventId">
+        <input type="file" #fileInput (change)="onFileSelected($event)" multiple
+          accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" style="display: none;">
+        <button class="btn btn-primary" (click)="fileInput.click()" [disabled]="uploading || loading">
+          <i class="pi pi-upload me-2"></i>
+          {{ uploading ? 'Uploading...' : 'Upload Files to This Event' }}
+        </button>
+        <small class="text-muted ms-2">Upload images, videos, audio, or documents</small>
+        <div class="upload-progress mt-2" *ngIf="uploading">
+          <div class="progress" style="height: 20px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" [style.width.%]="uploadProgress"
+              role="progressbar">
+              {{ uploadProgress }}%
+            </div>
+          </div>
+          <small class="text-muted d-block mt-1">
+            <i class="pi pi-spin pi-spinner me-1"></i>
+            Uploading: {{ currentUploadFile }}
+          </small>
+        </div>
+      </div>
+
+      <!-- No Event Selected Message -->
+      <div class="alert alert-warning" *ngIf="!eventId">
+        <i class="pi pi-exclamation-triangle me-2"></i>
+        <strong>No Event Selected</strong> - Please select an event from the events list to view and upload files.
+      </div>
     </div>
 
     <!-- Horizontal Type Tabs -->
@@ -47,9 +66,27 @@
       </button>
     </div>
 
+    <!-- Empty State -->
+    <div class="text-center py-5" *ngIf="!loading && items.length === 0">
+      <i class="pi pi-images" style="font-size: 4rem; color: #ccc;"></i>
+      <h4 class="mt-3 text-muted">No Files Found</h4>
+      <p class="text-muted" *ngIf="eventId">
+        This event doesn't have any files yet. Upload files to get started!
+      </p>
+      <p class="text-muted" *ngIf="!eventId">
+        Select an event to view its gallery, or upload files to an event.
+      </p>
+    </div>
+
+    <!-- Loading State -->
+    <div class="text-center py-5" *ngIf="loading">
+      <i class="pi pi-spin pi-spinner" style="font-size: 3rem;"></i>
+      <p class="mt-3">Loading gallery...</p>
+    </div>
+
     <!-- Grouped by Month-Year -->
     <div *ngFor="let monthYear of getMonthYearKeys()">
-      <h3>{{ monthYear }}</h3>
+      <h3 class="month-header">{{ monthYear }}</h3>
       <div class="gallery">
         <div *ngFor="let item of filteredItemsByMonth[monthYear]" class="thumbnail" (click)="openPopup(item)">
           <div class="thumbnail-overlay">
@@ -62,19 +99,48 @@
           </div>
           <ng-container [ngSwitch]="item.type">
 
-            <img *ngSwitchCase="'image'" [src]="item.url" [alt]="item.name">
+            <div *ngSwitchCase="'image'" class="image-thumbnail-wrapper">
+              <img [src]="item.url" [alt]="item.name" (error)="onImageError($event, item)"
+                style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; display: block;">
+              <div *ngIf="!item.url || imageErrors[item.id || 0]" class="image-placeholder">
+                <i class="pi pi-image" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="image-filename">{{ item.name }}</p>
+              </div>
+            </div>
 
-            <video *ngSwitchCase="'video'" controls>
-              <source [src]="item.url" type="video/mp4">
-            </video>
+            <div *ngSwitchCase="'video'" class="video-thumbnail-wrapper">
+              <video *ngIf="item.url && !videoErrors[item.id || 0]" [src]="item.url" preload="metadata"
+                (error)="onVideoError($event, item)"
+                style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; background: #000;">
+                <source [src]="item.url" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+              <div *ngIf="!item.url || videoErrors[item.id || 0]" class="video-placeholder">
+                <i class="pi pi-video" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="video-filename">{{ item.name }}</p>
+              </div>
+              <div class="video-play-overlay" *ngIf="item.url && !videoErrors[item.id || 0]">
+                <i class="pi pi-play-circle" style="font-size: 3rem; color: white; opacity: 0.9;"></i>
+              </div>
+            </div>
 
-            <audio *ngSwitchCase="'audio'" controls>
-              <source [src]="item.url" type="audio/mpeg">
-            </audio>
+            <div *ngSwitchCase="'audio'" class="audio-thumbnail">
+              <i class="pi pi-volume-up" style="font-size: 3rem; color: #ff9800;"></i>
+              <audio *ngIf="item.url && !audioErrors[item.id || 0]" controls style="width: 100%; margin-top: 5px;"
+                (error)="onAudioError($event, item)">
+                <source [src]="item.url" type="audio/mpeg">
+                Your browser does not support the audio tag.
+              </audio>
+              <div *ngIf="!item.url || audioErrors[item.id || 0]" class="audio-placeholder">
+                <p class="audio-filename">{{ item.name }}</p>
+                <small class="text-muted">Audio file unavailable</small>
+              </div>
+            </div>
 
-            <a *ngSwitchCase="'file'" (click)="openPopup(item); $event.preventDefault()" href="#">
-              📄 {{ item.name }}
-            </a>
+            <div *ngSwitchCase="'file'" class="file-thumbnail">
+              <i class="pi pi-file" style="font-size: 3rem; color: #ff9800;"></i>
+              <p class="file-name">{{ item.name }}</p>
+            </div>
 
           </ng-container>
         </div>
@@ -100,21 +166,48 @@
       </div>
     </div>
 
-    <ng-container [ngSwitch]="selectedItem.type">
+    <div class="popup-body">
+      <ng-container [ngSwitch]="selectedItem.type">
 
-      <img *ngSwitchCase="'image'" [src]="selectedItem.url" [alt]="selectedItem.name"
-        style="max-width: 100%; max-height: 85vh;">
+        <div *ngSwitchCase="'image'" class="popup-image-container">
+          <img *ngIf="selectedItem.url && !imageErrors[selectedItem.id || 0]" [src]="selectedItem.url"
+            [alt]="selectedItem.name" (error)="onImageError($event, selectedItem!)" class="popup-image">
+          <div *ngIf="!selectedItem.url || imageErrors[selectedItem.id || 0]" class="popup-placeholder">
+            <i class="pi pi-image" style="font-size: 5rem; color: #ccc;"></i>
+            <p class="mt-3">{{ selectedItem.name }}</p>
+            <small class="text-muted">Image unavailable</small>
+          </div>
+        </div>
 
-      <video *ngSwitchCase="'video'" controls autoplay style="max-width:100%; max-height: 85vh;">
-        <source [src]="selectedItem.url" type="video/mp4">
-      </video>
+        <div *ngSwitchCase="'video'" class="popup-video-container">
+          <video *ngIf="selectedItem.url && !videoErrors[selectedItem.id || 0]" controls autoplay
+            (error)="onVideoError($event, selectedItem!)" class="popup-video">
+            <source [src]="selectedItem.url" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+          <div *ngIf="!selectedItem.url || videoErrors[selectedItem.id || 0]" class="popup-placeholder">
+            <i class="pi pi-video" style="font-size: 5rem; color: #ccc;"></i>
+            <p class="mt-3">{{ selectedItem.name }}</p>
+            <small class="text-muted">Video unavailable</small>
+          </div>
+        </div>
 
-      <audio *ngSwitchCase="'audio'" controls autoplay style="width:100%;max-height: 85vh;">
-        <source [src]="selectedItem.url" type="audio/mpeg">
-      </audio>
+        <div *ngSwitchCase="'audio'" class="popup-audio-container">
+          <audio *ngIf="selectedItem.url && !audioErrors[selectedItem.id || 0]" controls autoplay
+            (error)="onAudioError($event, selectedItem!)" class="popup-audio">
+            <source [src]="selectedItem.url" type="audio/mpeg">
+            Your browser does not support the audio tag.
+          </audio>
+          <div *ngIf="!selectedItem.url || audioErrors[selectedItem.id || 0]" class="popup-placeholder">
+            <i class="pi pi-volume-up" style="font-size: 5rem; color: #ccc;"></i>
+            <p class="mt-3">{{ selectedItem.name }}</p>
+            <small class="text-muted">Audio unavailable</small>
+          </div>
+        </div>
 
-      <iframe *ngSwitchCase="'file'" [src]="selectedItem.url" style="width:80vw; height:80vh;"></iframe>
+        <iframe *ngSwitchCase="'file'" [src]="selectedItem.url" style="width:100%; height:100%; border: none;"></iframe>
 
-    </ng-container>
+      </ng-container>
+    </div>
   </div>
 </div>
