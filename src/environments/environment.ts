@@ -15,7 +15,7 @@ export const environment = {
     appId: "",
     measurementId: ""
   } ,
-  apiBaseUrl : "http://localhost:8080"
+  apiBaseUrl : "https://eventsreportingapi.djjs.org"
 };
 
 /*
