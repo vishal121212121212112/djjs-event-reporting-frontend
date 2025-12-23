@@ -36,19 +36,18 @@
         </div>
 
         <!-- User Table -->
-        <p-table [value]="users" [rowHover]="true" [paginator]="true" [rows]="rows" [first]="first"
-          [rowsPerPageOptions]="rowsPerPageOptions" [globalFilterFields]="['branchEmail', 'name', 'type']"
-          (onPageChange)="onPageChange($event)" (onSort)="onSort($event)" [sortMode]="'multiple'"
-          [tableStyle]="{ 'min-width': '100%' }">
+        <p-table [value]="users" [rowHover]="true" [globalFilterFields]="['email', 'name', 'role.name']"
+          (onSort)="onSort($event)" [sortMode]="'multiple'"
+          [tableStyle]="{ 'min-width': '100%' }" [loading]="loading">
 
           <!-- Table Header -->
           <ng-template pTemplate="header">
             <tr>
-              <th pSortableColumn="branchEmail">Email <p-sortIcon field="branchEmail"></p-sortIcon></th>
+              <th pSortableColumn="email">Email <p-sortIcon field="email"></p-sortIcon></th>
               <th pSortableColumn="name">Name <p-sortIcon field="name"></p-sortIcon></th>
-              <th pSortableColumn="type">Type <p-sortIcon field="type"></p-sortIcon></th>
-              <th pSortableColumn="createdBy">Created By <p-sortIcon field="createdBy"></p-sortIcon></th>
-              <th pSortableColumn="updatedBy">Updated By <p-sortIcon field="updatedBy"></p-sortIcon></th>
+              <th pSortableColumn="role">Role <p-sortIcon field="role"></p-sortIcon></th>
+              <th pSortableColumn="created_by">Created By <p-sortIcon field="created_by"></p-sortIcon></th>
+              <th pSortableColumn="updated_by">Updated By <p-sortIcon field="updated_by"></p-sortIcon></th>
               <th>Actions</th>
             </tr>
           </ng-template>
@@ -56,11 +55,11 @@
           <!-- Table Body -->
           <ng-template pTemplate="body" let-user>
             <tr>
-              <td>{{ user.branchEmail }}</td>
-              <td>{{ user.name }}</td>
-              <td>{{ user.type }}</td>
-              <td>{{ user.createdBy }}</td>
-              <td>{{ user.updatedBy }}</td>
+              <td>{{ user.email || '-' }}</td>
+              <td>{{ user.name || '-' }}</td>
+              <td>{{ user.role?.name || '-' }}</td>
+              <td>{{ user.created_by || '-' }}</td>
+              <td>{{ user.updated_by || '-' }}</td>
               <td>
                 <div class="d-flex gap-1">
                   <p-button type="button" icon="pi pi-pencil" size="small" severity="secondary" (onClick)="editUser(user.id)"
@@ -79,6 +78,14 @@
             </tr>
           </ng-template>
         </p-table>
+
+        <!-- Custom Pagination Component -->
+        <app-pagination
+          [first]="first"
+          [rows]="rows"
+          [totalRecords]="getTotalRecords()"
+          (pageChange)="onPageChange($event)">
+        </app-pagination>
 
       </div>
     </div>

@@ -18,18 +18,18 @@ export const MENU: MenuItem[] = [
         icon: 'bx-calendar-event',
         link: '/events',
     },
-    {
-        id: 4,
-        label: 'Areas',
-        icon: 'bx-map',
-        link: '/areas',
-    },
-    {
-        id: 5,
-        label: 'Districts',
-        icon: 'bx bxs-inbox',
-        link: '/districts',
-    },
+    // {
+    //     id: 4,
+    //     label: 'Areas',
+    //     icon: 'bx-map',
+    //     link: '/areas',
+    // },
+    // {
+    //     id: 5,
+    //     label: 'Districts',
+    //     icon: 'bx bxs-inbox',
+    //     link: '/districts',
+    // },
     {
         id: 6,
         label: 'MENUITEMS.BRANCH.TEXT',

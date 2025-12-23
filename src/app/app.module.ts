@@ -34,7 +34,6 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
 import { ErrorInterceptor } from './core/helpers/error.interceptor';
 import { AuthInterceptor } from './core/helpers/auth.interceptor';
-import { FakeBackendInterceptor } from './core/helpers/fake-backend';
 import { FilemanagerEffects } from './store/filemanager/filemanager.effects';
 import { rootReducer } from './store';
 import { OrderEffects } from './store/orders/order.effects';
@@ -56,9 +55,6 @@ import { MailEffects } from './store/Email/email.effects';
 
 if (environment.defaultauth === 'firebase') {
   initFirebaseBackend(environment.firebaseConfig);
-} else {
-  // tslint:disable-next-line: no-unused-expression
-  FakeBackendInterceptor;
 }
 
 export function createTranslateLoader(http: HttpClient): any {
@@ -116,7 +112,6 @@ export function createTranslateLoader(http: HttpClient): any {
         ])], providers: [
         { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
         { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
-        { provide: HTTP_INTERCEPTORS, useClass: FakeBackendInterceptor, multi: true },
         HttpClientModule,
         MessageService, // PrimeNG MessageService for ToastService
     ] })

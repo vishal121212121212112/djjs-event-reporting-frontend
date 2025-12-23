@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, mergeMap, map } from 'rxjs/operators';
+import { catchError, mergeMap, map, tap } from 'rxjs/operators';
 
 import { of } from 'rxjs';
-import { CrudService } from 'src/app/core/services/crud.service';
+import { UserApiService } from 'src/app/core/services/user-api.service';
 import {
     fetchuserlistData, fetchuserlistSuccess,
     fetchuserlistFail,
@@ -24,11 +24,12 @@ export class userslistEffects {
         this.actions$.pipe(
             ofType(fetchuserlistData),
             mergeMap(() =>
-                this.CrudService.fetchData('/app/userlist').pipe(
+                this.userApiService.getAllUsers().pipe(
                     map((UserListdata) => fetchuserlistSuccess({ UserListdata })),
-                    catchError((error) =>
-                        of(fetchuserlistFail({ error }))
-                    )
+                    catchError((error) => {
+                        console.error('Error fetching users:', error);
+                        return of(fetchuserlistFail({ error: error.message || 'Failed to fetch users' }));
+                    })
                 )
             ),
         ),
@@ -38,9 +39,15 @@ export class userslistEffects {
         this.actions$.pipe(
             ofType(adduserlist),
             mergeMap(({ newData }) =>
-                this.CrudService.addData('/app/userlist', newData).pipe(
-                    map(() => adduserlistSuccess({ newData })),
-                    catchError((error) => of(adduserlistFailure({ error })))
+                this.userApiService.createUser(newData).pipe(
+                    map((response) => {
+                        // The backend returns the user with password, we'll use the user from response
+                        return adduserlistSuccess({ newData: response.user });
+                    }),
+                    catchError((error) => {
+                        console.error('Error creating user:', error);
+                        return of(adduserlistFailure({ error: error.error?.error || error.message || 'Failed to create user' }));
+                    })
                 )
             )
         )
@@ -49,32 +56,41 @@ export class userslistEffects {
     updateData$ = createEffect(() =>
         this.actions$.pipe(
             ofType(updateuserlist),
-            mergeMap(({ updatedData }) =>
-                this.CrudService.updateData('/app/userlist', updatedData).pipe(
+            mergeMap(({ updatedData }) => {
+                if (!updatedData.id) {
+                    return of(updateuserlistFailure({ error: 'User ID is required for update' }));
+                }
+                // Remove fields that shouldn't be updated
+                const { id, password, created_on, created_by, ...updateFields } = updatedData;
+                return this.userApiService.updateUser(id, updateFields).pipe(
                     map(() => updateuserlistSuccess({ updatedData })),
-                    catchError((error) => of(updateuserlistFailure({ error })))
-                )
-            )
+                    catchError((error) => {
+                        console.error('Error updating user:', error);
+                        return of(updateuserlistFailure({ error: error.error?.error || error.message || 'Failed to update user' }));
+                    })
+                );
+            })
         )
     );
-
 
     deleteData$ = createEffect(() =>
         this.actions$.pipe(
             ofType(deleteuserlist),
             mergeMap(({ id }) =>
-                this.CrudService.deleteData('/app/userlist').pipe(
+                this.userApiService.deleteUser(Number(id)).pipe(
                     map(() => deleteuserlistSuccess({ id })),
-                    catchError((error) => of(deleteuserlistFailure({ error })))
+                    catchError((error) => {
+                        console.error('Error deleting user:', error);
+                        return of(deleteuserlistFailure({ error: error.error?.error || error.message || 'Failed to delete user' }));
+                    })
                 )
             )
         )
     );
 
-
     constructor(
         private actions$: Actions,
-        private CrudService: CrudService
+        private userApiService: UserApiService
     ) { }
 
 }

@@ -33,10 +33,10 @@ export const UserListReducer = createReducer(
     }),
 
     on(updateuserlistSuccess, (state, { updatedData }) => {
-        return { ...state, UserListdata: state.UserListdata.map((UserListdata) => UserListdata.id === updatedData.id ? updatedData : UserListdata), error: null };
+        return { ...state, UserListdata: state.UserListdata.map((user) => Number(user.id) === Number(updatedData.id) ? updatedData : user), error: null };
     }),
 
     on(deleteuserlistSuccess, (state, { id }) => {
-        return { ...state, UserListdata: state.UserListdata.filter((UserListdata) => UserListdata.id !== id), error: null }
+        return { ...state, UserListdata: state.UserListdata.filter((user) => Number(user.id) !== Number(id)), error: null }
     }),
 );

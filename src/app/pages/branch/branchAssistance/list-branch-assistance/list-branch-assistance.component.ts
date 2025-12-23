@@ -10,14 +10,16 @@ import { MessageService } from 'primeng/api';
 })
 export class ListBranchAssistanceComponent implements OnInit {
 
-  users: any[] = [];
+  users: any[] = []; // Paginated users to display
+  allUsersData: any[] = []; // Store all users for pagination
+  filteredUsersData: any[] = []; // Store filtered users
   expandedRows: { [key: string]: boolean } = {};
   loading: boolean = false;
 
   // Pagination & Filters
   first = 0;
   rows = 10;
-  rowsPerPageOptions = [5, 10, 20, 50];
+  rowsPerPageOptions = [10, 20, 50];
   globalFilterValue: string = '';
 
   // Per-column filter, dropdown, and pinning
@@ -42,63 +44,88 @@ ngOnInit(): void {
     updatedBy: ''
   };
 
-  // Dummy data for testing
-  this.users = [
-    {
-      id: '1',
-      branchEmail: 'delhi.admin@example.com',
-      name: 'Sunita Verma',
-      type: 'Admin',
-      createdBy: 'System',
-      updatedBy: 'System',
-      details: {
-        phone: '9876543210',
-        address: 'Delhi Ashram, New Delhi',
-        joiningDate: '2015-06-10'
-      }
-    },
-    {
-      id: '2',
-      branchEmail: 'mumbai.assist@example.com',
-      name: 'Rajesh Kumar',
-      type: 'Assistant',
-      createdBy: 'Sunita Verma',
-      updatedBy: 'Sunita Verma',
-      details: {
-        phone: '9123456780',
-        address: 'Mumbai Center, Mumbai',
-        joiningDate: '2018-03-15'
-      }
-    },
-    {
-      id: '3',
-      branchEmail: 'chennai.admin@example.com',
-      name: 'Anita Sharma',
-      type: 'Admin',
-      createdBy: 'System',
-      updatedBy: 'System',
-      details: {
-        phone: '9988776655',
-        address: 'Chennai Ashram, Chennai',
-        joiningDate: '2020-01-20'
-      }
-    }
-  ];
-
+  // Initialize empty users array - will be populated from API
+  this.users = [];
   this.expandedRows = {};
+  
+  // Load users from API
+  this.fetchUsers();
 }
 
 
   // Fetch users from backend (optionally can pass filters, pagination)
   fetchUsers(sortField?: string, sortOrder?: number) {
     this.loading = true;
-    // For demo, ignoring filters & sort. Implement backend API accordingly.
-    this.userService.getUsers().subscribe(data => {
-      this.users = data;
-      this.loading = false;
-    }, () => {
-      this.loading = false;
+    this.userService.getUsers().subscribe({
+      next: (data) => {
+        // Map the API response to ensure all fields are properly displayed
+        const mappedUsers = data.map((user: any) => ({
+          ...user,
+          // Ensure role name is accessible
+          roleName: user.role?.name || 'N/A'
+        }));
+        
+        // Store all users
+        this.allUsersData = mappedUsers;
+        
+        // Apply filters if any
+        this.applyFilters();
+        
+        // Update paginated users
+        this.updatePaginatedUsers();
+        
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error fetching users:', error);
+        this.messageService.add({ 
+          severity: 'error', 
+          summary: 'Error', 
+          detail: 'Failed to load users. Please try again.' 
+        });
+        this.allUsersData = [];
+        this.filteredUsersData = [];
+        this.users = [];
+        this.loading = false;
+      }
     });
+  }
+
+  // Apply filters to users
+  applyFilters() {
+    if (!this.globalFilterValue || this.globalFilterValue.trim() === '') {
+      this.filteredUsersData = [...this.allUsersData];
+      return;
+    }
+
+    const searchTerm = this.globalFilterValue.toLowerCase().trim();
+    this.filteredUsersData = this.allUsersData.filter((user: any) => {
+      return (
+        (user.email && user.email.toLowerCase().includes(searchTerm)) ||
+        (user.name && user.name.toLowerCase().includes(searchTerm)) ||
+        (user.role?.name && user.role.name.toLowerCase().includes(searchTerm)) ||
+        (user.created_by && user.created_by.toLowerCase().includes(searchTerm)) ||
+        (user.updated_by && user.updated_by.toLowerCase().includes(searchTerm))
+      );
+    });
+  }
+
+  // Update paginated users based on current page
+  updatePaginatedUsers() {
+    const sourceData = this.hasActiveFilters() ? this.filteredUsersData : this.allUsersData;
+    const start = this.first;
+    const end = start + this.rows;
+    this.users = sourceData.slice(start, end);
+  }
+
+  // Check if there are active filters
+  hasActiveFilters(): boolean {
+    return this.globalFilterValue && this.globalFilterValue.trim() !== '';
+  }
+
+  // Get total records for pagination component
+  getTotalRecords(): number {
+    return this.hasActiveFilters() ? this.filteredUsersData.length : this.allUsersData.length;
   }
 
   // Add a new user
@@ -131,8 +158,8 @@ ngOnInit(): void {
   // Pagination
   onPageChange(event: any) {
     this.first = event.first;
-    this.rows = event.rows;
-    this.fetchUsers();
+    this.rows = event.rows || this.rows; // Keep current rows if not provided
+    this.updatePaginatedUsers();
   }
 
   // Sorting
@@ -143,9 +170,9 @@ ngOnInit(): void {
 
   // Apply global + per-column filter
   applyFilter() {
-    this.globalFilterValue = Object.values(this.filters).filter(Boolean).join(' ');
-    this.first = 0;
-    this.fetchUsers();
+    this.first = 0; // Reset to first page when filtering
+    this.applyFilters();
+    this.updatePaginatedUsers();
   }
 
   // Dropdowns for per-column filters
