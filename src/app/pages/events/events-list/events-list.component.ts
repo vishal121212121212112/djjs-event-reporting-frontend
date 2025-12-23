@@ -1258,6 +1258,8 @@ export class EventsListComponent implements OnInit, AfterViewChecked, OnDestroy 
           } else {
             this.selectedEvent!.specialGuestsList = [];
           }
+          // Force change detection before opening drawer
+          this.cdr.detectChanges();
           this.openSpecialGuestsDrawer();
         },
         error: (error) => {
@@ -1269,6 +1271,8 @@ export class EventsListComponent implements OnInit, AfterViewChecked, OnDestroy 
             life: 3000
           });
           this.selectedEvent!.specialGuestsList = [];
+          // Force change detection before opening drawer
+          this.cdr.detectChanges();
           this.openSpecialGuestsDrawer();
         }
       });
@@ -1306,6 +1310,8 @@ export class EventsListComponent implements OnInit, AfterViewChecked, OnDestroy 
             this.selectedEvent!.volunteersList = [];
             this.selectedEvent!.volunteers = 0;
           }
+          // Force change detection before opening drawer
+          this.cdr.detectChanges();
           this.openVolunteerDrawer();
         },
         error: (error) => {
@@ -1318,6 +1324,8 @@ export class EventsListComponent implements OnInit, AfterViewChecked, OnDestroy 
           });
           this.selectedEvent!.volunteersList = [];
           this.selectedEvent!.volunteers = 0;
+          // Force change detection before opening drawer
+          this.cdr.detectChanges();
           this.openVolunteerDrawer();
         }
       });
@@ -1340,8 +1348,10 @@ export class EventsListComponent implements OnInit, AfterViewChecked, OnDestroy 
 
   // Open Volunteer Drawer
   openVolunteerDrawer(): void {
-    // Close any other open drawers first
-    this.closeAllDrawers();
+    // Close any other open drawers first (but not this one)
+    if (this.isSpecialGuestsDrawerOpen) this.closeSpecialGuestsDrawer();
+    if (this.isBeneficiariesDrawerOpen) this.closeBeneficiariesDrawer();
+    if (this.isInitiationDrawerOpen) this.closeInitiationDrawer();
 
     this.isVolunteerDrawerOpen = true;
     this.lockBodyScroll();
@@ -1349,35 +1359,30 @@ export class EventsListComponent implements OnInit, AfterViewChecked, OnDestroy 
     // Force change detection to render the drawer
     this.cdr.detectChanges();
 
-    // Move drawer and backdrop to body level after Angular renders them
+    // Wait for Angular to render the drawer, then manipulate DOM
     setTimeout(() => {
       const drawers = document.querySelectorAll('.volunteer-drawer');
-      const backdrops = document.querySelectorAll('.volunteer-drawer-backdrop');
-      const drawer = Array.from(drawers).find(d => d.querySelector('#volunteerDrawerTitle'));
-      const backdrop = backdrops[0];
+      const drawer = Array.from(drawers).find(d => d.querySelector('#volunteerDrawerTitle')) as HTMLElement;
+      const backdrop = document.querySelector('.volunteer-drawer-backdrop') as HTMLElement;
 
-      if (drawer) {
+      if (drawer && backdrop) {
         // Move to body if not already there
         if (drawer.parentElement && drawer.parentElement !== document.body) {
           document.body.appendChild(drawer);
         }
-        // Ensure show class is applied for animation
+        if (backdrop.parentElement && backdrop.parentElement !== document.body) {
+          document.body.appendChild(backdrop);
+        }
+        // Ensure show class is applied (HTML binding should handle this, but ensure it)
         drawer.classList.add('show');
         // Set accessibility attributes
         drawer.setAttribute('role', 'dialog');
         drawer.setAttribute('aria-modal', 'true');
         drawer.setAttribute('aria-labelledby', 'volunteerDrawerTitle');
-      }
-
-      if (backdrop) {
-        // Move to body if not already there
-        if (backdrop.parentElement && backdrop.parentElement !== document.body) {
-          document.body.appendChild(backdrop);
-        }
-        // Ensure show class is applied for animation
+        drawer.removeAttribute('aria-hidden');
         backdrop.classList.add('show');
       }
-    }, 10);
+    }, 100);
   }
 
   ngAfterViewChecked(): void {
@@ -1571,36 +1576,41 @@ export class EventsListComponent implements OnInit, AfterViewChecked, OnDestroy 
 
   // Open Special Guests Drawer
   openSpecialGuestsDrawer(): void {
-    // Close any other open drawers first
-    this.closeAllDrawers();
+    // Close any other open drawers first (but not this one)
+    if (this.isVolunteerDrawerOpen) this.closeVolunteerDrawer();
+    if (this.isBeneficiariesDrawerOpen) this.closeBeneficiariesDrawer();
+    if (this.isInitiationDrawerOpen) this.closeInitiationDrawer();
 
     this.isSpecialGuestsDrawerOpen = true;
     this.lockBodyScroll();
+    
+    // Force change detection to render the drawer
     this.cdr.detectChanges();
 
+    // Wait for Angular to render the drawer, then manipulate DOM
     setTimeout(() => {
       const drawers = document.querySelectorAll('.volunteer-drawer');
-      const backdrops = document.querySelectorAll('.volunteer-drawer-backdrop');
-      const drawer = Array.from(drawers).find(d => d.querySelector('#specialGuestsDrawerTitle'));
-      const backdrop = backdrops[0];
+      const drawer = Array.from(drawers).find(d => d.querySelector('#specialGuestsDrawerTitle')) as HTMLElement;
+      const backdrop = document.querySelector('.volunteer-drawer-backdrop') as HTMLElement;
 
-      if (drawer && drawer.parentElement && drawer.parentElement !== document.body) {
-        document.body.appendChild(drawer);
-      }
-      if (backdrop && backdrop.parentElement && backdrop.parentElement !== document.body) {
-        document.body.appendChild(backdrop);
-      }
+      if (drawer && backdrop) {
+        // Move to body if not already there
+        if (drawer.parentElement && drawer.parentElement !== document.body) {
+          document.body.appendChild(drawer);
+        }
+        if (backdrop.parentElement && backdrop.parentElement !== document.body) {
+          document.body.appendChild(backdrop);
+        }
 
-      if (drawer) {
+        // Ensure show class is applied (HTML binding should handle this, but ensure it)
         drawer.classList.add('show');
         drawer.setAttribute('role', 'dialog');
         drawer.setAttribute('aria-modal', 'true');
         drawer.setAttribute('aria-labelledby', 'specialGuestsDrawerTitle');
-      }
-      if (backdrop) {
+        drawer.removeAttribute('aria-hidden');
         backdrop.classList.add('show');
       }
-    }, 10);
+    }, 100);
   }
 
   // Close Special Guests Drawer
