@@ -44,20 +44,29 @@
         </div>
 
         <!-- Year Dropdown -->
-        <select class="form-select" style="width: auto">
-          <option>2025</option>
-          <option>2024</option>
-          <option>2023</option>
+        <select 
+          class="form-select" 
+          style="width: auto"
+          [ngModel]="selectedYear"
+          (ngModelChange)="onYearChange($event)">
+          <option *ngFor="let year of availableYears" [ngValue]="year">
+            {{ year }}
+          </option>
         </select>
 
         <!-- Branch Filter -->
       </div>
     </div>
     <div class="col-1 d-flex justify-content-end">
-      <select class="form-select" style="width: auto">
-        <option>All branches</option>
-        <option>Branch 1</option>
-        <option>Branch 2</option>
+      <select 
+        class="form-select" 
+        style="width: auto"
+        [ngModel]="selectedBranch"
+        (ngModelChange)="onBranchChange($event)">
+        <option value="All branches">All branches</option>
+        <option *ngFor="let branch of branches" [ngValue]="branch.name">
+          {{ branch.name }}
+        </option>
       </select>
     </div>
   </div>
@@ -70,7 +79,10 @@
       <div class="card mb-3">
         <div class="card-body text-center">
           <h3 class="card-title text-muted mb-2">Branches</h3>
-          <h1 class="display-4 text-primary mb-0">97</h1>
+          <h1 class="display-4 text-primary mb-0" *ngIf="!loading">
+            {{ formatNumber(totalBranches) }}
+          </h1>
+          <h1 class="display-4 text-primary mb-0" *ngIf="loading">...</h1>
         </div>
       </div>
 
@@ -78,7 +90,10 @@
       <div class="card">
         <div class="card-body text-center">
           <h3 class="card-title text-muted mb-2">Preachers</h3>
-          <h1 class="display-4 text-success mb-0">1,080</h1>
+          <h1 class="display-4 text-success mb-0" *ngIf="!loading">
+            {{ formatNumber(totalPreachers) }}
+          </h1>
+          <h1 class="display-4 text-success mb-0" *ngIf="loading">...</h1>
         </div>
       </div>
     </div>
@@ -94,8 +109,10 @@
 
               <!-- Value and Change -->
               <div class="d-flex align-items-center mb-2">
-                <h2 class="mb-0 me-2">4,200</h2>
-                <span class="text-success fw-bold">12% ↑</span>
+                <h2 class="mb-0 me-2" *ngIf="!loading">
+                  {{ formatNumber(totalEvents) }}
+                </h2>
+                <h2 class="mb-0 me-2" *ngIf="loading">...</h2>
               </div>
 
               <!-- View All Button -->
@@ -106,23 +123,25 @@
               <!-- Chart + Legend -->
               <div class="d-flex align-items-center flex-grow-1">
                 <!-- Legend -->
-                <div class="chart-legend flex-grow-1">
-                  <div>
-                    <span class="legend-color bg-success"></span> Spiritual:
-                    1,200
+                <div class="chart-legend flex-grow-1" *ngIf="!loading">
+                  <div *ngFor="let label of eventsByTypeLabels; let i = index">
+                    <span 
+                      class="legend-color"
+                      [ngClass]="{
+                        'bg-success': i === 0,
+                        'bg-danger': i === 1,
+                        'bg-primary': i === 2,
+                        'bg-warning': i === 3
+                      }">
+                    </span>
+                    {{ label }}: {{ formatNumber(eventsByTypeSeries[i]) }}
                   </div>
-                  <div>
-                    <span class="legend-color bg-danger"></span> Peace
-                    procession: 2,300
+                  <div *ngIf="eventsByTypeLabels.length === 0">
+                    <span class="text-muted">No events data available</span>
                   </div>
-                  <div>
-                    <span class="legend-color bg-primary"></span> Cultural:
-                    1,100
-                  </div>
-                  <div>
-                    <span class="legend-color bg-warning"></span> Peace
-                    assembly: 2,000
-                  </div>
+                </div>
+                <div class="chart-legend flex-grow-1" *ngIf="loading">
+                  <span class="text-muted">Loading...</span>
                 </div>
 
                 <!-- Donut Chart -->
@@ -157,8 +176,11 @@
 
               <!-- Value and Change -->
               <div class="d-flex align-items-center mb-2">
-                <h2 class="mb-0 me-2">2,500</h2>
-                <span class="text-success fw-bold">12% ↑</span>
+                <h2 class="mb-0 me-2" *ngIf="!loading">
+                  {{ formatNumber(totalInitiation) }}
+                </h2>
+                <h2 class="mb-0 me-2" *ngIf="loading">...</h2>
+                <span class="text-success fw-bold" *ngIf="!loading && totalInitiation > 0">↑</span>
               </div>
 
               <!-- View All Button -->
@@ -169,16 +191,19 @@
               <!-- Chart + Legend -->
               <div class="d-flex align-items-center flex-grow-1">
                 <!-- Legend -->
-                <div class="chart-legend flex-grow-1">
+                <div class="chart-legend flex-grow-1" *ngIf="!loading">
                   <div>
-                    <span class="legend-color bg-success"></span> Male: 1,400
+                    <span class="legend-color bg-success"></span> Male: {{ formatNumber(initiationMen) }}
                   </div>
                   <div>
-                    <span class="legend-color bg-danger"></span> Female: 1,200
+                    <span class="legend-color bg-danger"></span> Female: {{ formatNumber(initiationWomen) }}
                   </div>
                   <div>
-                    <span class="legend-color bg-primary"></span> Kids: 600
+                    <span class="legend-color bg-primary"></span> Kids: {{ formatNumber(initiationKids) }}
                   </div>
+                </div>
+                <div class="chart-legend flex-grow-1" *ngIf="loading">
+                  <span class="text-muted">Loading...</span>
                 </div>
 
                 <!-- Donut Chart -->
@@ -257,35 +282,29 @@
               <h5 class="card-title mb-0">
                 Active volunteers trend (year to date)
               </h5>
-              <div class="text-center">
-                <h3 class="mb-0">42</h3>
-                <span class="badge bg-danger">12% ↓</span>
+              <div class="text-center" *ngIf="!loading">
+                <h3 class="mb-0">{{ formatNumber(currentVolunteersCount) }}</h3>
+                <span 
+                  class="badge"
+                  [ngClass]="currentVolunteersCount > 0 ? 'bg-success' : 'bg-danger'">
+                  {{ currentVolunteersCount > 0 ? '↑' : '↓' }}
+                </span>
+              </div>
+              <div class="text-center" *ngIf="loading">
+                <h3 class="mb-0">...</h3>
               </div>
             </div>
-            <div
-              class="chart-container"
-              style="
-                /* min-height: 300px; */
-                border: 1px solid #ddd;
-                background-color: #f8f9fa;
-              "
-            >
-              <div class="text-center" style="color: #666">
-                <p>Chart Container - Height: 300px</p>
-                <p>Data: [50, 25, 48, 58, 30, 48, 75, 50]</p>
-              </div>
-              <apx-chart
-                [series]="volunteersTrendChartOptions.series"
-                [chart]="volunteersTrendChartOptions.chart"
-                [plotOptions]="volunteersTrendChartOptions.plotOptions"
-                [dataLabels]="volunteersTrendChartOptions.dataLabels"
-                [stroke]="volunteersTrendChartOptions.stroke"
-                [xaxis]="volunteersTrendChartOptions.xaxis"
-                [yaxis]="volunteersTrendChartOptions.yaxis"
-                [fill]="volunteersTrendChartOptions.fill"
-                [tooltip]="volunteersTrendChartOptions.tooltip"
-              ></apx-chart>
-            </div>
+            <apx-chart
+              [series]="volunteersTrendChartOptions.series"
+              [chart]="volunteersTrendChartOptions.chart"
+              [plotOptions]="volunteersTrendChartOptions.plotOptions"
+              [dataLabels]="volunteersTrendChartOptions.dataLabels"
+              [stroke]="volunteersTrendChartOptions.stroke"
+              [xaxis]="volunteersTrendChartOptions.xaxis"
+              [yaxis]="volunteersTrendChartOptions.yaxis"
+              [fill]="volunteersTrendChartOptions.fill"
+              [tooltip]="volunteersTrendChartOptions.tooltip"
+            ></apx-chart>
           </div>
         </div>
       </div>

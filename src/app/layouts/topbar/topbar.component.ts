@@ -101,6 +101,7 @@ export class TopbarComponent implements OnInit {
     this.breadcrumbItems = [];
     let route = this.activatedRoute.root;
     let url = '';
+    const segments: string[] = [];
 
     // Always start with Home
     this.breadcrumbItems.push({
@@ -109,7 +110,7 @@ export class TopbarComponent implements OnInit {
       active: false
     });
 
-    // Build breadcrumbs from route segments
+    // Collect all route segments
     while (route.firstChild) {
       route = route.firstChild;
       if (route.snapshot.url.length) {
@@ -118,14 +119,29 @@ export class TopbarComponent implements OnInit {
 
         // Skip empty segments
         if (segment && segment.trim() !== '') {
-          const label = this.formatLabel(segment);
-          this.breadcrumbItems.push({
-            label: label,
-            link: url,
-            active: false
-          });
+          segments.push(segment);
         }
       }
+    }
+
+    // Build breadcrumbs, skipping "branch" if next segment is "members"
+    let currentUrl = '';
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
+      const nextSegment = segments[i + 1];
+      
+      // Skip "branch" segment if we're going to "members" page
+      if (segment === 'branch' && nextSegment === 'members') {
+        continue;
+      }
+      
+      currentUrl += `/${segment}`;
+      const label = this.formatLabel(segment);
+      this.breadcrumbItems.push({
+        label: label,
+        link: currentUrl,
+        active: false
+      });
     }
 
     // Mark the last item as active

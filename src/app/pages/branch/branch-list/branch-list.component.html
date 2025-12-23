@@ -1,10 +1,9 @@
-<div class="page-title-box d-flex align-items-center justify-content-between">
-  <h4 class="mb-0">Branches</h4>
-  <div class="d-flex gap-2">
-    <button class="btn btn-primary" (click)="addBranch()">
-      <i class="pi pi-plus me-2"></i> Add Branch
-    </button>
-  </div>
+<app-page-title [title]="'Branches'" [breadcrumbItems]="breadCrumbItems"></app-page-title>
+
+<div class="d-flex justify-content-end mb-3">
+  <button class="btn btn-primary" (click)="addBranch()">
+    <i class="pi pi-plus me-2"></i> Add Branch
+  </button>
 </div>
 
 

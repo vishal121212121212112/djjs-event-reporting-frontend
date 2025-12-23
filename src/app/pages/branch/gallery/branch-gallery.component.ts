@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BranchGalleryService } from 'src/app/core/services/branch-gallery.service';
+import { LocationService } from 'src/app/core/services/location.service';
+import { ChildBranchService } from 'src/app/core/services/child-branch.service';
 import { MessageService } from 'primeng/api';
 import { ConfirmationDialogService } from 'src/app/core/services/confirmation-dialog.service';
 
@@ -43,21 +45,34 @@ export class BranchGalleryComponent implements OnInit, OnDestroy {
 
   items: GalleryItem[] = [];
 
+  // Breadcrumb items
+  breadCrumbItems: Array<{}> = [];
+  branchName: string = '';
+
   constructor(
     public route: ActivatedRoute,
     public router: Router,
     private branchGalleryService: BranchGalleryService,
+    private locationService: LocationService,
+    private childBranchService: ChildBranchService,
     private messageService: MessageService,
     private confirmationDialog: ConfirmationDialogService
   ) { }
 
   ngOnInit(): void {
+    // Initialize breadcrumbs
+    this.breadCrumbItems = [
+      { label: 'Branches', routerLink: '/branch' },
+      { label: 'Gallery', active: true }
+    ];
+
     this.route.queryParams.subscribe(params => {
       const branchIdParam = params['branchId'];
       this.isChildBranch = params['isChildBranch'] === 'true';
 
       if (branchIdParam) {
         this.branchId = Number(branchIdParam);
+        this.loadBranchName();
         this.loadGalleryItems();
       } else {
         this.messageService.add({
@@ -68,6 +83,50 @@ export class BranchGalleryComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  loadBranchName(): void {
+    if (!this.branchId) return;
+
+    if (this.isChildBranch) {
+      this.childBranchService.getChildBranchById(this.branchId).subscribe({
+        next: (childBranch) => {
+          this.branchName = childBranch.name || 'Child Branch';
+          this.updateBreadcrumbs();
+        },
+        error: (error) => {
+          console.error('Error loading child branch name:', error);
+          this.branchName = 'Child Branch';
+          this.updateBreadcrumbs();
+        }
+      });
+    } else {
+      this.locationService.getBranchById(this.branchId).subscribe({
+        next: (branch) => {
+          this.branchName = branch.name || 'Branch';
+          this.updateBreadcrumbs();
+        },
+        error: (error) => {
+          console.error('Error loading branch name:', error);
+          this.branchName = 'Branch';
+          this.updateBreadcrumbs();
+        }
+      });
+    }
+  }
+
+  updateBreadcrumbs(): void {
+    if (this.branchId) {
+      const branchViewLink = this.isChildBranch 
+        ? ['/branch/child-branch/view', this.branchId.toString()]
+        : ['/branch/view', this.branchId.toString()];
+      
+      this.breadCrumbItems = [
+        { label: 'Branches', routerLink: '/branch' },
+        { label: this.branchName || (this.isChildBranch ? 'Child Branch' : 'Branch'), routerLink: branchViewLink },
+        { label: 'Gallery', active: true }
+      ];
+    }
   }
 
   loadGalleryItems(): void {

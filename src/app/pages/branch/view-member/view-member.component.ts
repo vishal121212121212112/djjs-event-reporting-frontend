@@ -138,12 +138,22 @@ export class ViewMemberComponent implements OnInit {
   }
 
   updateBreadcrumbs() {
-    if (this.member && this.branchId) {
-      this.breadCrumbItems = [
-        { label: 'Branches', routerLink: '/branch' },
-        { label: this.branchName || 'Branch', routerLink: ['/branch/view', this.branchId.toString()] },
-        { label: this.member.name, active: true }
-      ];
+    if (this.branchId) {
+      if (this.member) {
+        // Member is loaded, show member name
+        this.breadCrumbItems = [
+          { label: 'Branches', routerLink: '/branch' },
+          { label: this.branchName || 'Branch', routerLink: ['/branch/view', this.branchId.toString()] },
+          { label: this.member.name, active: true }
+        ];
+      } else if (this.branchName) {
+        // Branch name is loaded but member is not yet loaded
+        this.breadCrumbItems = [
+          { label: 'Branches', routerLink: '/branch' },
+          { label: this.branchName, routerLink: ['/branch/view', this.branchId.toString()] },
+          { label: 'Member Details', active: true }
+        ];
+      }
     }
   }
 

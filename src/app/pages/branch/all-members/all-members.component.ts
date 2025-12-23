@@ -294,6 +294,28 @@ export class AllMembersComponent implements OnInit {
     this.filteredMembers = filtered;
   }
 
+  viewMember(member: UnifiedMember) {
+    if (member.branch_type === 'branch' && member.branch_id) {
+      this.router.navigate(['/branch', member.branch_id.toString(), 'members', member.id.toString()]);
+    } else if (member.branch_type === 'child_branch' && member.child_branch_id) {
+      // For child branch members, we might need a different route or handle differently
+      // For now, navigate to the branch view if parent branch is available
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Info',
+        detail: 'Viewing child branch members is not yet implemented.',
+        life: 3000
+      });
+    } else {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Cannot view member. Branch information is missing.',
+        life: 3000
+      });
+    }
+  }
+
   openEditMemberModal(member: UnifiedMember) {
     this.editingMember = member;
     

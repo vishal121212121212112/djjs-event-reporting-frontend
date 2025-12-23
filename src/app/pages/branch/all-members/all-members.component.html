@@ -97,7 +97,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let member of filteredMembers">
+              <tr *ngFor="let member of filteredMembers" style="cursor: pointer;" (click)="viewMember(member)">
                 <td>{{ member.name }}</td>
                 <td>
                   <span class="badge" [ngClass]="member.member_type === 'preacher' ? 'bg-info' : 'bg-success'">
@@ -114,7 +114,7 @@
                 <td>{{ member.responsibility || 'N/A' }}</td>
                 <td>{{ member.age || 'N/A' }}</td>
                 <td>{{ member.qualification || 'N/A' }}</td>
-                <td>
+                <td (click)="$event.stopPropagation()">
                   <div class="d-flex gap-1">
                     <button class="btn btn-sm btn-outline-primary" (click)="openEditMemberModal(member)" title="Edit Member">
                       <i class="fas fa-edit"></i>

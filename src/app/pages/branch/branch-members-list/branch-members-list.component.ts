@@ -55,9 +55,23 @@ export class BranchMembersListComponent implements OnInit {
     this.loading = true;
     this.locationService.getBranchMembers(this.branchId).subscribe({
       next: (members: any[]) => {
-        this.members = members || [];
+        // Ensure all members have the required properties
+        this.members = (members || []).map((member: any) => ({
+          id: member.id || member.ID || member.member_id,
+          name: member.name || '',
+          member_type: member.member_type || '',
+          branch_role: member.branch_role || '',
+          responsibility: member.responsibility || '',
+          age: member.age || 0,
+          date_of_samarpan: member.date_of_samarpan || '',
+          qualification: member.qualification || '',
+          date_of_birth: member.date_of_birth || '',
+          branch_id: member.branch_id || this.branchId || 0
+        }));
         this.filteredMembers = this.members;
         this.loading = false;
+        
+        console.log('Members loaded:', this.members);
 
         if (this.members.length === 0) {
           this.messageService.add({
@@ -105,9 +119,47 @@ export class BranchMembersListComponent implements OnInit {
   }
 
   viewMember(memberId: number) {
-    if (this.branchId) {
-      this.router.navigate(['/branch', this.branchId, 'members', memberId]);
+    console.log('viewMember called', { branchId: this.branchId, memberId });
+    
+    if (!this.branchId) {
+      console.error('Branch ID is missing');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Branch ID is missing. Cannot view member.',
+        life: 3000
+      });
+      return;
     }
+
+    if (!memberId) {
+      console.error('Member ID is missing');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Member ID is missing. Cannot view member.',
+        life: 3000
+      });
+      return;
+    }
+
+    const route = ['/branch', this.branchId.toString(), 'members', memberId.toString()];
+    console.log('Navigating to:', route);
+    
+    this.router.navigate(route).then(
+      (success) => {
+        console.log('Navigation successful:', success);
+      },
+      (error) => {
+        console.error('Navigation failed:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to navigate to member details. Please try again.',
+          life: 3000
+        });
+      }
+    );
   }
 
   addMember() {

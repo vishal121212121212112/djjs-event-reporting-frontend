@@ -57,7 +57,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let member of filteredMembers" style="cursor: pointer;" (click)="viewMember(member.id)">
+          <tr *ngFor="let member of filteredMembers" style="cursor: pointer;" (click)="viewMember(member.id)" [attr.data-member-id]="member.id">
             <td>{{ member.name }}</td>
             <td>
               <span class="badge" [ngClass]="member.member_type === 'preacher' ? 'bg-info' : 'bg-success'">

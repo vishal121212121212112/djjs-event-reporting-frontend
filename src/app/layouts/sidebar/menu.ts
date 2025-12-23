@@ -36,17 +36,18 @@ export const MENU: MenuItem[] = [
         icon: 'bx bx-git-pull-request',
         link: '/branch'
     },
-    {
-        id: 7,
-        label: 'Users',
-        icon: 'bx-user',
-        link: '/branch/branchAssistance',
-    },
+ 
     {
         id: 8,
         label: 'Members',
         icon: 'bx-group',
         link: '/branch/members',
+    },
+       {
+        id: 7,
+        label: 'Users',
+        icon: 'bx-user',
+        link: '/branch/branchAssistance',
     },
 ];
 
