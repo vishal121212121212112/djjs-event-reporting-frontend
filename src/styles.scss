@@ -1059,15 +1059,26 @@ form {
   }
 }
 
-// Toast Container Positioning
+// Toast Container Positioning - Position below navbar (navbar height is 55px, add 20px spacing)
 .p-toast-top-right {
-  top: 20px !important;
+  top: calc(55px + 20px) !important;
   right: 20px !important;
 }
 
 .p-toast-top-left {
-  top: 20px !important;
+  top: calc(55px + 20px) !important;
   left: 20px !important;
+}
+
+// Responsive: Mobile navbar is 60px
+@media (max-width: 576px) {
+  .p-toast-top-right {
+    top: calc(60px + 20px) !important;
+  }
+  
+  .p-toast-top-left {
+    top: calc(60px + 20px) !important;
+  }
 }
 
 .p-toast-bottom-right {

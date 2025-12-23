@@ -15,7 +15,7 @@ export class UserService {
   constructor(private http: HttpClient) { }
 
   // Create a new user
-  createUser(user: User): Observable<any> {
+  createUser(user: { name: string; email: string; contact_number: string; role_id: number }): Observable<any> {
     return this.http.post(this.apiUrl, user).pipe(
       catchError(this.handleError)
     );
@@ -60,9 +60,18 @@ export class UserService {
       // Client-side error
       errorMessage = `Error: ${error.error.message}`;
     } else {
-      // Server-side error
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+      // Server-side error - extract error message from response
+      if (error.error && error.error.error) {
+        errorMessage = error.error.error;
+      } else if (error.error && typeof error.error === 'string') {
+        errorMessage = error.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else {
+        errorMessage = `Error Code: ${error.status || 'Unknown'}`;
+      }
     }
-    return throwError(errorMessage);
+    // Return the error object so component can access error.error
+    return throwError(() => error);
   }
 }

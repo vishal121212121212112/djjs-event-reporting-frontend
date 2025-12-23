@@ -10,78 +10,90 @@
   <div class="col-12">
     <div class="card">
       <div class="card-body">
+        <!-- Success Message -->
+        <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+          {{ successMessage }}
+          <button type="button" class="btn-close" (click)="successMessage = ''" aria-label="Close"></button>
+        </div>
+
+        <!-- Error Message -->
+        <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+          {{ errorMessage }}
+          <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
+        </div>
+
         <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
 
           <div class="row mb-3">
-            <!-- Username Field -->
+            <!-- Name Field -->
             <div class="col-md-4">
-              <label for="Username" class="form-label">Username</label>
+              <label for="name" class="form-label">Name</label>
               <input 
                 type="text" 
                 class="form-control" 
-                formControlName="Username" 
-                placeholder="Enter Username" 
+                formControlName="name" 
+                placeholder="Enter Name" 
                 required 
               />
-              <!-- Error Message for Username -->
-              <div *ngIf="userForm.get('Username')?.touched && userForm.get('Username')?.invalid" class="text-danger">
-                <small *ngIf="userForm.get('Username')?.hasError('required')">Username is required.</small>
+              <!-- Error Message for Name -->
+              <div *ngIf="userForm.get('name')?.touched && userForm.get('name')?.invalid" class="text-danger">
+                <small *ngIf="userForm.get('name')?.hasError('required')">Name is required.</small>
               </div>
             </div>
 
             <!-- Email Field -->
             <div class="col-md-4">
-              <label for="Email" class="form-label">Email</label>
+              <label for="email" class="form-label">Email</label>
               <input 
                 type="email" 
                 class="form-control" 
-                formControlName="Email" 
+                formControlName="email" 
                 placeholder="Enter Email" 
                 required 
               />
               <!-- Error Message for Email -->
-              <div *ngIf="userForm.get('Email')?.touched && userForm.get('Email')?.invalid" class="text-danger">
-                <small *ngIf="userForm.get('Email')?.hasError('required')">Email is required.</small>
-                <small *ngIf="userForm.get('Email')?.hasError('email')">Please enter a valid email.</small>
+              <div *ngIf="userForm.get('email')?.touched && userForm.get('email')?.invalid" class="text-danger">
+                <small *ngIf="userForm.get('email')?.hasError('required')">Email is required.</small>
+                <small *ngIf="userForm.get('email')?.hasError('email')">Please enter a valid email.</small>
               </div>
             </div>
 
             <!-- Contact Number Field -->
             <div class="col-md-4">
-              <label for="Contact_Number" class="form-label">Contact Number</label>
+              <label for="contact_number" class="form-label">Contact Number</label>
               <input 
-                type="number" 
+                type="text" 
                 class="form-control" 
-                formControlName="Contact_Number" 
-                placeholder="Enter Contact Number" 
+                formControlName="contact_number" 
+                placeholder="Enter Contact Number (10 digits or +91XXXXXXXXXX)" 
                 required 
               />
+              <small class="form-text text-muted">Format: 10 digits (e.g., 9876543210) or +91XXXXXXXXXX</small>
               <!-- Error Message for Contact Number -->
-              <div *ngIf="userForm.get('Contact_Number')?.touched && userForm.get('Contact_Number')?.invalid" class="text-danger">
-                <small *ngIf="userForm.get('Contact_Number')?.hasError('required')">Contact Number is required.</small>
+              <div *ngIf="userForm.get('contact_number')?.touched && userForm.get('contact_number')?.invalid" class="text-danger">
+                <small *ngIf="userForm.get('contact_number')?.hasError('required')">Contact Number is required.</small>
               </div>
             </div>
           </div>
 
           <div class="row mb-3">
-            <!-- Password Field -->
+            <!-- Role Field -->
             <div class="col-md-4">
-              <label for="Password" class="form-label">Password</label>
-              <input 
-                type="password" 
+              <label for="role_id" class="form-label">Role</label>
+              <select 
                 class="form-control" 
-                formControlName="Password" 
-                placeholder="Enter Password" 
-                required 
-              />
-              <!-- Error Message for Password -->
-              <div *ngIf="userForm.get('Password')?.touched && userForm.get('Password')?.invalid" class="text-danger">
-                <small *ngIf="userForm.get('Password')?.hasError('required')">Password is required.</small>
+                formControlName="role_id" 
+                required
+              >
+                <option value="">Select a Role</option>
+                <option *ngFor="let role of roles" [value]="role.id">{{ role.name }}</option>
+              </select>
+              <!-- Error Message for Role -->
+              <div *ngIf="userForm.get('role_id')?.touched && userForm.get('role_id')?.invalid" class="text-danger">
+                <small *ngIf="userForm.get('role_id')?.hasError('required')">Role is required.</small>
               </div>
             </div>
-
-           
-          
+          </div>
 
           <div class="row">
             <div class="col-md-12 mt-2">
@@ -89,7 +101,6 @@
                 Create User
               </button>
             </div>
-          </div>
           </div>
 
         </form>

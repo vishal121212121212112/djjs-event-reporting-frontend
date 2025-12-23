@@ -14,6 +14,7 @@ import { ToastrModule } from 'ngx-toastr';
 import { ScrollToModule } from '@nicky-lenaers/ngx-scroll-to';
 import { SharedModule } from './cyptolanding/shared/shared.module';
 import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 
 // Store
 import { StoreModule } from '@ngrx/store';
@@ -88,6 +89,7 @@ export function createTranslateLoader(http: HttpClient): any {
         ScrollToModule.forRoot(),
         SlickCarouselModule,
         ToastrModule.forRoot(),
+        ToastModule,
         StoreModule.forRoot(rootReducer),
         StoreDevtoolsModule.instrument({
             maxAge: 25, // Retains last 25 states

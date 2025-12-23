@@ -73,8 +73,8 @@
                               <i class="mdi mdi-dots-horizontal font-size-18"></i> 
                             </a>
                             <ul *dropdownMenu class="dropdown-menu dropdown-menu-end" placement="bottom-end">
-                              <li><a href="javascript:void(0);" (click)="editUser($index)" class="dropdown-item edit-list"><i class="mdi mdi-pencil font-size-16 text-success me-1"></i> Edit</a></li>
-                              <li><a href="javascript:void(0);" (click)="removeUser(data)" class="dropdown-item remove-list"><i class="mdi mdi-trash-can font-size-16 text-danger me-1"></i> Delete</a></li>
+                              <li><a href="javascript:void(0);" (click)="editUser(data); $event.stopPropagation()" class="dropdown-item edit-list"><i class="mdi mdi-pencil font-size-16 text-success me-1"></i> Edit</a></li>
+                              <li><a href="javascript:void(0);" (click)="removeUser(data); $event.stopPropagation()" class="dropdown-item remove-list"><i class="mdi mdi-trash-can font-size-16 text-danger me-1"></i> Delete</a></li>
                             </ul>
                           </div>
                         </li>

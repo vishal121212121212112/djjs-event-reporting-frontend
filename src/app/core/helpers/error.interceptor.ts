@@ -16,8 +16,9 @@ export class ErrorInterceptor implements HttpInterceptor {
                 this.authenticationService.logout();
                 location.reload();
             }
-            const error = err.error.message || err.statusText;
-            return throwError(error);
+            // Preserve the full error object so components can access err.error.error
+            // Backend returns errors in format: {"error": "message"}
+            return throwError(() => err);
         }))
     }
 }

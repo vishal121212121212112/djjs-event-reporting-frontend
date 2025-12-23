@@ -1,3 +1,13 @@
 <router-outlet></router-outlet>
 <!-- Modal Portal - Renders all modals at body level -->
 <app-modal-portal></app-modal-portal>
+
+<!-- PrimeNG Toast Component - Global for all pages (at body level to avoid navbar z-index issues) -->
+<p-toast
+  position="top-right"
+  [baseZIndex]="11000"
+  [showTransformOptions]="'translateX(100%)'"
+  [hideTransformOptions]="'translateX(100%)'"
+  [showTransitionOptions]="'300ms ease-out'"
+  [hideTransitionOptions]="'300ms ease-in'">
+</p-toast>

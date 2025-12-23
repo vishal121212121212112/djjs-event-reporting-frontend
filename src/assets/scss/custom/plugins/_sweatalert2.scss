@@ -3,6 +3,8 @@
 //
 
 .swal2-container {
+    z-index: 12000 !important; // Ensure it appears above navbar (navbar z-index is 10000)
+    
     .swal2-title {
         font-size: 20px;
         font-weight: $font-weight-medium;

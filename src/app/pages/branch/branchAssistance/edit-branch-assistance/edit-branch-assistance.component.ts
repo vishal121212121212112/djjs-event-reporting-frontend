@@ -60,14 +60,39 @@ export class EditBranchAssistanceComponent implements OnInit {
     }
 
     const userData = this.updateUserForm.value;
-    this.userService.updateUser(this.userId!, userData).subscribe(
-      response => {
-        this.messageService.add({ severity: 'success', summary: 'User Updated', detail: 'User details have been updated successfully.' });
-        this.router.navigate(['/user/list']);  
+    this.userService.updateUser(this.userId!, userData).subscribe({
+      next: (response) => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'User Updated',
+          detail: 'User details have been updated successfully.',
+          life: 3000
+        });
+        this.router.navigate(['/branch/branchAssistance']);
       },
-      error => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to update user.' });
+      error: (error) => {
+        console.error('Error updating user:', error);
+        let errorMessage = 'Failed to update user. Please try again.';
+
+        if (error.error) {
+          if (error.error.message) {
+            errorMessage = error.error.message;
+          } else if (error.error.error) {
+            errorMessage = error.error.error;
+          } else if (typeof error.error === 'string') {
+            errorMessage = error.error;
+          }
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: errorMessage,
+          life: 5000
+        });
       }
-    );
+    });
   }
 }

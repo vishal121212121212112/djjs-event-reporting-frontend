@@ -168,6 +168,31 @@ export class BranchMembersListComponent implements OnInit {
     }
   }
 
+  editMember(memberId: number) {
+    if (!this.branchId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Branch ID is missing. Cannot edit member.',
+        life: 3000
+      });
+      return;
+    }
+
+    if (!memberId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Member ID is missing. Cannot edit member.',
+        life: 3000
+      });
+      return;
+    }
+
+    // Navigate to edit branch page - the edit page should handle member editing
+    this.router.navigate(['/branch/edit', this.branchId.toString()]);
+  }
+
   deleteMember(memberId: number) {
     if (!memberId) {
       this.messageService.add({

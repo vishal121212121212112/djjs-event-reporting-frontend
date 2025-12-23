@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserService } from 'src/app/core/services/branch-assistance.service';
 import { MessageService } from 'primeng/api';
+import { ConfirmationDialogService } from 'src/app/core/services/confirmation-dialog.service';
 
 @Component({
   selector: 'app-list-branch-assistance',
@@ -31,7 +32,8 @@ export class ListBranchAssistanceComponent implements OnInit {
   constructor(
     private userService: UserService,
     private router: Router,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private confirmationDialog: ConfirmationDialogService
   ) { }
 
 ngOnInit(): void {
@@ -135,14 +137,76 @@ ngOnInit(): void {
 
   // Edit a user
   editUser(userId: string) {
-    console.log('Edit user:', userId);
+    if (!userId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'User ID is missing. Cannot edit user.',
+        life: 3000
+      });
+      return;
+    }
+    this.router.navigate(['/branch/branchAssistance/edit', userId]);
   }
 
   // Delete a user
   deleteUser(userId: string) {
-    this.userService.deleteUser(userId).subscribe(() => {
-      this.messageService.add({ severity: 'success', summary: 'Deleted', detail: 'User deleted successfully' });
-      this.fetchUsers();
+    if (!userId) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'User ID is missing. Cannot delete user.'
+      });
+      return;
+    }
+
+    // Find user to get name for confirmation message
+    const user = this.allUsersData.find(u => u.id === userId);
+    const userName = user?.name || user?.email || 'this user';
+
+    this.confirmationDialog.confirmDelete({
+      title: 'Delete User',
+      text: `Are you sure you want to delete "${userName}"? This action cannot be undone.`,
+      successTitle: 'User Deleted',
+      successText: `User "${userName}" deleted successfully`,
+      showSuccessMessage: false // We'll use PrimeNG message service instead
+    }).then((result) => {
+      if (result.value) {
+        this.userService.deleteUser(userId).subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: `User "${userName}" deleted successfully`,
+              life: 3000
+            });
+            this.fetchUsers();
+          },
+          error: (error) => {
+            console.error('Error deleting user:', error);
+            let errorMessage = 'Failed to delete user. Please try again.';
+
+            if (error.error) {
+              if (error.error.message) {
+                errorMessage = error.error.message;
+              } else if (error.error.error) {
+                errorMessage = error.error.error;
+              } else if (typeof error.error === 'string') {
+                errorMessage = error.error;
+              }
+            } else if (error.message) {
+              errorMessage = error.message;
+            }
+
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: errorMessage,
+              life: 5000
+            });
+          }
+        });
+      }
     });
   }
 

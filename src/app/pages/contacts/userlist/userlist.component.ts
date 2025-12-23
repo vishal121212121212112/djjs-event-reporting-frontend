@@ -145,9 +145,8 @@ export class UserlistComponent implements OnInit {
   }
 
   // Edit User
-  editUser(index: number) {
+  editUser(user: any) {
     this.submitted = false;
-    const user = this.contactsList[index];
     if (user) {
       this.newContactModal?.show();
       var modelTitle = document.querySelector('.modal-title') as HTMLAreaElement;
@@ -163,7 +162,7 @@ export class UserlistComponent implements OnInit {
         name: user.name,
         email: user.email,
         contact_number: user.contact_number || '',
-        role_id: user.role_id
+        role_id: user.role_id || user.role?.id
       });
     }
   }
@@ -177,8 +176,13 @@ export class UserlistComponent implements OnInit {
 
   // Delete User
   removeUser(user: any) {
-    this.deleteId = user.id;
-    this.removeItemModal?.show();
+    if (user && user.id) {
+      this.deleteId = user.id;
+      // Show the confirmation modal
+      if (this.removeItemModal) {
+        this.removeItemModal.show();
+      }
+    }
   }
 
   confirmDelete() {
