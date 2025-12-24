@@ -110,12 +110,22 @@ export class ViewChildBranchComponent implements OnInit {
       if (result.value) {
         this.childBranchService.deleteChildBranch(this.childBranchId!).subscribe({
           next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Child branch deleted successfully' });
+            this.messageService.add({ 
+              severity: 'success', 
+              summary: 'Success', 
+              detail: 'Child branch deleted successfully',
+              life: 3000
+            });
             setTimeout(() => this.router.navigate(['/branch']), 1500);
           },
           error: (error) => {
             console.error('Error deleting child branch:', error);
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete child branch' });
+            this.messageService.add({ 
+              severity: 'error', 
+              summary: 'Error', 
+              detail: 'Failed to delete child branch',
+              life: 5000
+            });
           }
         });
       }

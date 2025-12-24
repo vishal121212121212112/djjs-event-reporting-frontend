@@ -100,7 +100,16 @@ export class EditBranchComponent implements OnInit {
             ncr: [false],
             regionId: [''],
             branchCode: [''],
-            members: this.fb.array([])
+            members: this.fb.array([]),
+            // Member input fields (for adding new members)
+            memberType: ['samarpit'], // Default member type
+            name: [''], // Member name input
+            role: [''], // Member role input
+            responsibility: [''], // Member responsibility input
+            age: [''], // Member age input
+            dateOfSamarpan: [''], // Member date of samarpan input
+            qualification: [''], // Member qualification input
+            dateOfBirth: [''] // Member date of birth input
         });
 
         // Set initial breadcrumbs
@@ -633,7 +642,8 @@ export class EditBranchComponent implements OnInit {
                             this.messageService.add({
                                 severity: 'success',
                                 summary: 'Success',
-                                detail: 'Child branch deleted successfully'
+                                detail: 'Child branch deleted successfully',
+                                life: 3000
                             });
                         },
                         error: (error) => {
@@ -641,7 +651,8 @@ export class EditBranchComponent implements OnInit {
                             this.messageService.add({
                                 severity: 'error',
                                 summary: 'Error',
-                                detail: 'Failed to delete child branch. Please try again.'
+                                detail: 'Failed to delete child branch. Please try again.',
+                                life: 5000
                             });
                         }
                     });
@@ -655,17 +666,47 @@ export class EditBranchComponent implements OnInit {
 
     addMember() {
         const memberType = this.branchForm.get('memberType')?.value || 'samarpit';
+        const name = this.branchForm.get('name')?.value || '';
+        const role = this.branchForm.get('role')?.value || '';
+        const responsibility = this.branchForm.get('responsibility')?.value || '';
+        const age = this.branchForm.get('age')?.value || '';
+        const dateOfSamarpan = this.branchForm.get('dateOfSamarpan')?.value || '';
+        const qualification = this.branchForm.get('qualification')?.value || '';
+        const dateOfBirth = this.branchForm.get('dateOfBirth')?.value || '';
+        
+        // Validate required fields
+        if (!name || !role) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Validation Error',
+                detail: 'Name and Role are required fields',
+                life: 3000
+            });
+            return;
+        }
+        
         this.members.push(this.fb.group({
             id: [null], // null for new members, will be set for existing members
-            name: ['', Validators.required],
-            role: ['', Validators.required],
-            responsibility: [''],
-            age: [''],
-            dateOfSamarpan: [''],
-            qualification: [''],
-            dateOfBirth: [''],
+            name: [name, Validators.required],
+            role: [role, Validators.required],
+            responsibility: [responsibility],
+            age: [age],
+            dateOfSamarpan: [dateOfSamarpan],
+            qualification: [qualification],
+            dateOfBirth: [dateOfBirth],
             memberType: [memberType, Validators.required]
         }));
+        
+        // Clear the input fields after adding
+        this.branchForm.patchValue({
+            name: '',
+            role: '',
+            responsibility: '',
+            age: '',
+            dateOfSamarpan: '',
+            qualification: '',
+            dateOfBirth: ''
+        });
     }
 
     removeMember(index: number) {

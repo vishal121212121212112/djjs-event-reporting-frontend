@@ -681,26 +681,41 @@ export class BranchListComponent implements OnInit, OnDestroy {
 
         deleteObservable.subscribe({
           next: () => {
+            this.loading = false; // Set loading to false first
+            
+            // Manually remove the branch from the array first (for both parent and child branches)
+            if (isChildBranch) {
+              // Remove from children list
+              for (const branch of this.branches) {
+                if (branch.children) {
+                  const index = branch.children.findIndex(c => c.id === branchId);
+                  if (index !== -1) {
+                    branch.children.splice(index, 1);
+                    branch.isParent = branch.children.length > 0;
+                    break;
+                  }
+                }
+              }
+            } else {
+              // Remove parent branch from main array
+              const branchIndex = this.branches.findIndex(b => b.id === branchId);
+              if (branchIndex !== -1) {
+                this.branches.splice(branchIndex, 1);
+              }
+            }
+            
+            // Show success toast message
             this.messageService.add({
               severity: 'success',
               summary: 'Success',
-              detail: `${isChildBranch ? 'Child branch' : 'Branch'} "${branchName}" deleted successfully`
+              detail: `${isChildBranch ? 'Child branch' : 'Branch'} "${branchName}" deleted successfully`,
+              life: 3000 // Ensure toast shows for 3 seconds
             });
 
-            // Remove the branch from children list if it's a child branch
-            for (const branch of this.branches) {
-              if (branch.children) {
-                const index = branch.children.findIndex(c => c.id === branchId);
-                if (index !== -1) {
-                  branch.children.splice(index, 1);
-                  branch.isParent = branch.children.length > 0;
-                  break;
-                }
-              }
-            }
-
-            // Reload the list to refresh all data
-            this.loadBranches();
+            // Delay reload to allow toast to appear and be visible for at least 2 seconds
+            setTimeout(() => {
+              this.loadBranches();
+            }, 2000);
           },
           error: (error) => {
             console.error('Error deleting branch:', error);
@@ -713,7 +728,8 @@ export class BranchListComponent implements OnInit, OnDestroy {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: errorMessage
+              detail: errorMessage,
+              life: 5000
             });
             this.loading = false;
           }
