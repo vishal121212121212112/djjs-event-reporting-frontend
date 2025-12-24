@@ -100,9 +100,10 @@
         </div>
         <div class="col-md-4 mb-3">
           <label class="form-label">Event sub category</label>
-          <select class="form-select" formControlName="eventSubCategory">
-            <option value="">Select</option>
-            <option *ngFor="let sub of subCategories" [value]="sub">{{ sub }}</option>
+          <select class="form-select" formControlName="eventSubCategory"
+            [disabled]="loadingEventSubCategories || filteredEventSubCategories.length === 0">
+            <option value="">{{ loadingEventSubCategories ? 'Loading...' : (filteredEventSubCategories.length === 0 ? 'Select Event Category first' : 'Select') }}</option>
+            <option *ngFor="let sub of filteredEventSubCategories" [value]="sub.name">{{ sub.name }}</option>
           </select>
         </div>
       </div>
@@ -117,9 +118,9 @@
         </div>
         <div class="col-md-4 mb-3">
           <label class="form-label">Theme</label>
-          <select class="form-select" formControlName="theme">
-            <option value="">Select</option>
-            <option *ngFor="let t of themes" [value]="t">{{ t }}</option>
+          <select class="form-select" formControlName="theme" [disabled]="loadingThemes">
+            <option value="">{{ loadingThemes ? 'Loading...' : 'Select' }}</option>
+            <option *ngFor="let t of themes" [value]="t.name">{{ t.name }}</option>
           </select>
         </div>
         <div class="col-md-4 mb-3">
@@ -165,9 +166,9 @@
       <div class="row">
         <div class="col-md-12 mb-3">
           <label class="form-label">Spiritual Orator</label>
-          <select class="form-select" formControlName="spiritualOrator">
-            <option value="">Select</option>
-            <option *ngFor="let orator of orators" [value]="orator">{{ orator }}</option>
+          <select class="form-select" formControlName="spiritualOrator" [disabled]="loadingOrators">
+            <option value="">{{ loadingOrators ? 'Loading...' : 'Select' }}</option>
+            <option *ngFor="let orator of orators" [value]="orator.name">{{ orator.name }}</option>
           </select>
         </div>
       </div>

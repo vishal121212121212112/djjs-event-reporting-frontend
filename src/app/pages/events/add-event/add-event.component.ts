@@ -262,7 +262,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { LocationService, Country, State, District, City } from 'src/app/core/services/location.service';
-import { EventMasterDataService, EventType, EventCategory, PromotionMaterialType } from 'src/app/core/services/event-master-data.service';
+import { EventMasterDataService, EventType, EventCategory, PromotionMaterialType, Orator, EventSubCategory, Theme } from 'src/app/core/services/event-master-data.service';
 import { EventDraftService } from 'src/app/core/services/event-draft.service';
 import { EventApiService, EventDetails, EventWithRelatedData, SpecialGuest, Volunteer, EventMedia } from 'src/app/core/services/event-api.service';
 import { ToastService } from 'src/app/core/services/toast.service';
@@ -450,6 +450,11 @@ export class AddEventComponent implements OnInit, OnDestroy {
   eventCategories: EventCategory[] = [];
   filteredEventCategories: EventCategory[] = [];
   loadingEventCategories = false;
+  eventSubCategories: EventSubCategory[] = [];
+  filteredEventSubCategories: EventSubCategory[] = [];
+  loadingEventSubCategories = false;
+  orators: Orator[] = [];
+  loadingOrators = false;
 
   // Event names based on event type
   eventNamesByType: { [key: string]: string[] } = {
@@ -581,6 +586,8 @@ export class AddEventComponent implements OnInit, OnDestroy {
   availableKathaTypes: string[] = [];
 
   scales = ['Small (S)', 'Medium (M)', 'Large (L)'];
+  themes: Theme[] = [];
+  loadingThemes = false;
   languages = ['Hindi', 'English', 'Sanskrit', 'Gujarati', 'Marathi', 'Bengali', 'Tamil', 'Telugu', 'Kannada', 'Malayalam'];
   countries: Country[] = [];
   filteredStates: State[] = [];
@@ -623,6 +630,8 @@ export class AddEventComponent implements OnInit, OnDestroy {
     });
     this.loadEventCategories();
     this.loadPromotionMaterialTypes();
+    this.loadOrators();
+    this.loadThemes();
     this.setupCountryChangeListener();
     this.setupStateChangeListener();
     this.setupFormValueChanges();
@@ -780,6 +789,13 @@ export class AddEventComponent implements OnInit, OnDestroy {
       this.filterEventCategoriesByType();
       // Reset event category field when event type changes
       this.generalDetailsForm.patchValue({ eventCategory: '' });
+    });
+
+    // Listen for event category changes
+    this.generalDetailsForm.get('eventCategory')?.valueChanges.subscribe(eventCategory => {
+      this.onEventCategoryChange(eventCategory);
+      // Reset event sub category field when event category changes
+      this.generalDetailsForm.patchValue({ eventSubCategory: '' });
     });
 
     // Listen for event name changes
@@ -986,6 +1002,11 @@ export class AddEventComponent implements OnInit, OnDestroy {
               setTimeout(() => {
                 if (this.filteredEventCategories.length > 0) {
                   this.generalDetailsForm.patchValue({ eventCategory: eventCategoryName }, { emitEvent: false });
+                  // Load sub categories for the selected category (since we're using emitEvent: false, we need to call it explicitly)
+                  const selectedCategory = this.filteredEventCategories.find(cat => cat.name === eventCategoryName);
+                  if (selectedCategory) {
+                    this.loadEventSubCategoriesByCategory(selectedCategory.id);
+                  }
                 }
               }, 300);
             }
@@ -1240,6 +1261,48 @@ export class AddEventComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Load orators (Spiritual Orators) from API
+   */
+  loadOrators(): void {
+    this.loadingOrators = true;
+    this.eventMasterDataService.getOrators().subscribe({
+      next: (orators: Orator[]) => {
+        this.orators = orators;
+        this.loadingOrators = false;
+      },
+      error: (error) => {
+        console.error('Error loading orators:', error);
+        this.errorMessage = 'Failed to load orators. Please refresh the page.';
+        setTimeout(() => this.errorMessage = '', 5000);
+        this.loadingOrators = false;
+        // Fallback to empty array if API fails
+        this.orators = [];
+      }
+    });
+  }
+
+  /**
+   * Load themes from API
+   */
+  loadThemes(): void {
+    this.loadingThemes = true;
+    this.eventMasterDataService.getThemes().subscribe({
+      next: (themes: Theme[]) => {
+        this.themes = themes;
+        this.loadingThemes = false;
+      },
+      error: (error) => {
+        console.error('Error loading themes:', error);
+        this.errorMessage = 'Failed to load themes. Please refresh the page.';
+        setTimeout(() => this.errorMessage = '', 5000);
+        this.loadingThemes = false;
+        // Fallback to empty array if API fails
+        this.themes = [];
+      }
+    });
+  }
+
   loadEventCategories(): void {
     this.loadingEventCategories = true;
     this.eventMasterDataService.getEventCategories().subscribe({
@@ -1282,6 +1345,45 @@ export class AddEventComponent implements OnInit, OnDestroy {
     } else {
       this.filteredEventCategories = [];
     }
+  }
+
+  /**
+   * Handle event category change - load sub categories for the selected category
+   */
+  onEventCategoryChange(eventCategoryName: string): void {
+    if (!eventCategoryName) {
+      this.filteredEventSubCategories = [];
+      return;
+    }
+
+    // Find the selected event category to get its ID
+    const selectedCategory = this.filteredEventCategories.find(cat => cat.name === eventCategoryName);
+
+    if (selectedCategory) {
+      // Load sub categories filtered by category ID
+      this.loadEventSubCategoriesByCategory(selectedCategory.id);
+    } else {
+      this.filteredEventSubCategories = [];
+    }
+  }
+
+  /**
+   * Load event sub categories filtered by category ID
+   */
+  loadEventSubCategoriesByCategory(categoryId: number): void {
+    this.loadingEventSubCategories = true;
+    this.eventMasterDataService.getEventSubCategoriesByCategory(categoryId).subscribe({
+      next: (subCategories: EventSubCategory[]) => {
+        this.filteredEventSubCategories = subCategories;
+        this.loadingEventSubCategories = false;
+      },
+      error: (error) => {
+        console.error('Error loading event sub categories:', error);
+        this.loadingEventSubCategories = false;
+        // Fallback to empty array if API fails
+        this.filteredEventSubCategories = [];
+      }
+    });
   }
 
 
@@ -2327,6 +2429,17 @@ export class AddEventComponent implements OnInit, OnDestroy {
     if (event.event_type?.name) {
       setTimeout(() => {
         this.onEventTypeChange(event.event_type!.name);
+        // Also trigger category change to load sub categories after categories are filtered
+        if (event.event_category?.name) {
+          setTimeout(() => {
+            this.onEventCategoryChange(event.event_category!.name);
+          }, 300);
+        }
+      }, 300);
+    } else if (event.event_category?.name) {
+      // If event type is not available but category is, still try to load sub categories
+      setTimeout(() => {
+        this.onEventCategoryChange(event.event_category!.name);
       }, 300);
     }
 

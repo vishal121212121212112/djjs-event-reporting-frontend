@@ -54,6 +54,13 @@ export interface EventSubCategory {
     updated_on?: string;
 }
 
+export interface Theme {
+    id: number;
+    name: string;
+    created_on?: string;
+    updated_on?: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -116,6 +123,13 @@ export class EventMasterDataService {
      */
     getEventSubCategoriesByCategory(categoryId: number): Observable<EventSubCategory[]> {
         return this.http.get<EventSubCategory[]>(`${this.apiBaseUrl}/api/event-sub-categories/by-category?category_id=${categoryId}`);
+    }
+
+    /**
+     * Get all themes
+     */
+    getThemes(): Observable<Theme[]> {
+        return this.http.get<Theme[]>(`${this.apiBaseUrl}/api/themes`);
     }
 }
 
