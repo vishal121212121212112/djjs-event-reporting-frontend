@@ -100,6 +100,10 @@ export interface EventMedia {
   contact?: string;
   email?: string;
   media_coverage_type_id?: number;
+  media_coverage_type?: {
+    id?: number;
+    media_type?: string;
+  };
   event_id?: number;
 }
 
@@ -108,9 +112,13 @@ export interface EventWithRelatedData {
   specialGuests?: SpecialGuest[];
   volunteers?: Volunteer[];
   media?: EventMedia[];
+  promotionMaterials?: any[];
+  donations?: any[];
   specialGuestsCount?: number;
   volunteersCount?: number;
   mediaCount?: number;
+  promotionMaterialsCount?: number;
+  donationsCount?: number;
 }
 
 @Injectable({
@@ -191,12 +199,15 @@ export class EventApiService {
   }
 
   /**
-   * Download event data as PDF/JSON
+   * Download event data as PDF
    * @param eventId Event ID to download
    */
   downloadEvent(eventId: number): Observable<Blob> {
     return this.http.get(`${this.apiBaseUrl}/api/events/${eventId}/download`, {
-      responseType: 'blob'
+      responseType: 'blob',
+      headers: {
+        'Accept': 'application/pdf'
+      }
     });
   }
 

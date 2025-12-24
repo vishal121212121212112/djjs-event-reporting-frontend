@@ -1698,21 +1698,8 @@ export class EventsListComponent implements OnInit, AfterViewChecked, OnDestroy 
   }
 
   openMoreDetailsModal(event: EventData): void {
-    // this.selectedEvent = event;
-    // this.isMoreDetailsModalOpen = true; // Track that More Details modal is open
-    // // Use a more reliable method to open the modal
-    // const modal = document.getElementById('moreDetailsModal');
-    // if (modal) {
-    //   modal.classList.add('show');
-    //   modal.style.display = 'block';
-    //   modal.setAttribute('aria-hidden', 'false');
-    //   // Add backdrop
-    //   document.body.classList.add('modal-open');
-    //   const backdrop = document.createElement('div');
-    //   backdrop.className = 'modal-backdrop fade show';
-    //   document.body.appendChild(backdrop);
-    // }
-     this.router.navigate(['/view']);
+    // Navigate to view page instead of opening modal
+    this.router.navigate(['/events/view', event.id]);
   }
 
    openGallery(event: EventData): void {
@@ -1830,14 +1817,14 @@ export class EventsListComponent implements OnInit, AfterViewChecked, OnDestroy 
       return;
     }
 
-    // Call backend API to download event data
+    // Call backend API to download event data as PDF
     this.eventApiService.downloadEvent(Number(eventId)).subscribe({
       next: (blob: Blob) => {
         // Create download link
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `event_${eventId}_${new Date().getTime()}.json`;
+        link.download = `event_${eventId}_${new Date().getTime()}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -1846,7 +1833,7 @@ export class EventsListComponent implements OnInit, AfterViewChecked, OnDestroy 
         this.messageService.add({
           severity: 'success',
           summary: 'Success',
-          detail: 'Event downloaded successfully',
+          detail: 'Event PDF downloaded successfully',
           life: 3000
         });
       },
@@ -1855,7 +1842,7 @@ export class EventsListComponent implements OnInit, AfterViewChecked, OnDestroy 
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: error?.error?.error || 'Failed to download event',
+          detail: error?.error?.error || 'Failed to download event PDF',
           life: 5000
         });
       }

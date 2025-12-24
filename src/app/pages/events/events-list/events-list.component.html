@@ -475,7 +475,7 @@
                       title="Edit">
                       <i class="pi pi-pencil"></i>
                     </a>
-                    <a class="dropdown-item" href="#" (click)="openMoreDetailsModal(event); closeActionMenu(); $event.preventDefault()"
+                    <a class="dropdown-item" href="#" [routerLink]="['/events/view', event.id]" (click)="closeActionMenu()"
                       title="More details">
                       <i class="pi pi-eye"></i>
                     </a>
