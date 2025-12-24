@@ -6,7 +6,7 @@ import { TokenStorageService } from './token-storage.service';
 
 export interface DraftSaveRequest {
   draftId?: string | number | null; // Changed from eventId to draftId
-  step: 'generalDetails' | 'mediaPromotion' | 'specialGuests' | 'volunteers';
+  step: 'generalDetails' | 'mediaPromotion' | 'specialGuests' | 'volunteers' | 'donations';
   data: any;
 }
 
@@ -21,6 +21,7 @@ export interface DraftData {
   mediaPromotion?: any;
   specialGuests?: any;
   volunteers?: any;
+  donations?: any;
   createdOn?: string;
   updatedOn?: string;
 }

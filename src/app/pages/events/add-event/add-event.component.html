@@ -327,7 +327,7 @@
               <input type="text" class="tag-input" [(ngModel)]="donation.currentInput" [ngModelOptions]="{standalone: true}"
                 (keydown)="onTagInputKeydown($event, i)" placeholder="Type and press Enter/Space">
             </div>
-            <small class="form-text text-muted">Write material type then Quantity, e.g Rice 5kg, be...</small>
+            
           </div>
         </div>
 
@@ -551,31 +551,39 @@
     <!-- Promotional Material Used -->
     <div class="common-stepper">
       <h5 class=" mb-3">Promotional Material Used</h5>
-      <div class="row g-3">
+      
+      <!-- Dynamic Material Type Entries -->
+      <div *ngFor="let material of materialTypes; let i = index" class="row g-3 mb-3">
         <div class="col-md-3">
           <label class="form-label">Material type</label>
-          <select class="form-select" formControlName="materialType" [disabled]="loadingMaterialTypes">
+          <select class="form-select" [(ngModel)]="material.materialType" [ngModelOptions]="{standalone: true}" [disabled]="loadingMaterialTypes">
             <option value="">Select</option>
-            <option *ngFor="let material of materialTypeOptions" [value]="material">{{ material }}</option>
+            <option *ngFor="let materialOption of materialTypeOptions" [value]="materialOption">{{ materialOption }}</option>
           </select>
           <small *ngIf="loadingMaterialTypes" class="text-muted">Loading material types...</small>
         </div>
         <div class="col-md-2">
           <label class="form-label">Quantity</label>
-          <input type="text" class="form-control" formControlName="materialQuantity" />
+          <input type="text" class="form-control" [(ngModel)]="material.quantity" [ngModelOptions]="{standalone: true}" />
         </div>
         <div class="col-md-2">
           <label class="form-label">Size</label>
-          <input type="text" class="form-control" formControlName="materialSize" />
+          <input type="text" class="form-control" [(ngModel)]="material.size" [ngModelOptions]="{standalone: true}" />
         </div>
-        <div class="col-md-5">
+        <div class="col-md-4">
           <label class="form-label">Custom dimension</label>
           <div class="input-group">
-            <input type="number" class="form-control" placeholder="Height" formControlName="customHeight" />
+            <input type="number" class="form-control" placeholder="Height" [(ngModel)]="material.customHeight" [ngModelOptions]="{standalone: true}" />
             <span class="input-group-text">x</span>
-            <input type="number" class="form-control" placeholder="Width" formControlName="customWidth" />
+            <input type="number" class="form-control" placeholder="Width" [(ngModel)]="material.customWidth" [ngModelOptions]="{standalone: true}" />
             <span class="input-group-text">inch</span>
           </div>
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+          <button type="button" class="btn btn-warning btn-xs" (click)="removeMaterialType(i)"
+            [disabled]="materialTypes.length === 1">
+            <i class="fas fa-trash"></i>
+          </button>
         </div>
       </div>
 

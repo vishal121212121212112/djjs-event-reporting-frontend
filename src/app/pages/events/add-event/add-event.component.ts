@@ -19,7 +19,7 @@
 
 //   // Dynamic arrays for additional items
 //   donationTypes: any[] = [{ type: 'Cash', amount: '', description: '' }];
-//   materialTypes: any[] = [{ type: '', quantity: '', size: '', description: '' }];
+//   materialTypes: any[] = [{ materialType: '', quantity: '', size: '', customHeight: '', customWidth: '' }];
 //   specialGuests: any[] = [];
 //   volunteers: any[] = [];
 
@@ -316,7 +316,7 @@ export class AddEventComponent implements OnInit, OnDestroy {
     }
   ];
 
-  materialTypes: any[] = [{ type: '', quantity: '', size: '', description: '' }];
+  materialTypes: any[] = [{ materialType: '', quantity: '', size: '', customHeight: '', customWidth: '' }];
   specialGuests: any[] = [];
   volunteers: any[] = [];
   eventMediaList: any[] = [];
@@ -882,9 +882,24 @@ export class AddEventComponent implements OnInit, OnDestroy {
    * Called automatically when user types (after 800ms debounce)
    */
   autoSave(step: string, value: any): void {
+    // Include donationTypes when auto-saving generalDetails
+    if (step === 'generalDetails') {
+      value = {
+        ...value,
+        donationTypes: this.donationTypes || []
+      };
+    }
+    // Include materialTypes when auto-saving mediaPromotion
+    if (step === 'mediaPromotion') {
+      value = {
+        ...value,
+        materialTypes: this.materialTypes || []
+      };
+    }
+    
     const payload = {
       draftId: this.draftId ?? null, // Changed from eventId to draftId
-      step: step as 'generalDetails' | 'mediaPromotion' | 'specialGuests' | 'volunteers',
+      step: step as 'generalDetails' | 'mediaPromotion' | 'specialGuests' | 'volunteers' | 'donations',
       data: value
     };
 
@@ -1173,6 +1188,11 @@ export class AddEventComponent implements OnInit, OnDestroy {
       if (draftData.mediaPromotion.eventMediaList && Array.isArray(draftData.mediaPromotion.eventMediaList)) {
         this.eventMediaList = draftData.mediaPromotion.eventMediaList;
       }
+
+      // Load material types if they exist
+      if (draftData.mediaPromotion.materialTypes && Array.isArray(draftData.mediaPromotion.materialTypes)) {
+        this.materialTypes = draftData.mediaPromotion.materialTypes;
+      }
     }
 
     // Populate special guests
@@ -1190,15 +1210,37 @@ export class AddEventComponent implements OnInit, OnDestroy {
 
     // Populate volunteers
     if (draftData.volunteers) {
+      // First, try to load volunteersList (the array of added volunteers)
       if (draftData.volunteers.volunteersList && Array.isArray(draftData.volunteers.volunteersList)) {
         this.volunteers = draftData.volunteers.volunteersList;
       } else if (draftData.volunteers.volunteers && Array.isArray(draftData.volunteers.volunteers)) {
         this.volunteers = draftData.volunteers.volunteers;
+      } else if (Array.isArray(draftData.volunteers)) {
+        // Handle case where volunteers is directly an array
+        this.volunteers = draftData.volunteers;
       }
-      // Also populate form fields if they exist
-      if (draftData.volunteers.volBranchId || draftData.volunteers.volName) {
-        this.volunteersForm.patchValue(draftData.volunteers);
+      
+      // Also populate form fields if they exist (for the input form, not the list)
+      if (draftData.volunteers.volBranchId || draftData.volunteers.volName || draftData.volunteers.volContact) {
+        this.volunteersForm.patchValue({
+          volBranchId: draftData.volunteers.volBranchId || '',
+          volSearchMember: draftData.volunteers.volSearchMember || '',
+          volName: draftData.volunteers.volName || '',
+          volContact: draftData.volunteers.volContact || '',
+          volDays: draftData.volunteers.volDays || 0,
+          volSeva: draftData.volunteers.volSeva || '',
+          volMentionSeva: draftData.volunteers.volMentionSeva || ''
+        });
       }
+    }
+
+    // Populate donations - check both generalDetails.donationTypes and separate donations step
+    if (draftData.donations && Array.isArray(draftData.donations)) {
+      // If donations are saved as a separate step
+      this.donationTypes = draftData.donations;
+    } else if (draftData.generalDetails && draftData.generalDetails.donationTypes && Array.isArray(draftData.generalDetails.donationTypes)) {
+      // If donations are saved as part of generalDetails
+      this.donationTypes = draftData.generalDetails.donationTypes;
     }
 
     this.successMessage = 'Draft data loaded successfully!';
@@ -1723,7 +1765,7 @@ export class AddEventComponent implements OnInit, OnDestroy {
 
   // Add material type functionality
   addMaterialType(): void {
-    this.materialTypes.push({ type: '', quantity: '', size: '', description: '' });
+    this.materialTypes.push({ materialType: '', quantity: '', size: '', customHeight: '', customWidth: '' });
   }
 
   removeMaterialType(index: number): void {
@@ -1789,12 +1831,15 @@ export class AddEventComponent implements OnInit, OnDestroy {
       mentionSeva: formValue.volMentionSeva || ''
     });
 
+    // Save form values before resetting for draft
+    const formDataForDraft = { ...formValue };
+
     // Clear form after adding
     this.volunteersForm.reset();
 
-    // Trigger auto-save
+    // Trigger auto-save with form data and volunteers list
     this.autoSave('volunteers', {
-      ...this.volunteersForm.value,
+      ...formDataForDraft,
       volunteersList: this.volunteers
     });
   }
@@ -1802,7 +1847,7 @@ export class AddEventComponent implements OnInit, OnDestroy {
   removeVolunteer(index: number): void {
     this.volunteers.splice(index, 1);
 
-    // Trigger auto-save after removal
+    // Trigger auto-save after removal with current form values and updated volunteers list
     this.autoSave('volunteers', {
       ...this.volunteersForm.value,
       volunteersList: this.volunteers
@@ -2283,19 +2328,23 @@ export class AddEventComponent implements OnInit, OnDestroy {
    * Save current step data immediately
    */
   saveCurrentStep(): void {
-    let step: 'generalDetails' | 'mediaPromotion' | 'specialGuests' | 'volunteers';
+    let step: 'generalDetails' | 'mediaPromotion' | 'specialGuests' | 'volunteers' | 'donations';
     let data: any;
 
     switch (this.currentStep) {
       case 1:
         step = 'generalDetails';
-        data = this.generalDetailsForm.value;
+        data = {
+          ...this.generalDetailsForm.value,
+          donationTypes: this.donationTypes || []
+        };
         break;
       case 2:
         step = 'mediaPromotion';
         data = {
           ...this.mediaPromotionForm.value,
-          eventMediaList: this.eventMediaList
+          eventMediaList: this.eventMediaList,
+          materialTypes: this.materialTypes || []
         };
         break;
       case 3:
@@ -2822,7 +2871,7 @@ export class AddEventComponent implements OnInit, OnDestroy {
     this.specialGuests = [];
     this.volunteers = [];
     this.donationTypes = [{ type: 'cash', amount: '', tags: [], currentInput: '', materialValue: '' }];
-    this.materialTypes = [{ type: '', quantity: '', size: '', description: '' }];
+    this.materialTypes = [{ materialType: '', quantity: '', size: '', customHeight: '', customWidth: '' }];
 
     // Clear location filter arrays
     this.filteredStates = [];
@@ -2839,7 +2888,7 @@ export class AddEventComponent implements OnInit, OnDestroy {
       currentInput: '',
       materialValue: ''
     }];
-    this.materialTypes = [{ type: '', quantity: '', size: '', description: '' }];
+    this.materialTypes = [{ materialType: '', quantity: '', size: '', customHeight: '', customWidth: '' }];
 
     // Reset to first step
     this.currentStep = 1;
@@ -3032,7 +3081,7 @@ export class AddEventComponent implements OnInit, OnDestroy {
     this.mediaPromotionForm.reset();
     this.involvedParticipantsForm.reset();
     this.donationTypes = [{ type: 'Cash', amount: '', description: '' }];
-    this.materialTypes = [{ type: '', quantity: '', size: '', description: '' }];
+    this.materialTypes = [{ materialType: '', quantity: '', size: '', customHeight: '', customWidth: '' }];
     this.specialGuests = [];
     this.volunteers = [];
     this.uploadedFiles = {
