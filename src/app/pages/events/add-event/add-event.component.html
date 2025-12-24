@@ -297,7 +297,7 @@
         <!-- Donation Type -->
         <div class="col-md-3">
           <label class="form-label">Donation type</label>
-          <select class="form-select" [(ngModel)]="donation.type" (change)="onDonationTypeChange(i)">
+          <select class="form-select" [(ngModel)]="donation.type" [ngModelOptions]="{standalone: true}" (change)="onDonationTypeChange(i)">
             <option value="cash">Cash</option>
             <option value="in-kind">In-kind</option>
           </select>
@@ -308,7 +308,7 @@
           <label class="form-label">Amount</label>
           <div class="input-group">
             <span class="input-group-text">₹</span>
-            <input type="number" class="form-control" [(ngModel)]="donation.amount" placeholder="Amount in Rupees">
+            <input type="number" class="form-control" [(ngModel)]="donation.amount" [ngModelOptions]="{standalone: true}" placeholder="Amount in Rupees">
           </div>
         </div>
 
@@ -323,7 +323,7 @@
                   <i class="fas fa-times"></i>
                 </button>
               </span>
-              <input type="text" class="tag-input" [(ngModel)]="donation.currentInput"
+              <input type="text" class="tag-input" [(ngModel)]="donation.currentInput" [ngModelOptions]="{standalone: true}"
                 (keydown)="onTagInputKeydown($event, i)" placeholder="Type and press Enter/Space">
             </div>
             <small class="form-text text-muted">Write material type then Quantity, e.g Rice 5kg, be...</small>
@@ -335,7 +335,7 @@
           <label class="form-label">Estimated material value</label>
           <div class="input-group">
             <span class="input-group-text">₹</span>
-            <input type="number" class="form-control" [(ngModel)]="donation.materialValue"
+            <input type="number" class="form-control" [(ngModel)]="donation.materialValue" [ngModelOptions]="{standalone: true}"
               placeholder="Amount in Rupees">
           </div>
         </div>
@@ -847,34 +847,43 @@
     <div class="common-stepper">
       <h5 class="mb-3">Add Volunteer</h5>
       <div class="row g-3">
-        <!-- Branch ID -->
+        <!-- Branch Code -->
         <div class="col-md-3">
-          <label class="form-label">Branch ID</label>
+          <label class="form-label">Branch Code</label>
           <input type="text" class="form-control" formControlName="volBranchId" placeholder="Enter" />
         </div>
 
-        <!-- Search Member -->
+        <!-- Search Volunteers -->
         <div class="col-md-4">
-          <label class="form-label">Search Member</label>
+          <label class="form-label">Search Volunteers</label>
           <div class="position-relative">
             <input type="text" class="form-control" formControlName="volSearchMember"
-              placeholder="Search by name or mobile no." 
-              (focus)="showVolunteerSuggestions = volunteerSuggestions.length > 0"
+              placeholder="Search by name, mobile no., or email" 
+              (focus)="showVolunteerSuggestions = volunteerSuggestions.length > 0 || searchingVolunteers"
               (blur)="hideVolunteerSuggestions()" />
             <!-- Volunteer Suggestions Dropdown -->
-            <div class="dropdown-menu show" *ngIf="showVolunteerSuggestions && volunteerSuggestions.length > 0" 
+            <div class="dropdown-menu show" *ngIf="showVolunteerSuggestions" 
               style="position: absolute; top: 100%; left: 0; right: 0; z-index: 1000; max-height: 300px; overflow-y: auto; display: block;">
+              <!-- Loading state -->
+              <div class="dropdown-item text-muted" *ngIf="searchingVolunteers">
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Searching...
+              </div>
+              <!-- Results -->
               <div *ngFor="let volunteer of volunteerSuggestions" 
                 class="dropdown-item" 
                 style="cursor: pointer; padding: 0.5rem 1rem;"
-                (mousedown)="selectVolunteer(volunteer)">
+                (mousedown)="selectVolunteer(volunteer); $event.preventDefault()"
+                (click)="selectVolunteer(volunteer); $event.preventDefault()">
                 <div class="d-flex flex-column">
                   <strong>{{ volunteer.volunteer_name || volunteer.name || 'N/A' }}</strong>
                   <small class="text-muted" *ngIf="volunteer.contact">Contact: {{ volunteer.contact }}</small>
+                  <small class="text-muted" *ngIf="volunteer.email">Email: {{ volunteer.email }}</small>
                   <small class="text-muted" *ngIf="volunteer.branch?.name">Branch: {{ volunteer.branch.name }}</small>
                 </div>
               </div>
-              <div class="dropdown-item text-muted" *ngIf="volunteerSuggestions.length === 0 && !searchingVolunteers">
+              <!-- No results message -->
+              <div class="dropdown-item text-muted" *ngIf="!searchingVolunteers && volunteerSuggestions.length === 0">
                 No volunteers found
               </div>
             </div>

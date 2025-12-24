@@ -35,6 +35,12 @@ export class AuthInterceptor implements HttpInterceptor {
       return next.handle(request);
     }
 
+    // Skip auth header for members API requests (they use their own static token)
+    if (this.isMembersApiRequest(request)) {
+      console.log(`[AuthInterceptor] Skipping auth header for members API: ${request.url}`);
+      return next.handle(request);
+    }
+
     // Get token from auth service synchronously (no async operations)
     // This reads directly from memory or localStorage - no race conditions
     const token = this.authService.getToken();
@@ -53,6 +59,12 @@ export class AuthInterceptor implements HttpInterceptor {
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
         console.log(`[AuthInterceptor] Error ${error.status} for: ${request.url}`);
+        
+        // Skip token refresh logic for members API requests (they use different auth)
+        if (this.isMembersApiRequest(request)) {
+          console.log(`[AuthInterceptor] Members API request, skipping token refresh logic`);
+          return throwError(() => error);
+        }
         
         // If 401 and not a refresh request, try to refresh token ONCE
         // Only attempt refresh if we have a token (prevents refresh on login failures)
@@ -212,5 +224,12 @@ export class AuthInterceptor implements HttpInterceptor {
    */
   private isLogoutRequest(request: HttpRequest<unknown>): boolean {
     return request.url.includes('/api/auth/logout');
+  }
+
+  /**
+   * Check if request is for members API (uses different authentication)
+   */
+  private isMembersApiRequest(request: HttpRequest<unknown>): boolean {
+    return request.url.includes('members.djjs.org');
   }
 }

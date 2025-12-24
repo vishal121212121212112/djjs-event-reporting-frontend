@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
 export interface EventDetails {
@@ -74,6 +75,7 @@ export interface Volunteer {
   name?: string;
   volunteer_name?: string; // Backend field name
   contact?: string;
+  email?: string;
   days?: number;
   seva?: string;
   mention_seva?: string;
@@ -116,6 +118,8 @@ export interface EventWithRelatedData {
 })
 export class EventApiService {
   private apiBaseUrl = environment.apiBaseUrl;
+  private membersApiUrl = environment.membersApiUrl;
+  private membersApiToken = environment.membersApiToken;
 
   constructor(private http: HttpClient) { }
 
@@ -281,12 +285,136 @@ export class EventApiService {
   }
 
   /**
-   * Search volunteers by name or contact
-   * @param searchTerm Search term (name or contact number)
+   * Search volunteers by name, contact, or email from external members API
+   * @param searchTerm Search term (name, contact number, or email)
+   * @param branchCode Optional branch code to filter by
    */
-  searchVolunteers(searchTerm: string): Observable<Volunteer[]> {
-    const params = new HttpParams().set('search', searchTerm);
-    return this.http.get<Volunteer[]>(`${this.apiBaseUrl}/api/volunteers/search`, { params });
+  searchVolunteers(searchTerm: string, branchCode?: string): Observable<Volunteer[]> {
+    // Prepare headers with bearer token
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.membersApiToken}`,
+      'Content-Type': 'application/json'
+    });
+
+    // Prepare request body for external API
+    // The API expects search term in filters.search field
+    const requestBody: any = {
+      branch_code: branchCode || '',
+      filters: {
+        search: searchTerm
+      },
+      first: 0,
+      rows: 20 // Limit to 20 results for autocomplete
+    };
+
+    console.log('[EventApiService] Searching volunteers:', { searchTerm, branchCode, requestBody });
+
+    // Call external members API
+    return this.http.post<any>(`${this.membersApiUrl}/volunteers`, requestBody, { headers }).pipe(
+      map((response: any) => {
+        console.log('[EventApiService] Raw API response:', response);
+        
+        // Map the external API response to our Volunteer interface
+        // The response structure may vary, so we'll handle different possible formats
+        let volunteers: any[] = [];
+        
+        // Check various possible response structures (prioritize 'rows' as it's the actual API format)
+        if (response.rows && Array.isArray(response.rows)) {
+          volunteers = response.rows;
+        } else if (Array.isArray(response)) {
+          volunteers = response;
+        } else if (response.data && Array.isArray(response.data)) {
+          volunteers = response.data;
+        } else if (response.data?.data && Array.isArray(response.data.data)) {
+          // Nested data structure
+          volunteers = response.data.data;
+        } else if (response.volunteers && Array.isArray(response.volunteers)) {
+          volunteers = response.volunteers;
+        } else if (response.results && Array.isArray(response.results)) {
+          volunteers = response.results;
+        } else if (response.items && Array.isArray(response.items)) {
+          volunteers = response.items;
+        } else if (response.records && Array.isArray(response.records)) {
+          volunteers = response.records;
+        } else if (response.list && Array.isArray(response.list)) {
+          volunteers = response.list;
+        } else {
+          // Log the full response structure for debugging
+          console.warn('[EventApiService] Unexpected API response structure:', JSON.stringify(response, null, 2));
+          return [];
+        }
+        
+        console.log('[EventApiService] Extracted volunteers array:', volunteers.length, 'items');
+        
+        // Map each volunteer to our interface
+        let mappedVolunteers = volunteers.map((vol: any) => this.mapExternalVolunteerToVolunteer(vol));
+        
+        // Client-side filtering as fallback (in case API doesn't filter properly)
+        // Filter by name, phone, or email (case-insensitive, partial match)
+        if (searchTerm && searchTerm.trim().length > 0) {
+          const searchLower = searchTerm.toLowerCase().trim();
+          // Split search term into words for better matching
+          const searchWords = searchLower.split(/\s+/).filter(word => word.length > 0);
+          
+          mappedVolunteers = mappedVolunteers.filter((vol: Volunteer) => {
+            const name = (vol.volunteer_name || vol.name || '').toLowerCase();
+            const contact = (vol.contact || '').toLowerCase();
+            const email = (vol.email || '').toLowerCase();
+            
+            // For multi-word searches (e.g., "varsha meena")
+            if (searchWords.length > 1) {
+              // Check if all words appear in the name (most common case)
+              const allWordsInName = searchWords.every(word => name.includes(word));
+              // Or check if all words appear in contact or email
+              const allWordsInContact = searchWords.every(word => contact.includes(word));
+              const allWordsInEmail = searchWords.every(word => email.includes(word));
+              
+              return allWordsInName || allWordsInContact || allWordsInEmail;
+            } else {
+              // Single word search - match if found in any field
+              return name.includes(searchLower) || 
+                     contact.includes(searchLower) || 
+                     email.includes(searchLower);
+            }
+          });
+          console.log('[EventApiService] Filtered volunteers after client-side filtering:', mappedVolunteers.length, 'items');
+        }
+        
+        console.log('[EventApiService] Final mapped volunteers:', mappedVolunteers);
+        return mappedVolunteers;
+      }),
+      catchError((error) => {
+        console.error('[EventApiService] Error searching volunteers:', error);
+        // Return empty array on error instead of throwing
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Map external API volunteer object to our Volunteer interface
+   */
+  private mapExternalVolunteerToVolunteer(externalVol: any): Volunteer {
+    // The API returns: id, name, phone, email, state, area, branch_code, departments
+    const branchCode = externalVol.branch_code || '';
+    
+    return {
+      id: externalVol.id || externalVol.volunteer_id || externalVol.member_id,
+      // Set branch_id to branch_code (string like "DL-PP")
+      branch_id: externalVol.branch_id || branchCode || undefined,
+      volunteer_name: externalVol.name || externalVol.volunteer_name || externalVol.full_name || externalVol.member_name || '',
+      name: externalVol.name || externalVol.volunteer_name || externalVol.full_name || externalVol.member_name || '',
+      contact: externalVol.phone || externalVol.contact || externalVol.contact_number || externalVol.mobile || externalVol.phone_number || '',
+      email: externalVol.email || externalVol.email_id || externalVol.email_address || '',
+      // Create branch object with branch_code as name
+      branch: externalVol.branch ? {
+        id: externalVol.branch.id || externalVol.branch.branch_id,
+        name: externalVol.branch.name || externalVol.branch.branch_name || externalVol.branch.code || branchCode || ''
+      } : (branchCode ? {
+        id: undefined,
+        name: branchCode
+      } : undefined)
+    };
   }
 }
 

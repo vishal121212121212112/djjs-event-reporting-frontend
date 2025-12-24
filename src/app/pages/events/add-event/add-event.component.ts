@@ -678,6 +678,7 @@ export class AddEventComponent implements OnInit, OnDestroy {
       pincode: [''],
       postOffice: ['Karnataka'],
       thana: [''],
+      policeStation: [''],
       tehsil: [''],
       state: ['Karnataka', Validators.required],
       district: [''],
@@ -848,11 +849,14 @@ export class AddEventComponent implements OnInit, OnDestroy {
         debounceTime(300)
       )
       .subscribe(searchTerm => {
-        if (searchTerm && searchTerm.trim().length >= 2) {
-          this.searchVolunteers(searchTerm.trim());
+        const trimmedTerm = searchTerm?.trim() || '';
+        // Only search if term is 2+ characters and not just whitespace
+        if (trimmedTerm.length >= 2) {
+          this.searchVolunteers(trimmedTerm);
         } else {
           this.volunteerSuggestions = [];
           this.showVolunteerSuggestions = false;
+          this.searchingVolunteers = false;
         }
       });
   }
@@ -1708,20 +1712,29 @@ export class AddEventComponent implements OnInit, OnDestroy {
     if (!searchTerm || searchTerm.length < 2) {
       this.volunteerSuggestions = [];
       this.showVolunteerSuggestions = false;
+      this.searchingVolunteers = false;
       return;
     }
 
     this.searchingVolunteers = true;
-    this.eventApiService.searchVolunteers(searchTerm).subscribe({
+    // Show suggestions dropdown while searching
+    this.showVolunteerSuggestions = true;
+    
+    // Get branch code from form if available
+    const branchCode = this.volunteersForm?.get('volBranchId')?.value || '';
+    this.eventApiService.searchVolunteers(searchTerm, branchCode).subscribe({
       next: (volunteers) => {
-        this.volunteerSuggestions = volunteers;
-        this.showVolunteerSuggestions = volunteers.length > 0;
+        console.log('[AddEventComponent] Received volunteers:', volunteers);
+        this.volunteerSuggestions = volunteers || [];
+        // Keep dropdown open if there are results or if we want to show "no results" message
+        this.showVolunteerSuggestions = true;
         this.searchingVolunteers = false;
       },
       error: (error) => {
-        console.error('Error searching volunteers:', error);
+        console.error('[AddEventComponent] Error searching volunteers:', error);
         this.volunteerSuggestions = [];
-        this.showVolunteerSuggestions = false;
+        // Still show dropdown to display error or "no results" message
+        this.showVolunteerSuggestions = true;
         this.searchingVolunteers = false;
       }
     });
@@ -1730,21 +1743,41 @@ export class AddEventComponent implements OnInit, OnDestroy {
   // Select a volunteer from suggestions
   selectVolunteer(volunteer: Volunteer): void {
     const volunteerName = volunteer.volunteer_name || volunteer.name || '';
-    this.volunteersForm.patchValue({
-      volSearchMember: volunteerName,
-      volName: volunteerName,
-      volContact: volunteer.contact || '',
-      volBranchId: volunteer.branch_id || ''
-    });
+    // Get branch code from branch object or branch_id
+    const branchCode = volunteer.branch?.name || volunteer.branch_id || '';
+    
+    console.log('[AddEventComponent] Selecting volunteer:', { volunteer, branchCode });
+    
+    // Close suggestions first to prevent any blur events
     this.showVolunteerSuggestions = false;
     this.volunteerSuggestions = [];
+    
+    // Temporarily disable valueChanges to prevent triggering search when setting volSearchMember
+    const searchControl = this.volunteersForm.get('volSearchMember');
+    if (searchControl) {
+      // Set the search field to the volunteer name (for display) without triggering search
+      searchControl.setValue(volunteerName, { emitEvent: false });
+    }
+    
+    // Set all form fields without triggering events
+    this.volunteersForm.patchValue({
+      volName: volunteerName,
+      volContact: volunteer.contact || '',
+      volBranchId: branchCode
+    }, { emitEvent: false });
+    
+    console.log('[AddEventComponent] Form updated with volunteer data');
   }
 
   // Hide suggestions when clicking outside
   hideVolunteerSuggestions(): void {
+    // Use a longer timeout to allow mousedown events to fire first
     setTimeout(() => {
-      this.showVolunteerSuggestions = false;
-    }, 200);
+      // Only hide if user is not interacting with dropdown
+      if (!this.searchingVolunteers) {
+        this.showVolunteerSuggestions = false;
+      }
+    }, 300);
   }
 
   // Add event media functionality

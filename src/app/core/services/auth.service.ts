@@ -456,14 +456,9 @@ export class AuthenticationService {
     
     console.log('[AuthService] Attempting token refresh');
     
-    // Try to get CSRF token from memory first, then from cookie
-    let csrfToken = this.csrfToken || this.getCsrfTokenFromCookie();
-    
-    console.log('[AuthService] CSRF token available:', !!csrfToken);
-    
-    const headers = csrfToken
-      ? new HttpHeaders({ 'X-CSRF-Token': csrfToken })
-      : new HttpHeaders();
+    // Don't send CSRF header for refresh - it uses HttpOnly cookies for security
+    // The refresh endpoint doesn't require CSRF protection
+    const headers = new HttpHeaders();
 
     return this.http.post<RefreshResponse>(url, {}, {
       headers,
