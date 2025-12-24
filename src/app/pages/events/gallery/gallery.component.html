@@ -104,7 +104,7 @@
                 style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; display: block;">
               <div *ngIf="!item.url || imageErrors[item.id || 0]" class="image-placeholder">
                 <i class="pi pi-image" style="font-size: 3rem; color: #ccc;"></i>
-                <p class="image-filename">{{ item.name }}</p>
+                <p class="image-filename" [title]="getFullFilename(item)">{{ truncateFilename(item.name) }}</p>
               </div>
             </div>
 
@@ -117,7 +117,7 @@
               </video>
               <div *ngIf="!item.url || videoErrors[item.id || 0]" class="video-placeholder">
                 <i class="pi pi-video" style="font-size: 3rem; color: #ccc;"></i>
-                <p class="video-filename">{{ item.name }}</p>
+                <p class="video-filename" [title]="getFullFilename(item)">{{ truncateFilename(item.name) }}</p>
               </div>
               <div class="video-play-overlay" *ngIf="item.url && !videoErrors[item.id || 0]">
                 <i class="pi pi-play-circle" style="font-size: 3rem; color: white; opacity: 0.9;"></i>
@@ -132,14 +132,14 @@
                 Your browser does not support the audio tag.
               </audio>
               <div *ngIf="!item.url || audioErrors[item.id || 0]" class="audio-placeholder">
-                <p class="audio-filename">{{ item.name }}</p>
+                <p class="audio-filename" [title]="getFullFilename(item)">{{ truncateFilename(item.name) }}</p>
                 <small class="text-muted">Audio file unavailable</small>
               </div>
             </div>
 
             <div *ngSwitchCase="'file'" class="file-thumbnail">
               <i class="pi pi-file" style="font-size: 3rem; color: #ff9800;"></i>
-              <p class="file-name">{{ item.name }}</p>
+              <p class="file-name" [title]="getFullFilename(item)">{{ truncateFilename(item.name) }}</p>
             </div>
 
           </ng-container>
@@ -154,7 +154,7 @@
 <div class="popup" *ngIf="selectedItem" (click)="closePopup()">
   <div class="popup-content" (click)="$event.stopPropagation()">
     <div class="popup-header">
-      <h5>{{ selectedItem.name }}</h5>
+      <h5 [title]="getFullFilename(selectedItem)">{{ truncateFilename(selectedItem.name, 50) }}</h5>
       <div class="popup-actions">
         <button class="btn btn-sm btn-light me-2" (click)="downloadItem(selectedItem, $event)" title="Download">
           <i class="pi pi-download me-1"></i> Download

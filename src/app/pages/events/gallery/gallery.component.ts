@@ -38,13 +38,13 @@ export class GalleryComponent implements OnInit, OnDestroy {
   imageErrors: { [key: number]: boolean } = {}; // Track image load errors
   videoErrors: { [key: number]: boolean } = {}; // Track video load errors
   audioErrors: { [key: number]: boolean } = {}; // Track audio load errors
-  imageRetryCount: { [key: number]: number } = {}; // Track retry attempts for images
-  videoRetryCount: { [key: number]: number } = {}; // Track retry attempts for videos
-  audioRetryCount: { [key: number]: number } = {}; // Track retry attempts for audio
-  private readonly MAX_RETRIES = 1; // Maximum number of retry attempts
 
   // Data with dates - will be loaded from backend
   items: GalleryItem[] = [];
+
+  // URL cache for lazy-loading: stores presigned URLs with expiration
+  private urlCache: Map<number, { url: string; expiresAt: number }> = new Map();
+  private readonly CACHE_DURATION_MS = 10 * 60 * 1000; // 10 minutes cache duration
 
   constructor(
     private route: ActivatedRoute,
@@ -87,14 +87,11 @@ export class GalleryComponent implements OnInit, OnDestroy {
 
         // Map backend EventMedia to GalleryItem format
         this.items = mediaList.map((media: any) => {
-          // Reset errors and retry counts for reloaded items
+          // Reset errors for reloaded items
           if (media.id) {
             if (this.imageErrors[media.id]) delete this.imageErrors[media.id];
             if (this.videoErrors[media.id]) delete this.videoErrors[media.id];
             if (this.audioErrors[media.id]) delete this.audioErrors[media.id];
-            if (this.imageRetryCount[media.id]) delete this.imageRetryCount[media.id];
-            if (this.videoRetryCount[media.id]) delete this.videoRetryCount[media.id];
-            if (this.audioRetryCount[media.id]) delete this.audioRetryCount[media.id];
           }
           // Use file_type from backend if available, otherwise infer from media coverage type
           let fileType: 'image' | 'video' | 'audio' | 'file' = 'file';
@@ -145,25 +142,37 @@ export class GalleryComponent implements OnInit, OnDestroy {
             }
           }
 
-          // Create name from company or person details
-          const name = media.company_name ||
+          // Create name from original_filename, company_name, or person details
+          // Prefer original_filename (new field) over company_name (legacy)
+          const name = media.original_filename ||
+            media.company_name ||
             `${media.first_name || ''} ${media.last_name || ''}`.trim() ||
             `Media ${media.id}`;
 
           // Use created date or current date
           const date = media.created_on ? new Date(media.created_on) : new Date();
 
-          // Get file URL - use file_url from database
-          let url = media.file_url || media.url || '';
+          // Get file URL - backend now returns presigned URLs in 'url' field
+          // file_url is deprecated and excluded from JSON serialization
+          // URLs are lazy-loaded and cached to avoid preloading all URLs
+          let url = media.url || media.file_url || '';
 
-          // If URL is empty, log for debugging
-          if (!url && media.id) {
-            console.warn(`No file URL found for media ID: ${media.id}, file_type: ${media.file_type}`);
+          // CRITICAL: Runtime assertion - reject raw S3 URLs
+          if (url && url.includes('.amazonaws.com/') && !url.includes('X-Amz-') && !url.includes('Signature=')) {
+            console.error(`SECURITY ERROR: Raw S3 URL detected for media ID ${media.id}:`, url);
+            console.error('This URL will NOT be rendered. Backend must return presigned URLs only.');
+            url = ''; // Clear URL to prevent rendering
+          }
+
+
+          // Cache the URL if it exists (presigned URLs from backend)
+          if (url && media.id) {
+            this.cacheUrl(media.id, url);
           }
 
           return {
             type: fileType,
-            url: url,
+            url: url, // This is a presigned URL from backend
             name: name,
             category: category,
             date: date,
@@ -435,23 +444,11 @@ export class GalleryComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Check if URL is already a presigned URL
-   */
-  private isPresignedUrl(url: string): boolean {
-    if (!url) return false;
-    return url.includes('Signature=') || url.includes('X-Amz-Signature=') || url.includes('X-Amz-Algorithm=');
-  }
-
-  /**
    * Handle successful image load - clear error state
    */
   onImageLoad(event: any, item: GalleryItem): void {
     if (item.id && this.imageErrors[item.id]) {
       delete this.imageErrors[item.id];
-      // Reset retry count on successful load
-      if (this.imageRetryCount[item.id]) {
-        delete this.imageRetryCount[item.id];
-      }
     }
   }
 
@@ -461,10 +458,6 @@ export class GalleryComponent implements OnInit, OnDestroy {
   onVideoLoad(event: any, item: GalleryItem): void {
     if (item.id && this.videoErrors[item.id]) {
       delete this.videoErrors[item.id];
-      // Reset retry count on successful load
-      if (this.videoRetryCount[item.id]) {
-        delete this.videoRetryCount[item.id];
-      }
     }
   }
 
@@ -474,170 +467,37 @@ export class GalleryComponent implements OnInit, OnDestroy {
   onAudioLoad(event: any, item: GalleryItem): void {
     if (item.id && this.audioErrors[item.id]) {
       delete this.audioErrors[item.id];
-      // Reset retry count on successful load
-      if (this.audioRetryCount[item.id]) {
-        delete this.audioRetryCount[item.id];
-      }
     }
   }
 
   /**
-   * Handle image load errors - try to get presigned URL
+   * Handle image load errors - show placeholder only
+   * Frontend must trust backend URLs only - no retries or fallbacks
    */
   onImageError(event: any, item: GalleryItem): void {
-    if (!item.id) {
-      console.error('Cannot retry image load: item ID is missing');
-      return;
-    }
-
-    // Check if URL is already a presigned URL
-    const isAlreadyPresigned = this.isPresignedUrl(item.url);
-    
-    // Check retry count
-    const retryCount = this.imageRetryCount[item.id] || 0;
-    
-    if (isAlreadyPresigned || retryCount >= this.MAX_RETRIES) {
-      // Already tried presigned URL or exceeded retries - stop retrying
+    if (item.id) {
       this.imageErrors[item.id] = true;
-      if (isAlreadyPresigned) {
-        console.error('Image load error for item:', item.id, 'URL is already presigned, stopping retries');
-      } else {
-        console.error('Image load error for item:', item.id, 'Max retries reached, stopping retries');
-      }
-      return;
     }
-
-    console.error('Image load error for item:', item.id, 'URL:', item.url);
-    this.imageErrors[item.id] = true;
-    this.imageRetryCount[item.id] = retryCount + 1;
-
-    // Try to get presigned URL if direct URL fails
-    this.eventApiService.getDownloadUrl(item.id).subscribe({
-      next: (response: any) => {
-        const presignedUrl = response.download_url || response.data?.download_url;
-        if (presignedUrl) {
-          // Update the item URL with presigned URL and reload image
-          const imgElement = event.target as HTMLImageElement;
-          // Prevent infinite loop by checking if this is a different URL
-          if (imgElement.src !== presignedUrl) {
-            imgElement.src = presignedUrl;
-            item.url = presignedUrl;
-            // Don't delete error state yet - wait to see if it loads successfully
-            console.log('Updated image URL to presigned URL for item:', item.id);
-          }
-        }
-      },
-      error: (error) => {
-        console.error('Failed to get presigned URL for image:', error);
-        // Keep error state so placeholder shows
-      }
-    });
   }
 
   /**
-   * Handle video load errors - try to get presigned URL
+   * Handle video load errors - show placeholder only
+   * Frontend must trust backend URLs only - no retries or fallbacks
    */
   onVideoError(event: any, item: GalleryItem): void {
-    if (!item.id) {
-      console.error('Cannot retry video load: item ID is missing');
-      return;
-    }
-
-    // Check if URL is already a presigned URL
-    const isAlreadyPresigned = this.isPresignedUrl(item.url);
-    
-    // Check retry count
-    const retryCount = this.videoRetryCount[item.id] || 0;
-    
-    if (isAlreadyPresigned || retryCount >= this.MAX_RETRIES) {
-      // Already tried presigned URL or exceeded retries - stop retrying
+    if (item.id) {
       this.videoErrors[item.id] = true;
-      if (isAlreadyPresigned) {
-        console.error('Video load error for item:', item.id, 'URL is already presigned, stopping retries');
-      } else {
-        console.error('Video load error for item:', item.id, 'Max retries reached, stopping retries');
-      }
-      return;
     }
-
-    console.error('Video load error for item:', item.id, 'URL:', item.url);
-    this.videoErrors[item.id] = true;
-    this.videoRetryCount[item.id] = retryCount + 1;
-
-    // Try to get presigned URL if direct URL fails
-    this.eventApiService.getDownloadUrl(item.id).subscribe({
-      next: (response: any) => {
-        const presignedUrl = response.download_url || response.data?.download_url;
-        if (presignedUrl) {
-          // Update the item URL with presigned URL and reload video
-          const videoElement = event.target as HTMLVideoElement;
-          // Prevent infinite loop by checking if this is a different URL
-          if (videoElement.src !== presignedUrl) {
-            videoElement.src = presignedUrl;
-            item.url = presignedUrl;
-            // Don't delete error state yet - wait to see if it loads successfully
-            console.log('Updated video URL to presigned URL for item:', item.id);
-          }
-        }
-      },
-      error: (error) => {
-        console.error('Failed to get presigned URL for video:', error);
-        // Keep error state so placeholder shows
-      }
-    });
   }
 
   /**
-   * Handle audio load errors - try to get presigned URL
+   * Handle audio load errors - show placeholder only
+   * Frontend must trust backend URLs only - no retries or fallbacks
    */
   onAudioError(event: any, item: GalleryItem): void {
-    if (!item.id) {
-      console.error('Cannot retry audio load: item ID is missing');
-      return;
-    }
-
-    // Check if URL is already a presigned URL
-    const isAlreadyPresigned = this.isPresignedUrl(item.url);
-    
-    // Check retry count
-    const retryCount = this.audioRetryCount[item.id] || 0;
-    
-    if (isAlreadyPresigned || retryCount >= this.MAX_RETRIES) {
-      // Already tried presigned URL or exceeded retries - stop retrying
+    if (item.id) {
       this.audioErrors[item.id] = true;
-      if (isAlreadyPresigned) {
-        console.error('Audio load error for item:', item.id, 'URL is already presigned, stopping retries');
-      } else {
-        console.error('Audio load error for item:', item.id, 'Max retries reached, stopping retries');
-      }
-      return;
     }
-
-    console.error('Audio load error for item:', item.id, 'URL:', item.url);
-    this.audioErrors[item.id] = true;
-    this.audioRetryCount[item.id] = retryCount + 1;
-
-    // Try to get presigned URL if direct URL fails
-    this.eventApiService.getDownloadUrl(item.id).subscribe({
-      next: (response: any) => {
-        const presignedUrl = response.download_url || response.data?.download_url;
-        if (presignedUrl) {
-          // Update the item URL with presigned URL and reload audio
-          const audioElement = event.target as HTMLAudioElement;
-          // Prevent infinite loop by checking if this is a different URL
-          if (audioElement.src !== presignedUrl) {
-            audioElement.src = presignedUrl;
-            item.url = presignedUrl;
-            // Don't delete error state yet - wait to see if it loads successfully
-            console.log('Updated audio URL to presigned URL for item:', item.id);
-          }
-        }
-      },
-      error: (error) => {
-        console.error('Failed to get presigned URL for audio:', error);
-        // Keep error state so placeholder shows
-      }
-    });
   }
 
   /**
@@ -756,5 +616,47 @@ export class GalleryComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // Restore body scroll when component is destroyed
     document.body.style.overflow = '';
+    // Clear URL cache
+    this.urlCache.clear();
+  }
+
+  /**
+   * Cache a URL for a media item with expiration
+   */
+  private cacheUrl(mediaId: number, url: string): void {
+    const expiresAt = Date.now() + this.CACHE_DURATION_MS;
+    this.urlCache.set(mediaId, { url, expiresAt });
+  }
+
+  /**
+   * Get cached URL if still valid, otherwise return null
+   */
+  private getCachedUrl(mediaId: number): string | null {
+    const cached = this.urlCache.get(mediaId);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.url;
+    }
+    // Remove expired entry
+    if (cached) {
+      this.urlCache.delete(mediaId);
+    }
+    return null;
+  }
+
+  /**
+   * Truncate filename to max length with ellipsis
+   */
+  truncateFilename(filename: string, maxLength: number = 20): string {
+    if (!filename || filename.length <= maxLength) {
+      return filename;
+    }
+    return filename.substring(0, maxLength) + '...';
+  }
+
+  /**
+   * Get full filename for tooltip
+   */
+  getFullFilename(item: GalleryItem): string {
+    return item.name;
   }
 }
