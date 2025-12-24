@@ -25,9 +25,8 @@ const routes: Routes = [
   { path: "child-branch/add/:parentId", component: AddChildBranchComponent },
   { path: "child-branch/edit/:id", component: EditChildBranchComponent },
   { path: "child-branch/view/:id", component: ViewChildBranchComponent },
-  { path: "child-branch/:childBranchId/members/add", component: AddChildBranchMemberComponent },
   { path: "members", component: AllMembersComponent },
-  { path: ":branchId/members/add", component: AddMemberComponent },
+  { path: ":branchId/members/add", component: AddMemberComponent }, // Works for both parent and child branches
   { path: ":branchId/members/:memberId", component: ViewMemberComponent },
   { path: "gallery", component: BranchGalleryComponent },
   { path: "branchAssistance", component: ListBranchAssistanceComponent },

@@ -15,6 +15,9 @@ export interface EventDetails {
   daily_start_time?: string;
   daily_end_time?: string;
   spiritual_orator?: string;
+  language?: string;
+  branch?: string;
+  branch_id?: number;
   country?: string;
   state?: string;
   city?: string;
@@ -301,6 +304,11 @@ export class EventApiService {
    * @param branchCode Optional branch code to filter by
    */
   searchVolunteers(searchTerm: string, branchCode?: string): Observable<Volunteer[]> {
+    // Return empty array if search term is empty
+    if (!searchTerm || searchTerm.trim().length === 0) {
+      return of([]);
+    }
+
     // Prepare headers with bearer token
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${this.membersApiToken}`,
@@ -308,15 +316,25 @@ export class EventApiService {
     });
 
     // Prepare request body for external API
-    // The API expects search term in filters.search field
+    // Format matches Postman API documentation exactly:
+    // { branch_code: "...", filters: {...}, first: 0, rows: 10 }
+    // Postman example shows empty filters object, so search might be at top level
     const requestBody: any = {
-      branch_code: branchCode || '',
-      filters: {
-        search: searchTerm
-      },
+      filters: {},
       first: 0,
       rows: 20 // Limit to 20 results for autocomplete
     };
+
+    // Add search term - try at top level first (since filters is empty in Postman example)
+    if (searchTerm && searchTerm.trim().length > 0) {
+      requestBody.search = searchTerm.trim();
+    }
+
+    // Add branch_code at top level (required format per Postman docs)
+    // If branchCode is not provided, we still send the request but API may filter differently
+    if (branchCode && branchCode.trim().length > 0) {
+      requestBody.branch_code = branchCode.trim();
+    }
 
     console.log('[EventApiService] Searching volunteers:', { searchTerm, branchCode, requestBody });
 
@@ -396,6 +414,21 @@ export class EventApiService {
       }),
       catchError((error) => {
         console.error('[EventApiService] Error searching volunteers:', error);
+        // Log the full error response for debugging
+        if (error.error) {
+          console.error('[EventApiService] Error response body:', error.error);
+          // Log errors array if present
+          if (error.error.errors && Array.isArray(error.error.errors)) {
+            console.error('[EventApiService] API validation errors:', error.error.errors);
+            error.error.errors.forEach((err: any, index: number) => {
+              console.error(`[EventApiService] Error ${index + 1}:`, err);
+            });
+          }
+        }
+        if (error.status === 422) {
+          console.error('[EventApiService] 422 Unprocessable Content - Request body format may be incorrect');
+          console.error('[EventApiService] Request body sent:', JSON.stringify(requestBody, null, 2));
+        }
         // Return empty array on error instead of throwing
         return of([]);
       })

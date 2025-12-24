@@ -153,53 +153,19 @@
       </div>
       <div class="modal-body">
         <form [formGroup]="memberForm" (ngSubmit)="onSubmitMember()">
-          <!-- Branch Type Selection -->
+          <!-- Branch Selection - All Branches (Parent and Child) -->
           <div class="row mb-3">
-            <div class="col-12">
-              <label class="form-label fw-bold">Branch Type <span class="text-danger">*</span></label>
-              <div class="btn-group w-100" role="group">
-                <input type="radio" class="btn-check" id="branchTypeBranch" formControlName="branch_type" value="branch">
-                <label class="btn btn-outline-primary" for="branchTypeBranch">
-                  <i class="fas fa-building me-1"></i>Branch
-                </label>
-                <input type="radio" class="btn-check" id="branchTypeChild" formControlName="branch_type" value="child_branch">
-                <label class="btn btn-outline-primary" for="branchTypeChild">
-                  <i class="fas fa-sitemap me-1"></i>Child Branch
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Branch Selection -->
-          <div class="row mb-3" *ngIf="selectedBranchType === 'branch'">
             <div class="col-12">
               <label class="form-label">Select Branch <span class="text-danger">*</span></label>
               <select class="form-select" formControlName="branch_id"
                 [ngClass]="{'is-invalid': memberForm.get('branch_id')?.invalid && memberForm.get('branch_id')?.touched}">
                 <option [value]="null">-- Select a Branch --</option>
-                <option *ngFor="let branch of branches" [value]="branch.id">
-                  {{ branch.name }} ({{ branch.coordinator_name }})
+                <option *ngFor="let branch of allBranches" [value]="branch.id">
+                  {{ branch.name }}{{ branch.isChildBranch ? ' (Child Branch)' : '' }}
                 </option>
               </select>
               <div *ngIf="memberForm.get('branch_id')?.invalid && memberForm.get('branch_id')?.touched" class="invalid-feedback">
                 Please select a branch
-              </div>
-            </div>
-          </div>
-
-          <!-- Child Branch Selection -->
-          <div class="row mb-3" *ngIf="selectedBranchType === 'child_branch'">
-            <div class="col-12">
-              <label class="form-label">Select Child Branch <span class="text-danger">*</span></label>
-              <select class="form-select" formControlName="child_branch_id"
-                [ngClass]="{'is-invalid': memberForm.get('child_branch_id')?.invalid && memberForm.get('child_branch_id')?.touched}">
-                <option [value]="null">-- Select a Child Branch --</option>
-                <option *ngFor="let childBranch of childBranches" [value]="childBranch.id">
-                  {{ childBranch.name }}
-                </option>
-              </select>
-              <div *ngIf="memberForm.get('child_branch_id')?.invalid && memberForm.get('child_branch_id')?.touched" class="invalid-feedback">
-                Please select a child branch
               </div>
             </div>
           </div>

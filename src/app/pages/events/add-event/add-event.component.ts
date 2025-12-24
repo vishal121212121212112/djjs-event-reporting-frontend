@@ -1186,7 +1186,24 @@ export class AddEventComponent implements OnInit, OnDestroy {
 
       // Load event media list if it exists
       if (draftData.mediaPromotion.eventMediaList && Array.isArray(draftData.mediaPromotion.eventMediaList)) {
-        this.eventMediaList = draftData.mediaPromotion.eventMediaList;
+        // Normalize event media list to ensure all fields are present (for backward compatibility with old drafts)
+        this.eventMediaList = draftData.mediaPromotion.eventMediaList.map((media: any) => ({
+          mediaCoverageType: media.mediaCoverageType || media.mediaType || '',
+          companyName: media.companyName || '',
+          companyEmail: media.companyEmail || '',
+          companyWebsite: media.companyWebsite || '',
+          gender: media.gender || '',
+          prefix: media.prefix || '',
+          firstName: media.firstName || '',
+          middleName: media.middleName || '',
+          lastName: media.lastName || '',
+          designation: media.designation || '',
+          contact: media.contact || '',
+          email: media.email || '',
+          referenceBranchId: media.referenceBranchId || '',
+          referenceVolunteerId: media.referenceVolunteerId || '',
+          referencePersonName: media.referencePersonName || ''
+        }));
       }
 
       // Load material types if they exist
@@ -1929,18 +1946,29 @@ export class AddEventComponent implements OnInit, OnDestroy {
 
   // Add event media functionality
   addEventMedia(): void {
-    // Collect data from form
-    const formValue = this.mediaPromotionForm.value;
-    this.eventMediaList.push({
-      mediaCoverageType: formValue.mediaCoverageType || '',
-      companyName: formValue.companyName || '',
-      companyEmail: formValue.companyEmail || '',
-      companyWebsite: formValue.companyWebsite || '',
-      gender: formValue.mediaGender || '',
-      designation: formValue.mediaDesignation || '',
-      contact: formValue.mediaContact || '',
-      referencePersonName: formValue.referencePersonName || ''
-    });
+    // Collect data from form - ensure we get the latest values
+    const formValue = this.mediaPromotionForm.getRawValue();
+    
+    // Create event media object with all fields
+    const eventMedia = {
+      mediaCoverageType: (formValue.mediaCoverageType || '').trim(),
+      companyName: (formValue.companyName || '').trim(),
+      companyEmail: (formValue.companyEmail || '').trim(),
+      companyWebsite: (formValue.companyWebsite || '').trim(),
+      gender: (formValue.mediaGender || '').trim(),
+      prefix: (formValue.mediaPrefix || '').trim(),
+      firstName: (formValue.mediaFirstName || '').trim(),
+      middleName: (formValue.mediaMiddleName || '').trim(),
+      lastName: (formValue.mediaLastName || '').trim(),
+      designation: (formValue.mediaDesignation || '').trim(),
+      contact: (formValue.mediaContact || '').trim(),
+      email: (formValue.mediaEmail || '').trim(),
+      referenceBranchId: (formValue.referenceBranchId || '').trim(),
+      referenceVolunteerId: (formValue.referenceVolunteerId || '').trim(),
+      referencePersonName: (formValue.referencePersonName || '').trim()
+    };
+    
+    this.eventMediaList.push(eventMedia);
 
     // Clear only the event media related fields after adding
     this.mediaPromotionForm.patchValue({
@@ -2530,6 +2558,7 @@ export class AddEventComponent implements OnInit, OnDestroy {
     // Populate event media list
     if (response.media && response.media.length > 0) {
       this.eventMediaList = response.media.map((media: EventMedia) => ({
+        mediaCoverageType: media.media_coverage_type?.media_type || '',
         companyName: media.company_name || '',
         companyEmail: media.company_email || '',
         companyWebsite: media.company_website || '',
@@ -2541,8 +2570,9 @@ export class AddEventComponent implements OnInit, OnDestroy {
         designation: media.designation || '',
         contact: media.contact || '',
         email: media.email || '',
-        mediaType: media.media_coverage_type_id?.toString() || '',
-        referenceVolunteerId: '' // Not stored in EventMedia model
+        referenceBranchId: '', // Not stored in EventMedia model
+        referenceVolunteerId: '', // Not stored in EventMedia model
+        referencePersonName: '' // Not stored in EventMedia model
       }));
     }
   }

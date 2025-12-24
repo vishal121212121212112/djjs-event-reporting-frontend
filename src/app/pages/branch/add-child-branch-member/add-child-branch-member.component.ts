@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ChildBranchService, ChildBranch, ChildBranchMember } from 'src/app/core/services/child-branch.service';
+import { ChildBranchService, ChildBranch, ChildBranchMember, BranchMember } from 'src/app/core/services/child-branch.service';
 import { MessageService } from 'primeng/api';
 
 @Component({
@@ -177,8 +177,8 @@ export class AddChildBranchMemberComponent implements OnInit {
       }
     }
 
-    // Prepare member payload for child branch
-    const memberPayload: Omit<ChildBranchMember, 'id' | 'child_branch_id'> = {
+    // Prepare member payload for child branch (now uses branch_id)
+    const memberPayload: Omit<BranchMember, 'id' | 'branch_id'> = {
       name: formValue.name.trim(),
       member_type: formValue.member_type,
       branch_role: formValue.branch_role || '',

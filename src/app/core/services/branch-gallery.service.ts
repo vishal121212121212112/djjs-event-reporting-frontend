@@ -12,16 +12,12 @@ export class BranchGalleryService {
   constructor(private http: HttpClient) { }
 
   /**
-   * Get branch media
+   * Get branch media (works for both branches and child branches)
    * @param branchId Branch ID (optional - if not provided, returns all)
-   * @param isChildBranch Whether this is a child branch
    */
-  getBranchMedia(branchId?: number, isChildBranch: boolean = false): Observable<any> {
+  getBranchMedia(branchId?: number): Observable<any> {
     if (branchId) {
-      const endpoint = isChildBranch
-        ? `${this.apiBaseUrl}/api/child-branch-media/branch/${branchId}`
-        : `${this.apiBaseUrl}/api/branch-media/branch/${branchId}`;
-      return this.http.get(endpoint);
+      return this.http.get(`${this.apiBaseUrl}/api/branch-media/branch/${branchId}`);
     } else {
       return this.http.get(`${this.apiBaseUrl}/api/branch-media`);
     }
@@ -36,13 +32,12 @@ export class BranchGalleryService {
   }
 
   /**
-   * Upload multiple files to S3
+   * Upload multiple files to S3 (works for both branches and child branches)
    * @param files Array of files to upload
    * @param branchId Branch ID
-   * @param isChildBranch Whether this is a child branch
    * @param category File category
    */
-  uploadMultipleFiles(files: File[], branchId: number, isChildBranch: boolean = false, category?: string): Observable<any> {
+  uploadMultipleFiles(files: File[], branchId: number, category?: string): Observable<any> {
     const formData = new FormData();
 
     // Append all files
@@ -51,7 +46,6 @@ export class BranchGalleryService {
     });
 
     formData.append('branch_id', branchId.toString());
-    formData.append('is_child_branch', isChildBranch.toString());
     if (category) {
       formData.append('category', category);
     }
@@ -60,17 +54,15 @@ export class BranchGalleryService {
   }
 
   /**
-   * Delete file from S3
+   * Delete file from S3 (works for both branches and child branches)
    * @param mediaId Media ID
    * @param branchId Optional branch ID for validation
-   * @param isChildBranch Whether this is a child branch
    * @param deleteRecord Whether to delete the media record (default: true)
    */
-  deleteFile(mediaId: number, branchId?: number, isChildBranch: boolean = false, deleteRecord: boolean = true): Observable<any> {
+  deleteFile(mediaId: number, branchId?: number, deleteRecord: boolean = true): Observable<any> {
     let params = new HttpParams().set('delete_record', deleteRecord.toString());
     if (branchId) {
       params = params.set('branch_id', branchId.toString());
-      params = params.set('is_child_branch', isChildBranch.toString());
     }
     return this.http.delete(`${this.apiBaseUrl}/api/files/${mediaId}`, { params });
   }

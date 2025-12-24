@@ -101,6 +101,30 @@ export interface Branch {
     type: string;
     count: number;
   }>;
+  members?: Array<{
+    id: number;
+    name: string;
+    member_type: string;
+    branch_role?: string;
+    responsibility?: string;
+    age?: number;
+    date_of_samarpan?: string;
+    qualification?: string;
+    date_of_birth?: string;
+    branch_id: number;
+  }>;
+  branch_members?: Array<{
+    id: number;
+    name: string;
+    member_type: string;
+    branch_role?: string;
+    responsibility?: string;
+    age?: number;
+    date_of_samarpan?: string;
+    qualification?: string;
+    date_of_birth?: string;
+    branch_id: number;
+  }>;
   created_on: string;
   created_by?: string;
   updated_on?: string;

@@ -34,6 +34,12 @@
 .modal-backdrop {
     z-index: 1002 !important;
     transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    background-color: rgba(0, 0, 0, 0.6) !important; // Semi-transparent black (darker shadow)
+    opacity: 1 !important; // Fully visible when shown
+    
+    &.show {
+        opacity: 1 !important; // Fully visible when shown
+    }
 }
 
 .dropdown-toggle::after {

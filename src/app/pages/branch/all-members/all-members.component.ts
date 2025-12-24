@@ -45,6 +45,7 @@ export class AllMembersComponent implements OnInit {
   isSubmitting: boolean = false;
   branches: Branch[] = [];
   childBranches: ChildBranch[] = [];
+  allBranches: Array<{id: number, name: string, isChildBranch: boolean}> = []; // Combined list of all branches
   maxDateOfBirth: string = '';
 
   // Edit Member Modal
@@ -62,9 +63,7 @@ export class AllMembersComponent implements OnInit {
     private fb: FormBuilder
   ) {
     this.memberForm = this.fb.group({
-      branch_type: ['branch', Validators.required],
-      branch_id: [null, Validators.required],
-      child_branch_id: [null],
+      branch_id: [null, Validators.required], // Single field for all branches (parent and child)
       name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
       member_type: ['', Validators.required],
       branch_role: ['', Validators.required],
@@ -92,20 +91,7 @@ export class AllMembersComponent implements OnInit {
     today.setFullYear(today.getFullYear() - 1);
     this.maxDateOfBirth = today.toISOString().split('T')[0];
 
-    // Watch branch_type changes to update validators
-    this.memberForm.get('branch_type')?.valueChanges.subscribe(value => {
-      if (value === 'branch') {
-        this.memberForm.get('branch_id')?.setValidators([Validators.required]);
-        this.memberForm.get('child_branch_id')?.clearValidators();
-        this.memberForm.get('child_branch_id')?.setValue(null);
-      } else {
-        this.memberForm.get('child_branch_id')?.setValidators([Validators.required]);
-        this.memberForm.get('branch_id')?.clearValidators();
-        this.memberForm.get('branch_id')?.setValue(null);
-      }
-      this.memberForm.get('branch_id')?.updateValueAndValidity();
-      this.memberForm.get('child_branch_id')?.updateValueAndValidity();
-    });
+    // No need for branch_type watcher - all branches use the same branch_id field
   }
 
   ngOnInit(): void {
@@ -119,9 +105,26 @@ export class AllMembersComponent implements OnInit {
   }
 
   loadBranches() {
-    this.locationService.getAllBranches().subscribe({
-      next: (branches) => {
-        this.branches = branches || [];
+    // Load all branches (parent and child) and combine them
+    forkJoin({
+      branches: this.locationService.getAllBranches().pipe(catchError(() => of([]))),
+      childBranches: this.childBranchService.getAllChildBranches().pipe(catchError(() => of([])))
+    }).subscribe({
+      next: (result) => {
+        this.branches = result.branches || [];
+        this.childBranches = result.childBranches || [];
+        
+        // Combine all branches into a single list for the dropdown
+        this.allBranches = [
+          // Parent branches (no parent_branch_id)
+          ...(this.branches
+            .filter(b => !b.parent_branch_id && b.id)
+            .map(b => ({ id: b.id!, name: b.name, isChildBranch: false }))),
+          // Child branches (have parent_branch_id)
+          ...(this.childBranches
+            .filter(b => b.id)
+            .map(b => ({ id: b.id!, name: b.name, isChildBranch: true })))
+        ].sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
       },
       error: (error) => {
         console.error('Error loading branches:', error);
@@ -130,14 +133,7 @@ export class AllMembersComponent implements OnInit {
   }
 
   loadChildBranches() {
-    this.childBranchService.getAllChildBranches().subscribe({
-      next: (childBranches) => {
-        this.childBranches = childBranches || [];
-      },
-      error: (error) => {
-        console.error('Error loading child branches:', error);
-      }
-    });
+    // This method is kept for backward compatibility but loadBranches now handles both
   }
 
   loadAllMembers() {
@@ -145,102 +141,51 @@ export class AllMembersComponent implements OnInit {
     this.members = [];
     this.filteredMembers = [];
 
-    // Fetch all branch members
-    const branchMembers$ = this.locationService.getAllBranchMembers().pipe(
+    // Fetch all members from unified table (includes both parent and child branch members)
+    // The backend returns all members with their branch information, including parent_branch_id
+    this.locationService.getAllBranchMembers().pipe(
       map((members: any[]) => {
-        return members.map(member => ({
-          id: member.id,
-          name: member.name || '',
-          member_type: member.member_type || '',
-          branch_role: member.branch_role || '',
-          responsibility: member.responsibility || '',
-          age: member.age || 0,
-          date_of_samarpan: member.date_of_samarpan || '',
-          qualification: member.qualification || '',
-          date_of_birth: member.date_of_birth || '',
-          branch_id: member.branch_id,
-          branch_name: member.branch?.name || 'N/A',
-          branch_type: 'branch' as const
-        }));
+        // Map all members - determine if parent or child branch based on branch.parent_branch_id
+        return members.map(member => {
+          const isChildBranch = member.branch?.parent_branch_id != null;
+          const branchType: 'branch' | 'child_branch' = isChildBranch ? 'child_branch' : 'branch';
+          return {
+            id: member.id,
+            name: member.name || '',
+            member_type: member.member_type || '',
+            branch_role: member.branch_role || '',
+            responsibility: member.responsibility || '',
+            age: member.age || 0,
+            date_of_samarpan: member.date_of_samarpan || '',
+            qualification: member.qualification || '',
+            date_of_birth: member.date_of_birth || '',
+            branch_id: member.branch_id,
+            child_branch_id: isChildBranch ? member.branch_id : undefined, // For backward compatibility
+            branch_name: member.branch?.name || 'N/A',
+            child_branch_name: isChildBranch ? (member.branch?.name || 'N/A') : undefined,
+            branch_type: branchType
+          };
+        });
       }),
       catchError(error => {
-        console.error('Error loading branch members:', error);
+        console.error('Error loading all members:', error);
         this.messageService.add({
-          severity: 'warn',
-          summary: 'Warning',
-          detail: 'Some branch members could not be loaded.',
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load members. Please try again.',
           life: 3000
         });
         return of([]);
       })
-    );
-
-    // Fetch all child branches first, then get members for each
-    const childBranches$ = this.childBranchService.getAllChildBranches().pipe(
-      catchError(error => {
-        console.error('Error loading child branches:', error);
-        return of([]);
-      })
-    );
-
-    forkJoin({
-      branchMembers: branchMembers$,
-      childBranches: childBranches$
-    }).subscribe({
-      next: (result) => {
-        const allMembers: UnifiedMember[] = [...result.branchMembers];
-
-        // Fetch members for each child branch
-        if (result.childBranches.length > 0) {
-          const childBranchMemberRequests = result.childBranches.map((childBranch: any) =>
-            this.childBranchService.getChildBranchMembers(childBranch.id).pipe(
-              map((members: ChildBranchMember[]) => {
-                return members.map(member => ({
-                  id: member.id!,
-                  name: member.name || '',
-                  member_type: member.member_type || '',
-                  branch_role: member.branch_role || '',
-                  responsibility: member.responsibility || '',
-                  age: member.age || 0,
-                  date_of_samarpan: member.date_of_samarpan || '',
-                  qualification: member.qualification || '',
-                  date_of_birth: member.date_of_birth || '',
-                  child_branch_id: member.child_branch_id,
-                  child_branch_name: childBranch.name || 'N/A',
-                  branch_type: 'child_branch' as const
-                }));
-              }),
-              catchError(error => {
-                console.error(`Error loading members for child branch ${childBranch.id}:`, error);
-                return of([]);
-              })
-            )
-          );
-
-          forkJoin(childBranchMemberRequests).subscribe({
-            next: (childMembersArrays) => {
-              childMembersArrays.forEach(childMembers => {
-                allMembers.push(...childMembers);
-              });
-              this.members = allMembers;
-              this.applyFilters();
-              this.loading = false;
-            },
-            error: (error) => {
-              console.error('Error loading child branch members:', error);
-              this.members = allMembers;
-              this.applyFilters();
-              this.loading = false;
-            }
-          });
-        } else {
-          this.members = allMembers;
-          this.applyFilters();
-          this.loading = false;
-        }
+    ).subscribe({
+      next: (allMembers) => {
+        this.members = allMembers;
+        this.filteredMembers = allMembers;
+        this.applyFilters();
+        this.loading = false;
       },
       error: (error) => {
-        console.error('Error loading members:', error);
+        console.error('Error in loadAllMembers:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -248,6 +193,8 @@ export class AllMembersComponent implements OnInit {
           life: 5000
         });
         this.loading = false;
+        this.members = [];
+        this.filteredMembers = [];
       }
     });
   }
@@ -295,17 +242,15 @@ export class AllMembersComponent implements OnInit {
   }
 
   viewMember(member: UnifiedMember) {
-    if (member.branch_type === 'branch' && member.branch_id) {
-      this.router.navigate(['/branch', member.branch_id.toString(), 'members', member.id.toString()]);
-    } else if (member.branch_type === 'child_branch' && member.child_branch_id) {
-      // For child branch members, we might need a different route or handle differently
-      // For now, navigate to the branch view if parent branch is available
-      this.messageService.add({
-        severity: 'info',
-        summary: 'Info',
-        detail: 'Viewing child branch members is not yet implemented.',
-        life: 3000
-      });
+    // All members use branch_id (unified table)
+    if (member.branch_id) {
+      // Check if it's a child branch to determine the correct route
+      const isChildBranch = member.branch_type === 'child_branch';
+      if (isChildBranch) {
+        this.router.navigate(['/branch/child-branch/view', member.branch_id.toString()]);
+      } else {
+        this.router.navigate(['/branch', member.branch_id.toString(), 'members', member.id.toString()]);
+      }
     } else {
       this.messageService.add({
         severity: 'warn',
@@ -378,65 +323,36 @@ export class AllMembersComponent implements OnInit {
       date_of_samarpan: formValue.date_of_samarpan || null
     };
 
-    if (this.editingMember.branch_type === 'branch') {
-      // Update branch member
-      this.locationService.updateBranchMember(this.editingMember.id, memberPayload).subscribe({
-        next: () => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'Member updated successfully!',
-            life: 3000
-          });
-          this.isUpdating = false;
-          this.closeEditMemberModal();
-          this.loadAllMembers();
-        },
-        error: (error) => {
-          console.error('Error updating member:', error);
-          let errorMessage = 'Failed to update member. Please try again.';
-          if (error.error?.message) {
-            errorMessage = error.error.message;
-          }
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: errorMessage,
-            life: 5000
-          });
-          this.isUpdating = false;
+    // Use unified service - all members stored in one table with branch_id
+    this.locationService.updateBranchMember(this.editingMember.id, memberPayload).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Member updated successfully!',
+          life: 3000
+        });
+        this.isUpdating = false;
+        this.closeEditMemberModal();
+        this.loadAllMembers();
+      },
+      error: (error) => {
+        console.error('Error updating member:', error);
+        let errorMessage = 'Failed to update member. Please try again.';
+        if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.error?.error) {
+          errorMessage = error.error.error;
         }
-      });
-    } else if (this.editingMember.branch_type === 'child_branch') {
-      // Update child branch member
-      this.childBranchService.updateChildBranchMember(this.editingMember.id, memberPayload).subscribe({
-        next: () => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'Member updated successfully!',
-            life: 3000
-          });
-          this.isUpdating = false;
-          this.closeEditMemberModal();
-          this.loadAllMembers();
-        },
-        error: (error) => {
-          console.error('Error updating child branch member:', error);
-          let errorMessage = 'Failed to update member. Please try again.';
-          if (error.error?.message) {
-            errorMessage = error.error.message;
-          }
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: errorMessage,
-            life: 5000
-          });
-          this.isUpdating = false;
-        }
-      });
-    }
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: errorMessage,
+          life: 5000
+        });
+        this.isUpdating = false;
+      }
+    });
   }
 
   deleteMember(member: UnifiedMember) {
@@ -459,9 +375,8 @@ export class AllMembersComponent implements OnInit {
       showSuccessMessage: false
     }).then((result) => {
       if (result.value) {
-        const deleteRequest = member.branch_type === 'branch'
-          ? this.locationService.deleteBranchMember(member.id)
-          : this.childBranchService.deleteChildBranchMember(member.id);
+        // Use unified service - works for both parent and child branches (all in one table)
+        const deleteRequest = this.locationService.deleteBranchMember(member.id);
 
         deleteRequest.subscribe({
           next: () => {
@@ -525,9 +440,7 @@ export class AllMembersComponent implements OnInit {
 
   openAddMemberModal() {
     this.memberForm.reset({
-      branch_type: 'branch',
       branch_id: null,
-      child_branch_id: null,
       name: '',
       member_type: '',
       branch_role: '',
@@ -543,9 +456,7 @@ export class AllMembersComponent implements OnInit {
   closeAddMemberModal() {
     this.showAddMemberModal = false;
     this.memberForm.reset({
-      branch_type: 'branch',
-      branch_id: null,
-      child_branch_id: null
+      branch_id: null
     });
   }
 
@@ -568,94 +479,76 @@ export class AllMembersComponent implements OnInit {
 
     this.isSubmitting = true;
     const formValue = this.memberForm.value;
-    const branchType = formValue.branch_type;
-
-    if (branchType === 'branch' && formValue.branch_id) {
-      // Add to branch
-      const memberPayload = {
-        branch_id: formValue.branch_id,
-        name: formValue.name.trim(),
-        member_type: formValue.member_type,
-        branch_role: formValue.branch_role || '',
-        responsibility: formValue.responsibility || '',
-        age: formValue.age ? parseInt(formValue.age, 10) : 0,
-        qualification: formValue.qualification || '',
-        date_of_birth: formValue.date_of_birth || null,
-        date_of_samarpan: formValue.date_of_samarpan || null
-      };
-
-      this.locationService.createBranchMember(memberPayload).subscribe({
-        next: () => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'Member added successfully!',
-            life: 3000
-          });
-          this.isSubmitting = false;
-          this.closeAddMemberModal();
-          this.loadAllMembers();
-        },
-        error: (error) => {
-          console.error('Error creating member:', error);
-          let errorMessage = 'Failed to add member. Please try again.';
-          if (error.error?.message) {
-            errorMessage = error.error.message;
-          }
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: errorMessage,
-            life: 5000
-          });
-          this.isSubmitting = false;
-        }
+    // Use unified service - all members stored in one table with branch_id
+    if (!formValue.branch_id) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Please select a branch.',
+        life: 3000
       });
-    } else if (branchType === 'child_branch' && formValue.child_branch_id) {
-      // Add to child branch
-      const memberPayload = {
-        name: formValue.name.trim(),
-        member_type: formValue.member_type,
-        branch_role: formValue.branch_role || '',
-        responsibility: formValue.responsibility || '',
-        age: formValue.age ? parseInt(formValue.age, 10) : 0,
-        qualification: formValue.qualification || '',
-        date_of_birth: formValue.date_of_birth || null,
-        date_of_samarpan: formValue.date_of_samarpan || null
-      };
-
-      this.childBranchService.createChildBranchMember(formValue.child_branch_id, memberPayload).subscribe({
-        next: () => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'Member added successfully!',
-            life: 3000
-          });
-          this.isSubmitting = false;
-          this.closeAddMemberModal();
-          this.loadAllMembers();
-        },
-        error: (error) => {
-          console.error('Error creating child branch member:', error);
-          let errorMessage = 'Failed to add member. Please try again.';
-          if (error.error?.message) {
-            errorMessage = error.error.message;
-          }
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: errorMessage,
-            life: 5000
-          });
-          this.isSubmitting = false;
-        }
-      });
+      this.isSubmitting = false;
+      return;
     }
-  }
 
-  get selectedBranchType(): 'branch' | 'child_branch' {
-    return this.memberForm.get('branch_type')?.value || 'branch';
+    // Ensure branch_id is a number (select dropdowns return strings)
+    const branchId = typeof formValue.branch_id === 'string' 
+      ? parseInt(formValue.branch_id, 10) 
+      : (typeof formValue.branch_id === 'number' ? formValue.branch_id : null);
+    
+    if (!branchId || isNaN(branchId)) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Please select a valid branch.',
+        life: 3000
+      });
+      this.isSubmitting = false;
+      return;
+    }
+
+    const memberPayload = {
+      branch_id: branchId,
+      name: formValue.name.trim(),
+      member_type: formValue.member_type,
+      branch_role: formValue.branch_role || '',
+      responsibility: formValue.responsibility || '',
+      age: formValue.age ? parseInt(formValue.age, 10) : 0,
+      qualification: formValue.qualification || '',
+      date_of_birth: formValue.date_of_birth || null,
+      date_of_samarpan: formValue.date_of_samarpan || null
+    };
+
+    // Use unified service - works for both parent and child branches (all in one table)
+    this.locationService.createBranchMember(memberPayload).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Member added successfully!',
+          life: 3000
+        });
+        this.isSubmitting = false;
+        this.closeAddMemberModal();
+        this.loadAllMembers();
+      },
+      error: (error) => {
+        console.error('Error creating member:', error);
+        let errorMessage = 'Failed to add member. Please try again.';
+        if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.error?.error) {
+          errorMessage = error.error.error;
+        }
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: errorMessage,
+          life: 5000
+        });
+        this.isSubmitting = false;
+      }
+    });
   }
 }
 

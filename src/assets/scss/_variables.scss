@@ -1597,7 +1597,7 @@ $modal-content-box-shadow-xs:       $box-shadow-sm;
 $modal-content-box-shadow-sm-up:    $box-shadow;
 
 $modal-backdrop-bg:                 $black;
-$modal-backdrop-opacity:            .5;
+$modal-backdrop-opacity:            .6; // Semi-transparent black (darker than default 0.5)
 
 $modal-header-border-color:         var(--#{$prefix}border-color);
 $modal-header-border-width:         $modal-content-border-width;

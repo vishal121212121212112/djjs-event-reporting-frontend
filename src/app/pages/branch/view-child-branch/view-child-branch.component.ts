@@ -136,7 +136,8 @@ export class ViewChildBranchComponent implements OnInit {
     if (!this.childBranchId) return;
 
     this.loadingMembers = true;
-    this.childBranchService.getChildBranchMembers(this.childBranchId).subscribe({
+    // Use unified service - works for both parent and child branches
+    this.locationService.getBranchMembers(this.childBranchId).subscribe({
       next: (members) => {
         this.members = members;
         this.loadingMembers = false;
@@ -151,7 +152,8 @@ export class ViewChildBranchComponent implements OnInit {
 
   addMember() {
     if (this.childBranchId) {
-      this.router.navigate(['/branch/child-branch', this.childBranchId.toString(), 'members', 'add']);
+      // Use unified route - works for both parent and child branches
+      this.router.navigate(['/branch', this.childBranchId.toString(), 'members', 'add']);
     }
   }
 
@@ -169,7 +171,8 @@ export class ViewChildBranchComponent implements OnInit {
       showSuccessMessage: false
     }).then((result) => {
       if (result.value) {
-        this.childBranchService.deleteChildBranchMember(memberId).subscribe({
+        // Use unified service - works for both parent and child branches
+        this.locationService.deleteBranchMember(memberId).subscribe({
           next: () => {
             this.messageService.add({
               severity: 'success',

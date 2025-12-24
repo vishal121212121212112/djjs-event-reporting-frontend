@@ -30,7 +30,7 @@ export class BranchGalleryComponent implements OnInit, OnDestroy {
   selectedItem: GalleryItem | null = null;
   isPopupOpen = false;
   branchId: number | null = null;
-  isChildBranch: boolean = false;
+  isChildBranch: boolean = false; // Determined by checking branch's parent_branch_id
   loading = false;
   uploading = false;
   uploadProgress = 0;
@@ -68,7 +68,6 @@ export class BranchGalleryComponent implements OnInit, OnDestroy {
 
     this.route.queryParams.subscribe(params => {
       const branchIdParam = params['branchId'];
-      this.isChildBranch = params['isChildBranch'] === 'true';
 
       if (branchIdParam) {
         this.branchId = Number(branchIdParam);
@@ -88,31 +87,29 @@ export class BranchGalleryComponent implements OnInit, OnDestroy {
   loadBranchName(): void {
     if (!this.branchId) return;
 
-    if (this.isChildBranch) {
-      this.childBranchService.getChildBranchById(this.branchId).subscribe({
-        next: (childBranch) => {
-          this.branchName = childBranch.name || 'Child Branch';
-          this.updateBreadcrumbs();
-        },
-        error: (error) => {
-          console.error('Error loading child branch name:', error);
-          this.branchName = 'Child Branch';
-          this.updateBreadcrumbs();
-        }
-      });
-    } else {
-      this.locationService.getBranchById(this.branchId).subscribe({
-        next: (branch) => {
-          this.branchName = branch.name || 'Branch';
-          this.updateBreadcrumbs();
-        },
-        error: (error) => {
-          console.error('Error loading branch name:', error);
-          this.branchName = 'Branch';
-          this.updateBreadcrumbs();
-        }
-      });
-    }
+    // Try to get branch - check if it's a child branch by checking parent_branch_id
+    this.locationService.getBranchById(this.branchId).subscribe({
+      next: (branch) => {
+        this.branchName = branch.name || 'Branch';
+        this.isChildBranch = branch.parent_branch_id != null;
+        this.updateBreadcrumbs();
+      },
+      error: (error) => {
+        // If not found as regular branch, try as child branch
+        this.childBranchService.getChildBranchById(this.branchId).subscribe({
+          next: (childBranch) => {
+            this.branchName = childBranch.name || 'Child Branch';
+            this.isChildBranch = true;
+            this.updateBreadcrumbs();
+          },
+          error: (err) => {
+            console.error('Error loading branch name:', err);
+            this.branchName = 'Branch';
+            this.updateBreadcrumbs();
+          }
+        });
+      }
+    });
   }
 
   updateBreadcrumbs(): void {
@@ -133,7 +130,7 @@ export class BranchGalleryComponent implements OnInit, OnDestroy {
     if (!this.branchId) return;
 
     this.loading = true;
-    this.branchGalleryService.getBranchMedia(this.branchId, this.isChildBranch).subscribe({
+    this.branchGalleryService.getBranchMedia(this.branchId).subscribe({
       next: (response: any) => {
         const mediaList = response.data || response || [];
 
@@ -288,7 +285,7 @@ export class BranchGalleryComponent implements OnInit, OnDestroy {
     }).then((result) => {
       if (result.value) {
         this.loading = true;
-        this.branchGalleryService.deleteFile(item.id, this.branchId || undefined, this.isChildBranch, true).subscribe({
+        this.branchGalleryService.deleteFile(item.id, this.branchId || undefined, true).subscribe({
           next: () => {
             this.items = this.items.filter(i => i.id !== item.id);
             this.messageService.add({
@@ -553,7 +550,7 @@ export class BranchGalleryComponent implements OnInit, OnDestroy {
       category = 'Documents';
     }
 
-    this.branchGalleryService.uploadMultipleFiles(files, this.branchId, this.isChildBranch, category).subscribe({
+    this.branchGalleryService.uploadMultipleFiles(files, this.branchId, category).subscribe({
       next: (response: any) => {
         this.uploading = false;
         this.uploadProgress = 0;

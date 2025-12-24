@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LocationService } from 'src/app/core/services/location.service';
+import { ChildBranchService } from 'src/app/core/services/child-branch.service';
 import { MessageService } from 'primeng/api';
 
 @Component({
@@ -11,6 +12,7 @@ import { MessageService } from 'primeng/api';
 })
 export class AddMemberComponent implements OnInit {
   branchId: number | null = null;
+  isChildBranch: boolean = false; // Determined by checking branch's parent_branch_id
   memberForm: FormGroup;
   loading: boolean = false;
   isSubmitting: boolean = false;
@@ -25,6 +27,7 @@ export class AddMemberComponent implements OnInit {
     private router: Router,
     private fb: FormBuilder,
     private locationService: LocationService,
+    private childBranchService: ChildBranchService,
     private messageService: MessageService
   ) {
     this.memberForm = this.fb.group({
@@ -87,25 +90,47 @@ export class AddMemberComponent implements OnInit {
     if (!this.branchId) return;
 
     this.loading = true;
+    // Try to get branch - check if it's a child branch by checking parent_branch_id
     this.locationService.getBranchById(this.branchId).subscribe({
       next: (branch) => {
         this.branchName = branch.name;
+        this.isChildBranch = branch.parent_branch_id != null;
         this.loading = false;
         if (this.branchId) {
+          const viewLink = this.isChildBranch 
+            ? ['/branch/child-branch/view', this.branchId.toString()]
+            : ['/branch/view', this.branchId.toString()];
           this.breadCrumbItems = [
             { label: 'Branches', routerLink: '/branch' },
-            { label: branch.name, routerLink: ['/branch/view', this.branchId.toString()] },
+            { label: branch.name, routerLink: viewLink },
             { label: 'Add Member', active: true }
           ];
         }
       },
       error: (error) => {
-        console.error('Error loading branch:', error);
-        this.loading = false;
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: error.error?.message || 'Failed to load branch information. Please try again.'
+        // If not found as regular branch, try as child branch
+        this.childBranchService.getChildBranchById(this.branchId!).subscribe({
+          next: (childBranch) => {
+            this.branchName = childBranch.name;
+            this.isChildBranch = true;
+            this.loading = false;
+            if (this.branchId) {
+              this.breadCrumbItems = [
+                { label: 'Branches', routerLink: '/branch' },
+                { label: childBranch.name, routerLink: ['/branch/child-branch/view', this.branchId.toString()] },
+                { label: 'Add Member', active: true }
+              ];
+            }
+          },
+          error: (err) => {
+            console.error('Error loading branch:', err);
+            this.loading = false;
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: err.error?.message || 'Failed to load branch information. Please try again.'
+            });
+          }
         });
       }
     });
@@ -190,6 +215,7 @@ export class AddMemberComponent implements OnInit {
       date_of_samarpan: formValue.date_of_samarpan || null
     };
 
+    // Use unified service - works for both parent and child branches
     this.locationService.createBranchMember(memberPayload).subscribe({
       next: (response) => {
         this.messageService.add({
@@ -233,7 +259,11 @@ export class AddMemberComponent implements OnInit {
 
   goBack() {
     if (this.branchId) {
-      this.router.navigate(['/branch/view', this.branchId.toString()]);
+      if (this.isChildBranch) {
+        this.router.navigate(['/branch/child-branch/view', this.branchId.toString()]);
+      } else {
+        this.router.navigate(['/branch/view', this.branchId.toString()]);
+      }
     } else {
       this.router.navigate(['/branch']);
     }

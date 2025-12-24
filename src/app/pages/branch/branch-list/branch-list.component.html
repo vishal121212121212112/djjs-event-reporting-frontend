@@ -128,7 +128,7 @@
                 ></p-button>
               </td>
               <td>
-                <a href="#" class="text-primary text-decoration-none" (click)="viewBranch(branch.id, false); $event.preventDefault()">
+                <a href="#" class="text-primary text-decoration-none" (click)="viewBranch(branch.id); $event.preventDefault()">
                   {{ branch.branchName }}
                 </a>
               </td>
@@ -157,12 +157,12 @@
                       <i class="pi pi-user-plus"></i>
                     </a>
                     <a class="dropdown-item" href="#"
-                      (click)="downloadBranch(branch.id, false); closeActionMenu(); $event.preventDefault()"
+                      (click)="downloadBranch(branch.id); closeActionMenu(); $event.preventDefault()"
                       title="Download Details">
                       <i class="pi pi-download"></i>
                     </a>
                     <a class="dropdown-item" href="#"
-                      (click)="openBranchGallery(branch.id, false); closeActionMenu(); $event.preventDefault()"
+                      (click)="openBranchGallery(branch.id); closeActionMenu(); $event.preventDefault()"
                       title="View Gallery">
                       <i class="pi pi-images"></i>
                     </a>
@@ -222,7 +222,7 @@
                       <ng-template pTemplate="body" let-childBranch>
                         <tr>
                           <td>
-                            <a href="#" class="text-primary text-decoration-none" (click)="viewBranch(childBranch.id, true); $event.preventDefault()">
+                            <a href="#" class="text-primary text-decoration-none" (click)="viewBranch(childBranch.id); $event.preventDefault()">
                               {{ childBranch.branchName }}
                             </a>
                           </td>
@@ -251,12 +251,12 @@
                                   <i class="pi pi-user-plus"></i>
                                 </a>
                                 <a class="dropdown-item" href="#"
-                                  (click)="downloadBranch(childBranch.id, true); closeActionMenu(); $event.preventDefault()"
+                                  (click)="downloadBranch(childBranch.id); closeActionMenu(); $event.preventDefault()"
                                   title="Download Details">
                                   <i class="pi pi-download"></i>
                                 </a>
                                 <a class="dropdown-item" href="#"
-                                  (click)="openBranchGallery(childBranch.id, true); closeActionMenu(); $event.preventDefault()"
+                                  (click)="openBranchGallery(childBranch.id); closeActionMenu(); $event.preventDefault()"
                                   title="View Gallery">
                                   <i class="pi pi-images"></i>
                                 </a>

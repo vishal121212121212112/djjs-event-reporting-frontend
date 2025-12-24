@@ -360,9 +360,10 @@ textarea,
 .modal-backdrop {
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   opacity: 0;
+  background-color: rgba(0, 0, 0, 0.6) !important; // Semi-transparent black (darker shadow)
 
   &.show {
-    opacity: 0.5;
+    opacity: 1; // Fully visible when shown
   }
 
   &.fade {
@@ -452,6 +453,7 @@ textarea,
 // CRITICAL: Ensure modal backdrop is also above navbar
 .modal-backdrop {
   z-index: 10990 !important; // Below modal (11000) but above navbar (10000)
+  background-color: rgba(0, 0, 0, 0.6) !important; // Semi-transparent black (darker shadow)
 }
 
 // Modal sizes with smooth scaling

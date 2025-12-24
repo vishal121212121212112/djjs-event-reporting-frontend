@@ -347,7 +347,7 @@ export class BranchListComponent implements OnInit, OnDestroy {
           city: child.city?.name || '',
           establishedOn: child.established_on ? new Date(child.established_on) : new Date(child.created_on || Date.now()),
           ashramArea: child.aashram_area ? `${child.aashram_area} sq km` : '0 sq km',
-          members: child.members || [],
+          members: child.members || child.branch_members || [],
           parentBranchId: child.parent_branch_id
         }));
 
@@ -423,7 +423,7 @@ export class BranchListComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Load child branch members using the new child branch API
+  // Load child branch members using unified API (all members in one table)
   loadChildBranchMembers(childBranchId: string) {
     const childBranchIdNum = parseInt(childBranchId, 10);
     if (isNaN(childBranchIdNum)) {
@@ -432,12 +432,13 @@ export class BranchListComponent implements OnInit, OnDestroy {
     }
 
     this.loadingMembers[childBranchId] = true;
-    this.childBranchService.getChildBranchMembers(childBranchIdNum).subscribe({
-      next: (members: ChildBranchMember[]) => {
-        // Map API response to ChildBranchMember structure (keep original structure)
+    // Use unified service - works for both parent and child branches
+    this.locationService.getBranchMembers(childBranchIdNum).subscribe({
+      next: (members: any[]) => {
+        // Map API response to unified member structure
         const mappedMembers: ChildBranchMember[] = members.map(member => ({
           id: member.id,
-          child_branch_id: member.child_branch_id || childBranchIdNum,
+          branch_id: member.branch_id || childBranchIdNum,
           member_type: member.member_type || '',
           name: member.name || '',
           branch_role: member.branch_role || '',
@@ -483,18 +484,18 @@ export class BranchListComponent implements OnInit, OnDestroy {
     this.router.navigate(['/branch/child-branch/add', parentBranchId]);
   }
 
-  // Add member to branch - navigate to add member page
+  // Add member to branch (works for both parent and child branches)
   addBranchMember(branchId: string) {
     this.router.navigate(['/branch', branchId, 'members', 'add']);
   }
 
-  // Add member to child branch - navigate to add child branch member page
+  // Add member to child branch (now uses same route as parent branches)
   addChildBranchMember(childBranchId: string) {
-    this.router.navigate(['/branch/child-branch', childBranchId, 'members', 'add']);
+    this.router.navigate(['/branch', childBranchId, 'members', 'add']);
   }
 
   // Download branch details
-  downloadBranch(branchId: string, isChildBranch: boolean = false): void {
+  downloadBranch(branchId: string): void {
     if (!branchId) {
       this.messageService.add({
         severity: 'warn',
@@ -521,7 +522,7 @@ export class BranchListComponent implements OnInit, OnDestroy {
     this.messageService.add({
       severity: 'info',
       summary: 'Info',
-      detail: `Download functionality for ${isChildBranch ? 'child ' : ''}branch will be available soon`,
+      detail: `Download functionality for branch will be available soon`,
       life: 3000
     });
 
@@ -563,7 +564,7 @@ export class BranchListComponent implements OnInit, OnDestroy {
   }
 
   // Open branch gallery
-  openBranchGallery(branchId: string, isChildBranch: boolean = false): void {
+  openBranchGallery(branchId: string): void {
     if (!branchId) {
       this.messageService.add({
         severity: 'warn',
@@ -574,26 +575,24 @@ export class BranchListComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Navigate to gallery with branch ID and type
+    // Navigate to gallery with branch ID (child branch status determined automatically)
     this.router.navigate(['/branch/gallery'], {
       queryParams: {
-        branchId: branchId,
-        isChildBranch: isChildBranch
+        branchId: branchId
       }
     });
   }
 
-  // View branch - check if it's a child branch or parent branch
-  viewBranch(branchId: string, isChildBranch: boolean = false) {
-    // If isChildBranch is explicitly provided, use it; otherwise check
-    if (!isChildBranch) {
+  // View branch - check if it's a child branch by checking parent_branch_id
+  viewBranch(branchId: string) {
+    // Check if it's a child branch by looking for it in children arrays
+    let isChildBranch = false;
     for (const branch of this.branches) {
       if (branch.children) {
         const childBranch = branch.children.find(c => c.id === branchId);
         if (childBranch) {
           isChildBranch = true;
-            break;
-          }
+          break;
         }
       }
     }
@@ -602,8 +601,8 @@ export class BranchListComponent implements OnInit, OnDestroy {
       // Navigate to child branch view
       this.router.navigate(['/branch/child-branch/view', branchId]);
     } else {
-    // If not a child branch, navigate to regular branch view
-    this.router.navigate(['/branch/view', branchId]);
+      // If not a child branch, navigate to regular branch view
+      this.router.navigate(['/branch/view', branchId]);
     }
   }
 
