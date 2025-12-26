@@ -280,89 +280,16 @@
 
     </div>
 
-    <!-- Tab Content Add Member-->
+    <!-- Tab Content Members-->
    <div class="tab-pane"
        [ngClass]="{'show active': activeTab === 'members'}">
-      <!-- Add Members -->
+      <!-- List of Members -->
       <section class="card mb-4">
         <div class="card-body">
           <div class="alert alert-info mb-3" role="alert">
             <i class="fas fa-info-circle me-2"></i>
-            <strong>Note:</strong> Add members to this branch. You can add, edit, or remove members at any time.
+            <strong>Note:</strong> This is a view-only list of members for this branch. To add new members, please use the branch members management page.
           </div>
-          <h5 class="mb-3">Add Members</h5>
-          <div class="row g-3">
-            <div class="col-md-3">
-              <label class="form-label">Member Type <span class="text-danger">*</span></label>
-              <select class="form-select" formControlName="memberType">
-                <option value="samarpit">Samarpit Sewadar</option>
-                <option value="preacher">Preacher</option>
-              </select>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">Name <span class="text-danger">*</span></label>
-              <input class="form-control" formControlName="memberName" type="text" placeholder="Enter name" />
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">Role <span class="text-danger">*</span></label>
-              <select class="form-select" formControlName="memberRole">
-                <option value="">Select</option>
-                <option value="Coordinator">Coordinator</option>
-                <option value="Volunteer">Volunteer</option>
-                <option value="Member">Member</option>
-              </select>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">Responsibility</label>
-              <select class="form-select" formControlName="memberResponsibility">
-                <option value="">Select</option>
-                <option value="Teaching">Teaching</option>
-                <option value="Management">Management</option>
-                <option value="Support">Support</option>
-                <option value="Preach">Preach</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="row g-3 mt-1">
-            <div class="col-md-3">
-              <label class="form-label">Age</label>
-              <input class="form-control" formControlName="memberAge" type="number" placeholder="Enter age" />
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">Date of Samarpan</label>
-              <input class="form-control" formControlName="memberDateOfSamarpan" type="date" placeholder="YYYY-MM-DD" />
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">Qualification</label>
-              <select class="form-select" formControlName="memberQualification">
-                <option value="">Select</option>
-                <option value="Graduate">Graduate</option>
-                <option value="Post Graduate">Post Graduate</option>
-                <option value="Diploma">Diploma</option>
-              </select>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">Date of birth</label>
-              <input class="form-control" formControlName="memberDateOfBirth" type="date" placeholder="YYYY-MM-DD" />
-
-            </div>
-          </div>
-
-          <div class="row g-3 mt-1">
-
-            <div class="col-md-3 d-flex align-items-end">
-              <button type="button" class="btn btn-outline-primary w-100" (click)="addMember()">
-                <i class="fas fa-plus me-2"></i>Add Member
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- List of Members -->
-      <section class="card mb-4">
-        <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="mb-0">List of Members ({{members.length}})</h5>
             <div class="btn-group">
