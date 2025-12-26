@@ -66,6 +66,8 @@ export class BranchListComponent implements OnInit, OnDestroy {
   // Action menu state
   openActionMenu: string | null = null;
 
+  // Table scrolling - responsive scrollHeight
+  scrollHeight: string = '400px';
 
   constructor(
     private router: Router,
@@ -82,6 +84,9 @@ export class BranchListComponent implements OnInit, OnDestroy {
       { label: 'Branches', active: true }
     ];
 
+    // Update scroll height for responsive table
+    this.updateScrollHeight();
+
     // Load branches from service
     this.loadBranches();
 
@@ -94,6 +99,25 @@ export class BranchListComponent implements OnInit, OnDestroy {
           this.loadBranches();
         }
       });
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(): void {
+    this.updateScrollHeight();
+  }
+
+  updateScrollHeight(): void {
+    const width = window.innerWidth;
+    if (width >= 1024) {
+      // Desktop (≥1024px)
+      this.scrollHeight = '400px';
+    } else if (width >= 768) {
+      // Tablet (768px-1023px)
+      this.scrollHeight = '300px';
+    } else {
+      // Mobile (<768px)
+      this.scrollHeight = '60vh';
+    }
   }
 
   ngOnDestroy(): void {
@@ -143,40 +167,30 @@ export class BranchListComponent implements OnInit, OnDestroy {
         }
 
         // Convert API branch data to BranchData format
-        let convertedBranches: BranchData[] = branches.map(branch => {
-          console.log('Converting branch:', branch.id, branch.name);
+        // Filter out any child branches that might come through (defensive programming)
+        // Only process parent branches (parent_branch_id is null or undefined)
+        let convertedBranches: BranchData[] = branches
+          .filter(branch => !branch.parent_branch_id) // Only include parent branches
+          .map(branch => {
+            console.log('Converting branch:', branch.id, branch.name);
 
-          // Convert child branches if they exist
-          const children: ChildBranchData[] = [];
-          if (branch.children && Array.isArray(branch.children)) {
-            branch.children.forEach((child: Branch) => {
-              children.push({
-                id: child.id?.toString() || '',
-                branchName: child.name || 'Unnamed Branch',
-                coordinatorName: child.coordinator_name || 'Not specified',
-                state: child.state?.name || '',
-                city: child.city?.name || '',
-                establishedOn: child.established_on ? new Date(child.established_on) : new Date(child.created_on || Date.now()),
-                ashramArea: child.aashram_area ? `${child.aashram_area} sq km` : '0 sq km',
-                members: [],
-                parentBranchId: branch.id || 0
-              });
-            });
-          }
+            // Don't preload children from API response - load them on expand
+            // This ensures child branches are only shown when expanding parent branch
+            const children: ChildBranchData[] = [];
 
-          return {
-            id: branch.id?.toString() || '',
-            branchName: branch.name || 'Unnamed Branch',
-            coordinatorName: branch.coordinator_name || 'Not specified',
-            state: branch.state?.name || '',
-            city: branch.city?.name || '',
-            establishedOn: branch.established_on ? new Date(branch.established_on) : new Date(branch.created_on || Date.now()),
-            ashramArea: branch.aashram_area ? `${branch.aashram_area} sq km` : '0 sq km',
-            members: [], // Members not included in API response
-            children: children,
-            isParent: children.length > 0
-          };
-        });
+            return {
+              id: branch.id?.toString() || '',
+              branchName: branch.name || 'Unnamed Branch',
+              coordinatorName: branch.coordinator_name || 'Not specified',
+              state: branch.state?.name || '',
+              city: branch.city?.name || '',
+              establishedOn: branch.established_on ? new Date(branch.established_on) : new Date(branch.created_on || Date.now()),
+              ashramArea: branch.aashram_area ? `${branch.aashram_area} sq km` : '0 sq km',
+              members: [], // Members not included in API response
+              children: children, // Will be loaded on expand
+              isParent: false // Will be determined when loading child branches
+            };
+          });
 
         console.log('Converted branches:', convertedBranches.length);
 

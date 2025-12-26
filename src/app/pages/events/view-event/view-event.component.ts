@@ -118,6 +118,16 @@ export class ViewEventComponent implements OnInit {
     this.loadEventDetails(Number(eventId));
   }
 
+  /**
+   * Get branch name from event branch (handles both object and string types)
+   */
+  private getBranchName(branch: any): string {
+    if (!branch) return '';
+    if (typeof branch === 'object' && branch.name) return branch.name;
+    if (typeof branch === 'string') return branch;
+    return '';
+  }
+
   loadEventDetails(eventId: number): void {
     this.loading = true;
     this.eventApiService.getEventById(eventId).subscribe({
@@ -144,8 +154,8 @@ export class ViewEventComponent implements OnInit {
           address: event.address || '',
           country: event.country || '',
           spiritualOrator: event.spiritual_orator || '',
-          language: '',
-          branch: '',
+          language: event.language || '',
+          branch: this.getBranchName(event.branch),
           beneficiaries: {
             total: (event.beneficiary_men || 0) + (event.beneficiary_women || 0) + (event.beneficiary_child || 0),
             men: event.beneficiary_men || 0,

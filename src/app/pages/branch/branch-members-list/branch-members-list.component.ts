@@ -256,5 +256,10 @@ export class BranchMembersListComponent implements OnInit {
   get samarpitCount(): number {
     return this.members.filter(m => m.member_type === 'samarpit').length;
   }
+
+  // TrackBy function for ngFor loop to prevent unnecessary DOM re-renders
+  trackByMemberId(index: number, member: BranchMember): number {
+    return member.id;
+  }
 }
 

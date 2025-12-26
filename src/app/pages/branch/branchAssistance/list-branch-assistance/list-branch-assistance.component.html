@@ -36,9 +36,10 @@
         </div>
 
         <!-- User Table -->
-        <p-table [value]="users" [rowHover]="true" [globalFilterFields]="['email', 'name', 'role.name']"
-          (onSort)="onSort($event)" [sortMode]="'multiple'"
-          [tableStyle]="{ 'min-width': '100%' }" [loading]="loading">
+        <div class="scroll-table-wrapper">
+          <p-table [value]="users" [rowHover]="true" [globalFilterFields]="['email', 'name', 'role.name']"
+            (onSort)="onSort($event)" [sortMode]="'multiple'"
+            [tableStyle]="{ 'min-width': '100%' }" [loading]="loading" [scrollable]="true" [scrollHeight]="'100%'">
 
           <!-- Table Header -->
           <ng-template pTemplate="header">
@@ -92,7 +93,8 @@
               <td colspan="6" class="text-center p-4 text-muted">No users found.</td>
             </tr>
           </ng-template>
-        </p-table>
+          </p-table>
+        </div>
 
         <!-- Custom Pagination Component -->
         <app-pagination

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from 'src/environments/environment';
+import { shareReplay } from 'rxjs/operators';
+import { ApiClientService } from './api-client.service';
 
 export interface EventType {
     id: number;
@@ -61,75 +61,170 @@ export interface Theme {
     updated_on?: string;
 }
 
+/**
+ * Master data service with caching
+ * Caches all master data responses to reduce API calls
+ * Cache is shared across subscribers and cleared when no one is subscribed (refCount: true)
+ */
 @Injectable({
     providedIn: 'root'
 })
 export class EventMasterDataService {
-    private apiBaseUrl = environment.apiBaseUrl;
+    // Cache TTL: 5 minutes (300000ms)
+    private readonly CACHE_TTL = 300000;
+    
+    // Cache for each endpoint
+    private eventTypesCache$?: Observable<EventType[]>;
+    private eventCategoriesCache$?: Observable<EventCategory[]>;
+    private promotionMaterialTypesCache$?: Observable<PromotionMaterialType[]>;
+    private languagesCache$?: Observable<Language[]>;
+    private oratorsCache$?: Observable<Orator[]>;
+    private sevaTypesCache$?: Observable<SevaType[]>;
+    private eventSubCategoriesCache$?: Observable<EventSubCategory[]>;
+    private themesCache$?: Observable<Theme[]>;
+    
+    // Cache timestamps for TTL
+    private cacheTimestamps: Map<string, number> = new Map();
 
-    constructor(private http: HttpClient) { }
+    constructor(private apiClient: ApiClientService) { }
 
     /**
-     * Get all event types
+     * Get all event types (cached)
      */
-    getEventTypes(): Observable<EventType[]> {
-        return this.http.get<EventType[]>(`${this.apiBaseUrl}/api/event-types`);
+    getEventTypes(forceRefresh: boolean = false): Observable<EventType[]> {
+        if (forceRefresh || !this.eventTypesCache$ || this.isCacheExpired('eventTypes')) {
+            this.eventTypesCache$ = this.apiClient.safeGet<EventType[]>('/event-types').pipe(
+                shareReplay({ bufferSize: 1, refCount: true })
+            );
+            this.cacheTimestamps.set('eventTypes', Date.now());
+        }
+        return this.eventTypesCache$;
     }
 
     /**
-     * Get all event categories
+     * Get all event categories (cached)
      */
-    getEventCategories(): Observable<EventCategory[]> {
-        return this.http.get<EventCategory[]>(`${this.apiBaseUrl}/api/event-categories`);
+    getEventCategories(forceRefresh: boolean = false): Observable<EventCategory[]> {
+        if (forceRefresh || !this.eventCategoriesCache$ || this.isCacheExpired('eventCategories')) {
+            this.eventCategoriesCache$ = this.apiClient.safeGet<EventCategory[]>('/event-categories').pipe(
+                shareReplay({ bufferSize: 1, refCount: true })
+            );
+            this.cacheTimestamps.set('eventCategories', Date.now());
+        }
+        return this.eventCategoriesCache$;
     }
 
     /**
-     * Get all promotion material types
+     * Get all promotion material types (cached)
      */
-    getPromotionMaterialTypes(): Observable<PromotionMaterialType[]> {
-        return this.http.get<PromotionMaterialType[]>(`${this.apiBaseUrl}/api/promotion-material-types`);
+    getPromotionMaterialTypes(forceRefresh: boolean = false): Observable<PromotionMaterialType[]> {
+        if (forceRefresh || !this.promotionMaterialTypesCache$ || this.isCacheExpired('promotionMaterialTypes')) {
+            this.promotionMaterialTypesCache$ = this.apiClient.safeGet<PromotionMaterialType[]>('/promotion-material-types').pipe(
+                shareReplay({ bufferSize: 1, refCount: true })
+            );
+            this.cacheTimestamps.set('promotionMaterialTypes', Date.now());
+        }
+        return this.promotionMaterialTypesCache$;
     }
 
     /**
-     * Get all languages
+     * Get all languages (cached)
      */
-    getLanguages(): Observable<Language[]> {
-        return this.http.get<Language[]>(`${this.apiBaseUrl}/api/languages`);
+    getLanguages(forceRefresh: boolean = false): Observable<Language[]> {
+        if (forceRefresh || !this.languagesCache$ || this.isCacheExpired('languages')) {
+            this.languagesCache$ = this.apiClient.safeGet<Language[]>('/languages').pipe(
+                shareReplay({ bufferSize: 1, refCount: true })
+            );
+            this.cacheTimestamps.set('languages', Date.now());
+        }
+        return this.languagesCache$;
     }
 
     /**
-     * Get all orators (Coordinators & Preachers)
+     * Get all orators (Coordinators & Preachers) (cached)
      */
-    getOrators(): Observable<Orator[]> {
-        return this.http.get<Orator[]>(`${this.apiBaseUrl}/api/orators`);
+    getOrators(forceRefresh: boolean = false): Observable<Orator[]> {
+        if (forceRefresh || !this.oratorsCache$ || this.isCacheExpired('orators')) {
+            this.oratorsCache$ = this.apiClient.safeGet<Orator[]>('/orators').pipe(
+                shareReplay({ bufferSize: 1, refCount: true })
+            );
+            this.cacheTimestamps.set('orators', Date.now());
+        }
+        return this.oratorsCache$;
     }
 
     /**
-     * Get all seva types
+     * Get all seva types (cached)
      */
-    getSevaTypes(): Observable<SevaType[]> {
-        return this.http.get<SevaType[]>(`${this.apiBaseUrl}/api/seva-types`);
+    getSevaTypes(forceRefresh: boolean = false): Observable<SevaType[]> {
+        if (forceRefresh || !this.sevaTypesCache$ || this.isCacheExpired('sevaTypes')) {
+            this.sevaTypesCache$ = this.apiClient.safeGet<SevaType[]>('/seva-types').pipe(
+                shareReplay({ bufferSize: 1, refCount: true })
+            );
+            this.cacheTimestamps.set('sevaTypes', Date.now());
+        }
+        return this.sevaTypesCache$;
     }
 
     /**
-     * Get all event sub categories
+     * Get all event sub categories (cached)
      */
-    getEventSubCategories(): Observable<EventSubCategory[]> {
-        return this.http.get<EventSubCategory[]>(`${this.apiBaseUrl}/api/event-sub-categories`);
+    getEventSubCategories(forceRefresh: boolean = false): Observable<EventSubCategory[]> {
+        if (forceRefresh || !this.eventSubCategoriesCache$ || this.isCacheExpired('eventSubCategories')) {
+            this.eventSubCategoriesCache$ = this.apiClient.safeGet<EventSubCategory[]>('/event-sub-categories').pipe(
+                shareReplay({ bufferSize: 1, refCount: true })
+            );
+            this.cacheTimestamps.set('eventSubCategories', Date.now());
+        }
+        return this.eventSubCategoriesCache$;
     }
 
     /**
-     * Get event sub categories by category ID
+     * Get event sub categories by category ID (not cached - parameterized query)
      */
     getEventSubCategoriesByCategory(categoryId: number): Observable<EventSubCategory[]> {
-        return this.http.get<EventSubCategory[]>(`${this.apiBaseUrl}/api/event-sub-categories/by-category?category_id=${categoryId}`);
+        return this.apiClient.safeGet<EventSubCategory[]>('/event-sub-categories/by-category', {
+            category_id: categoryId
+        });
     }
 
     /**
-     * Get all themes
+     * Get all themes (cached)
      */
-    getThemes(): Observable<Theme[]> {
-        return this.http.get<Theme[]>(`${this.apiBaseUrl}/api/themes`);
+    getThemes(forceRefresh: boolean = false): Observable<Theme[]> {
+        if (forceRefresh || !this.themesCache$ || this.isCacheExpired('themes')) {
+            this.themesCache$ = this.apiClient.safeGet<Theme[]>('/themes').pipe(
+                shareReplay({ bufferSize: 1, refCount: true })
+            );
+            this.cacheTimestamps.set('themes', Date.now());
+        }
+        return this.themesCache$;
+    }
+
+    /**
+     * Clear all caches
+     */
+    clearCache(): void {
+        this.eventTypesCache$ = undefined;
+        this.eventCategoriesCache$ = undefined;
+        this.promotionMaterialTypesCache$ = undefined;
+        this.languagesCache$ = undefined;
+        this.oratorsCache$ = undefined;
+        this.sevaTypesCache$ = undefined;
+        this.eventSubCategoriesCache$ = undefined;
+        this.themesCache$ = undefined;
+        this.cacheTimestamps.clear();
+    }
+
+    /**
+     * Check if cache is expired
+     */
+    private isCacheExpired(key: string): boolean {
+        const timestamp = this.cacheTimestamps.get(key);
+        if (!timestamp) {
+            return true;
+        }
+        return Date.now() - timestamp > this.CACHE_TTL;
     }
 }
 

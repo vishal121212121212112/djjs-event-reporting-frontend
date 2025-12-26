@@ -531,8 +531,9 @@ textarea,
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   
   // CRITICAL: Ensure modal has correct z-index to be above navbar (10000)
+  // Bootstrap 5 uses z-index 1055 for modals
   &.show {
-    z-index: 11000 !important; // Above navbar (10000) and sidebar (9999)
+    z-index: 11010 !important; // Above navbar (10000) and sidebar (9999), matches portal
     
     .modal-dialog {
       // CRITICAL: Account for navbar height - desktop: 55px, mobile: 60px
@@ -604,9 +605,41 @@ textarea,
 }
 
 // CRITICAL: Ensure modal backdrop is also above navbar
+// Bootstrap 5 uses z-index 1050 for backdrop
 .modal-backdrop {
-  z-index: 10990 !important; // Below modal (11000) but above navbar (10000)
+  z-index: 11000 !important; // Below modal (11010) but above navbar (10000), matches portal
   background-color: rgba(0, 0, 0, 0.6) !important; // Semi-transparent black (darker shadow)
+  pointer-events: auto !important; // Ensure backdrop captures clicks
+}
+
+// CRITICAL: Ensure modal portal container and content are clickable
+.modal-portal-container {
+  .modal {
+    pointer-events: none !important; // Container doesn't capture clicks
+    
+    .modal-dialog {
+      pointer-events: auto !important; // Dialog is clickable
+      z-index: 1 !important;
+    }
+    
+    .modal-content {
+      pointer-events: auto !important; // Content is clickable
+      z-index: 2 !important;
+      position: relative !important;
+    }
+    
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+      pointer-events: auto !important; // Header/body/footer are clickable
+      
+      button, a, input, select, textarea {
+        pointer-events: auto !important;
+        position: relative !important;
+        z-index: 10 !important;
+      }
+    }
+  }
 }
 
 // Modal sizes with smooth scaling

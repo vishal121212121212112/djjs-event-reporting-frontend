@@ -46,30 +46,74 @@
           <h5 class="mb-3">Branch details</h5>
           <div class="row g-3">
             <div class="col-md-4">
+              <label class="form-label">Branch Name <span class="text-danger">*</span></label>
+              <input class="form-control" formControlName="name" placeholder="Enter branch name" 
+                [ngClass]="{'is-invalid': branchForm.get('name')?.invalid && branchForm.get('name')?.touched}" />
+              <div *ngIf="branchForm.get('name')?.invalid && branchForm.get('name')?.touched" class="text-danger small mt-1">
+                <span *ngIf="branchForm.get('name')?.errors?.['required']">Branch name is required</span>
+                <span *ngIf="branchForm.get('name')?.errors?.['minlength']">Branch name must be at least 2 characters</span>
+                <span *ngIf="branchForm.get('name')?.errors?.['maxlength']">Branch name must not exceed 255 characters</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Email <span class="text-danger">*</span></label>
+              <input type="email" class="form-control" formControlName="email" placeholder="Enter email"
+                [ngClass]="{'is-invalid': branchForm.get('email')?.invalid && branchForm.get('email')?.touched}" />
+              <div *ngIf="branchForm.get('email')?.invalid && branchForm.get('email')?.touched" class="text-danger small mt-1">
+                <span *ngIf="branchForm.get('email')?.errors?.['required']">Email is required</span>
+                <span *ngIf="branchForm.get('email')?.errors?.['email']">Invalid email format</span>
+                <span *ngIf="branchForm.get('email')?.errors?.['maxlength']">Email must not exceed 255 characters</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Contact Number <span class="text-danger">*</span></label>
+              <input type="tel" class="form-control" formControlName="contactNumber" placeholder="Enter contact number"
+                [ngClass]="{'is-invalid': branchForm.get('contactNumber')?.invalid && branchForm.get('contactNumber')?.touched}" />
+              <div *ngIf="branchForm.get('contactNumber')?.invalid && branchForm.get('contactNumber')?.touched" class="text-danger small mt-1">
+                <span *ngIf="branchForm.get('contactNumber')?.errors?.['required']">Contact number is required</span>
+                <span *ngIf="branchForm.get('contactNumber')?.errors?.['maxlength']">Contact number must not exceed 20 characters</span>
+              </div>
+            </div>
+          </div>
+          <div class="row g-3 mt-1">
+            <div class="col-md-4">
               <label class="form-label">Coordinator <span class="text-danger">*</span></label>
-              <select class="form-select" formControlName="coordinator" [disabled]="loadingCoordinators">
+              <select class="form-select" formControlName="coordinator" [disabled]="loadingCoordinators"
+                [ngClass]="{'is-invalid': branchForm.get('coordinator')?.invalid && branchForm.get('coordinator')?.touched}">
                 <option value="">Select</option>
                 <option *ngFor="let coordinator of coordinatorsList" [value]="coordinator.id">{{coordinator.name}}</option>
               </select>
+              <div *ngIf="branchForm.get('coordinator')?.invalid && branchForm.get('coordinator')?.touched" class="text-danger small mt-1">
+                Coordinator is required
+              </div>
             </div>
             <div class="col-md-4">
               <label class="form-label">Established on <span class="text-danger">*</span></label>
-              <input type="date" class="form-control" formControlName="establishedOn" placeholder="dd MMM yyyy" />
+              <input type="date" class="form-control" formControlName="establishedOn" placeholder="dd MMM yyyy"
+                [ngClass]="{'is-invalid': branchForm.get('establishedOn')?.invalid && branchForm.get('establishedOn')?.touched}" />
+              <div *ngIf="branchForm.get('establishedOn')?.invalid && branchForm.get('establishedOn')?.touched" class="text-danger small mt-1">
+                Established date is required
+              </div>
             </div>
             <div class="col-md-4">
               <label class="form-label">Ashram area <span class="text-danger">*</span></label>
               <div class="input-group">
                 <input class="form-control" formControlName="ashramArea" type="number" step="0.01"
-                  placeholder="Enter number" />
+                  placeholder="Enter number"
+                  [ngClass]="{'is-invalid': branchForm.get('ashramArea')?.invalid && branchForm.get('ashramArea')?.touched}" />
                 <span class="input-group-text">Sq km</span>
               </div>
+              <div *ngIf="branchForm.get('ashramArea')?.invalid && branchForm.get('ashramArea')?.touched" class="text-danger small mt-1">
+                <span *ngIf="branchForm.get('ashramArea')?.errors?.['required']">Ashram area is required</span>
+                <span *ngIf="branchForm.get('ashramArea')?.errors?.['min']">Ashram area must be 0 or greater</span>
+              </div>
             </div>
+          </div>
+          <div class="row g-3 mt-1">
             <div class="col-md-4">
               <label class="form-label">Branch Code</label>
               <input class="form-control" formControlName="branchCode" placeholder="Enter branch code" maxlength="50" />
             </div>
-          </div>
-          <div class="row g-3 mt-1">
             <div class="col-md-4">
               <label class="form-label">Open days</label>
               <input class="form-control" formControlName="openDays" placeholder="Enter days" />
@@ -78,44 +122,11 @@
               <label class="form-label">Daily start time</label>
               <input type="time" class="form-control" formControlName="dailyStartTime" />
             </div>
+          </div>
+          <div class="row g-3 mt-1">
             <div class="col-md-4">
               <label class="form-label">Daily end time</label>
               <input type="time" class="form-control" formControlName="dailyEndTime" />
-            </div>
-          </div>
-          <div class="row g-3 mt-1">
-            <div class="col-12">
-              <h6 class="mb-3">Child Branches</h6>
-              <div formArrayName="childBranches">
-                <div *ngFor="let childBranch of childBranches.controls; let i = index" [formGroupName]="i" class="card mb-3">
-                  <div class="card-body">
-                    <div class="row g-3">
-                      <div class="col-md-5">
-              <label class="form-label">Child Branch Name <span class="text-danger">*</span></label>
-                        <select class="form-select" formControlName="name">
-                          <option value="">Select Branch</option>
-                          <option *ngFor="let branch of childBranchesList" [value]="branch.id" [disabled]="branch.id === branchId">
-                            {{branch.name}}
-                          </option>
-              </select>
-                        <input type="hidden" formControlName="id" />
-            </div>
-                      <div class="col-md-6">
-              <label class="form-label">Address <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" formControlName="address" placeholder="Enter address" />
-                      </div>
-                      <div class="col-md-1 d-flex align-items-end">
-                        <button type="button" class="btn btn-outline-danger" (click)="removeChildBranch(i)">
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <button type="button" class="btn btn-outline-primary" (click)="addChildBranch()">
-                  <i class="fas fa-plus me-2"></i>Add Child Branch
-                </button>
-              </div>
             </div>
           </div>
 
@@ -130,42 +141,57 @@
           <div class="row g-3">
             <div class="col-md-3">
               <label class="form-label">Country <span class="text-danger">*</span></label>
-              <select class="form-select" formControlName="country" [disabled]="loadingCountries">
+              <select class="form-select" formControlName="country" [disabled]="loadingCountries"
+                [ngClass]="{'is-invalid': branchForm.get('country')?.invalid && branchForm.get('country')?.touched}">
                 <option value="">Select</option>
                 <option *ngFor="let c of countryList" [value]="c.id">{{c.name}}</option>
               </select>
+              <div *ngIf="branchForm.get('country')?.invalid && branchForm.get('country')?.touched" class="text-danger small mt-1">
+                Country is required
+              </div>
             </div>
             <div class="col-md-3">
               <label class="form-label">States <span class="text-danger">*</span></label>
-              <select class="form-select" formControlName="state" [disabled]="!stateList.length || loadingStates">
+              <select class="form-select" formControlName="state" [disabled]="!stateList.length || loadingStates"
+                [ngClass]="{'is-invalid': branchForm.get('state')?.invalid && branchForm.get('state')?.touched}">
                 <option value="">Select</option>
                 <option *ngFor="let s of stateList" [value]="s.id">{{s.name}}</option>
               </select>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">Districts <span class="text-danger">*</span></label>
-              <select class="form-select" formControlName="districts" [disabled]="!districtOptions.length || loadingDistricts">
-                <option value="">Select</option>
-                <option *ngFor="let d of districtOptions" [value]="d.id">{{d.name}}</option>
-              </select>
+              <div *ngIf="branchForm.get('state')?.invalid && branchForm.get('state')?.touched" class="text-danger small mt-1">
+                State is required
+              </div>
             </div>
             <div class="col-md-3">
               <label class="form-label">City <span class="text-danger">*</span></label>
-              <select class="form-select" formControlName="city" [disabled]="!cityList.length || loadingCities">
+              <select class="form-select" formControlName="city" [disabled]="!cityList.length || loadingCities"
+                [ngClass]="{'is-invalid': branchForm.get('city')?.invalid && branchForm.get('city')?.touched}">
                 <option value="">Select</option>
                 <option *ngFor="let c of cityList" [value]="c.id">{{c.name}}</option>
               </select>
+              <div *ngIf="branchForm.get('city')?.invalid && branchForm.get('city')?.touched" class="text-danger small mt-1">
+                City is required
+              </div>
             </div>
           </div>
 
           <div class="row g-3 mt-1">
             <div class="col-md-4">
               <label class="form-label">Pincode <span class="text-danger">*</span></label>
-              <input class="form-control" formControlName="pincode" placeholder="Pincode" />
+              <input class="form-control" formControlName="pincode" placeholder="Pincode"
+                [ngClass]="{'is-invalid': branchForm.get('pincode')?.invalid && branchForm.get('pincode')?.touched}" />
+              <div *ngIf="branchForm.get('pincode')?.invalid && branchForm.get('pincode')?.touched" class="text-danger small mt-1">
+                <span *ngIf="branchForm.get('pincode')?.errors?.['required']">Pincode is required</span>
+                <span *ngIf="branchForm.get('pincode')?.errors?.['pattern']">Pincode must be 5 or 6 digits</span>
+              </div>
             </div>
             <div class="col-md-4">
               <label class="form-label">Post office <span class="text-danger">*</span></label>
-              <input class="form-control" formControlName="postOffice" placeholder="Post office" />
+              <input class="form-control" formControlName="postOffice" placeholder="Post office"
+                [ngClass]="{'is-invalid': branchForm.get('postOffice')?.invalid && branchForm.get('postOffice')?.touched}" />
+              <div *ngIf="branchForm.get('postOffice')?.invalid && branchForm.get('postOffice')?.touched" class="text-danger small mt-1">
+                <span *ngIf="branchForm.get('postOffice')?.errors?.['required']">Post office is required</span>
+                <span *ngIf="branchForm.get('postOffice')?.errors?.['maxlength']">Post office must not exceed 100 characters</span>
+              </div>
             </div>
             <div class="col-md-4">
               <label class="form-label">Police Station</label>
@@ -176,7 +202,12 @@
           <div class="row g-3 mt-1">
             <div class="col-12">
               <label class="form-label">Address <span class="text-danger">*</span></label>
-              <input class="form-control" formControlName="address" placeholder="Enter address" />
+              <input class="form-control" formControlName="address" placeholder="Enter address"
+                [ngClass]="{'is-invalid': branchForm.get('address')?.invalid && branchForm.get('address')?.touched}" />
+              <div *ngIf="branchForm.get('address')?.invalid && branchForm.get('address')?.touched" class="text-danger small mt-1">
+                <span *ngIf="branchForm.get('address')?.errors?.['required']">Address is required</span>
+                <span *ngIf="branchForm.get('address')?.errors?.['maxlength']">Address must not exceed 500 characters</span>
+              </div>
             </div>
           </div>
         </div>
@@ -270,11 +301,11 @@
             </div>
             <div class="col-md-3">
               <label class="form-label">Name <span class="text-danger">*</span></label>
-              <input class="form-control" formControlName="name" type="text" placeholder="Enter name" />
+              <input class="form-control" formControlName="memberName" type="text" placeholder="Enter name" />
             </div>
             <div class="col-md-3">
               <label class="form-label">Role <span class="text-danger">*</span></label>
-              <select class="form-select" formControlName="role">
+              <select class="form-select" formControlName="memberRole">
                 <option value="">Select</option>
                 <option value="Coordinator">Coordinator</option>
                 <option value="Volunteer">Volunteer</option>
@@ -283,7 +314,7 @@
             </div>
             <div class="col-md-3">
               <label class="form-label">Responsibility</label>
-              <select class="form-select" formControlName="responsibility">
+              <select class="form-select" formControlName="memberResponsibility">
                 <option value="">Select</option>
                 <option value="Teaching">Teaching</option>
                 <option value="Management">Management</option>
@@ -296,15 +327,15 @@
           <div class="row g-3 mt-1">
             <div class="col-md-3">
               <label class="form-label">Age</label>
-              <input class="form-control" formControlName="age" type="number" placeholder="Enter age" />
+              <input class="form-control" formControlName="memberAge" type="number" placeholder="Enter age" />
             </div>
             <div class="col-md-3">
               <label class="form-label">Date of Samarpan</label>
-              <input class="form-control" formControlName="dateOfSamarpan" type="date" placeholder="YYYY-MM-DD" />
+              <input class="form-control" formControlName="memberDateOfSamarpan" type="date" placeholder="YYYY-MM-DD" />
             </div>
             <div class="col-md-3">
               <label class="form-label">Qualification</label>
-              <select class="form-select" formControlName="qualification">
+              <select class="form-select" formControlName="memberQualification">
                 <option value="">Select</option>
                 <option value="Graduate">Graduate</option>
                 <option value="Post Graduate">Post Graduate</option>
@@ -313,7 +344,7 @@
             </div>
             <div class="col-md-3">
               <label class="form-label">Date of birth</label>
-              <input class="form-control" formControlName="dateOfBirth" type="date" placeholder="YYYY-MM-DD" />
+              <input class="form-control" formControlName="memberDateOfBirth" type="date" placeholder="YYYY-MM-DD" />
 
             </div>
           </div>

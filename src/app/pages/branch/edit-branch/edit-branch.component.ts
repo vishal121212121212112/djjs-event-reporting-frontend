@@ -1,12 +1,11 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core'
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms'
-import { LocationService, Branch, BranchPayload, Country, State, District, City, Coordinator } from 'src/app/core/services/location.service'
-import { ChildBranchService, ChildBranchPayload } from 'src/app/core/services/child-branch.service'
+import { LocationService, Branch, BranchPayload, Country, State, City, Coordinator } from 'src/app/core/services/location.service'
 import { TokenStorageService } from 'src/app/core/services/token-storage.service'
 import { Router, ActivatedRoute } from '@angular/router'
 import { MessageService } from 'primeng/api'
 import { ConfirmationDialogService } from 'src/app/core/services/confirmation-dialog.service'
-import { forkJoin, of } from 'rxjs'
+import { of } from 'rxjs'
 
 @Component({
     selector: 'app-edit-branch',
@@ -31,14 +30,11 @@ export class EditBranchComponent implements OnInit {
     countryList: Country[] = [];
     stateList: State[] = [];
     cityList: City[] = [];
-    districtOptions: District[] = [];
     coordinatorsList: Coordinator[] = [];
-    childBranchesList: Branch[] = []; // List of all branches for child branch selection
 
     // Loading states
     loadingCountries = false;
     loadingStates = false;
-    loadingDistricts = false;
     loadingCities = false;
     loadingCoordinators = false;
     loadingBranch = false;
@@ -52,7 +48,6 @@ export class EditBranchComponent implements OnInit {
     constructor(
         private fb: FormBuilder,
         private locationService: LocationService,
-        private childBranchService: ChildBranchService,
         private tokenStorage: TokenStorageService,
         private router: Router,
         private route: ActivatedRoute,
@@ -71,21 +66,22 @@ export class EditBranchComponent implements OnInit {
 
         // Initialize form first
         this.branchForm = this.fb.group({
+            name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(255)]],
+            email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
+            contactNumber: ['', [Validators.required, Validators.maxLength(20)]],
             coordinator: ['', Validators.required],
             establishedOn: ['', Validators.required],
-            ashramArea: ['', Validators.required],
+            ashramArea: ['', [Validators.required, Validators.min(0)]],
             country: ['', Validators.required],
-            pincode: ['', Validators.required],
-            postOffice: ['', Validators.required],
+            pincode: ['', [Validators.required, Validators.pattern(/^\d{5,6}$/)]],
+            postOffice: ['', [Validators.required, Validators.maxLength(100)]],
             thana: [''],
             tehsil: [''],
             state: ['', Validators.required],
             city: ['', Validators.required],
             addressType: [''], // Optional field
-            address: ['', Validators.required],
-            districts: ['', Validators.required],
+            address: ['', [Validators.required, Validators.maxLength(500)]],
             areaCovered: [''],
-            childBranches: this.fb.array([]), // FormArray for child branches
             infrastructure: this.fb.array([
                 this.fb.group({
                     roomType: [''],
@@ -102,13 +98,13 @@ export class EditBranchComponent implements OnInit {
             members: this.fb.array([]),
             // Member input fields (for adding new members)
             memberType: ['samarpit'], // Default member type
-            name: [''], // Member name input
-            role: [''], // Member role input
-            responsibility: [''], // Member responsibility input
-            age: [''], // Member age input
-            dateOfSamarpan: [''], // Member date of samarpan input
-            qualification: [''], // Member qualification input
-            dateOfBirth: [''] // Member date of birth input
+            memberName: [''], // Member name input
+            memberRole: [''], // Member role input
+            memberResponsibility: [''], // Member responsibility input
+            memberAge: [''], // Member age input
+            memberDateOfSamarpan: [''], // Member date of samarpan input
+            memberQualification: [''], // Member qualification input
+            memberDateOfBirth: [''] // Member date of birth input
         });
 
         // Set initial breadcrumbs
@@ -155,22 +151,18 @@ export class EditBranchComponent implements OnInit {
             } else {
                 this.stateList = [];
                 this.cityList = [];
-                this.districtOptions = [];
-                this.branchForm.patchValue({ state: '', city: '', districts: '' }, { emitEvent: false });
+                this.branchForm.patchValue({ state: '', city: '' }, { emitEvent: false });
             }
         });
 
         this.branchForm.get('state')?.valueChanges.subscribe(stateId => {
             if (isInitialLoad) return; // Skip during initial load
 
-            const countryId = this.branchForm.get('country')?.value;
-            if (stateId && countryId) {
-                this.loadDistricts(stateId, countryId);
+            if (stateId) {
                 this.loadCities(stateId);
             } else {
                 this.cityList = [];
-                this.districtOptions = [];
-                this.branchForm.patchValue({ city: '', districts: '' }, { emitEvent: false });
+                this.branchForm.patchValue({ city: '' }, { emitEvent: false });
             }
         });
 
@@ -235,19 +227,9 @@ export class EditBranchComponent implements OnInit {
             }
         });
 
-        // Load all branches
-        this.locationService.getAllBranches().subscribe({
-            next: (branches) => {
-                this.childBranchesList = branches;
-                branchesLoaded = true;
-                checkAndLoadBranch();
-            },
-            error: (error) => {
-                console.error('Error loading branches:', error);
-                branchesLoaded = true; // Set to true even on error to prevent blocking
-                checkAndLoadBranch();
-            }
-        });
+        // Load all branches - not needed for edit, so mark as loaded
+        branchesLoaded = true;
+        checkAndLoadBranch();
     }
 
     /**
@@ -287,63 +269,19 @@ export class EditBranchComponent implements OnInit {
 
                 console.log('Found country:', country, 'from branch:', branch.country, 'country_id:', branch.country_id);
 
-                if (!country) {
-                    console.error('Country not found. Available countries:', this.countryList);
-                    this.loadingBranch = false;
-                    this.messageService.add({
-                        severity: 'warn',
-                        summary: 'Warning',
-                        detail: 'Country not found for this branch. Please select manually.'
-                    });
-                    // Continue anyway - user can select manually
-                }
-
-                // Find coordinator ID
-                const coordinatorId = this.findCoordinatorId(branch.coordinator_name);
-                console.log('Coordinator lookup - Name:', branch.coordinator_name, 'Found ID:', coordinatorId, 'Available coordinators:', this.coordinatorsList.length);
-
-                // Load child branches from the new child branch API
-                this.childBranchService.getChildBranchesByParent(this.branchId).subscribe({
-                    next: (childBranches) => {
-                        if (childBranches && childBranches.length > 0) {
-                            // Clear existing child branches
-                            while (this.childBranches.length !== 0) {
-                                this.childBranches.removeAt(0);
-                            }
-                            // Add each child branch from the separate table
-                            childBranches.forEach((child: any) => {
-                                const childGroup = this.fb.group({
-                                    id: [child.id],
-                                    name: [child.name || ''], // Store name for display
-                                    contact_number: [child.contact_number || ''],
-                                    email: [child.email || ''],
-                                    address: [child.address || ''],
-                                    pincode: [child.pincode || ''],
-                                    post_office: [child.post_office || ''],
-                                    police_station: [child.police_station || ''],
-                                    country_id: [child.country_id || null],
-                                    state_id: [child.state_id || null],
-                                    district_id: [child.district_id || null],
-                                    city_id: [child.city_id || null],
-                                    established_on: [child.established_on || ''],
-                                    aashram_area: [child.aashram_area || 0],
-                                    open_days: [child.open_days || ''],
-                                    daily_start_time: [child.daily_start_time || ''],
-                                    daily_end_time: [child.daily_end_time || ''],
-                                    status: [child.status !== undefined ? child.status : true],
-                                    ncr: [child.ncr !== undefined ? child.ncr : false],
-                                    region_id: [child.region_id || null],
-                                    branch_code: [child.branch_code || '']
-                                });
-                                this.childBranches.push(childGroup);
-                            });
-                        }
-                    },
-                    error: (error) => {
-                        console.error('Error loading child branches:', error);
-                        // Continue anyway - child branches may not exist yet
+                // Find coordinator ID - try multiple matching strategies
+                let coordinatorId: number | null = null;
+                if (branch.coordinator_name) {
+                    coordinatorId = this.findCoordinatorId(branch.coordinator_name);
+                    // If not found by exact name, try case-insensitive match
+                    if (!coordinatorId) {
+                        const coordinator = this.coordinatorsList.find(c => 
+                            c.name.toLowerCase() === branch.coordinator_name.toLowerCase()
+                        );
+                        coordinatorId = coordinator ? coordinator.id : null;
                     }
-                });
+                }
+                console.log('Coordinator lookup - Name:', branch.coordinator_name, 'Found ID:', coordinatorId, 'Available coordinators:', this.coordinatorsList.length);
 
                 // Format established date
                 let establishedDate = '';
@@ -362,15 +300,39 @@ export class EditBranchComponent implements OnInit {
                     }
                 }
 
-                // Prepare form values object
+                // Determine country ID to use
+                let countryIdToUse = country ? country.id : null;
+                
+                // If country not found but branch has state with country_id, use that
+                if (!countryIdToUse && branch.state && branch.state.country_id) {
+                    countryIdToUse = branch.state.country_id;
+                    // Try to find this country in the list
+                    const countryFromState = this.countryList.find(c => c.id === countryIdToUse);
+                    if (countryFromState) {
+                        countryIdToUse = countryFromState.id;
+                    }
+                } else if (!countryIdToUse && branch.country_id) {
+                    countryIdToUse = branch.country_id;
+                }
+
+                // Prepare form values object with all basic fields
+                // Convert coordinatorId to string if it exists, since form expects string
+                const coordinatorValue = coordinatorId ? coordinatorId.toString() : '';
+                
                 const formValues: any = {
-                    coordinator: coordinatorId || '',
-                    establishedOn: establishedDate,
-                    ashramArea: branch.aashram_area || 0,
+                    name: branch.name || '',
+                    email: branch.email || '',
+                    contactNumber: branch.contact_number || '',
+                    coordinator: coordinatorValue,
+                    establishedOn: establishedDate || '',
+                    ashramArea: branch.aashram_area !== null && branch.aashram_area !== undefined ? branch.aashram_area : 0,
                     pincode: branch.pincode || '',
                     postOffice: branch.post_office || '',
                     thana: branch.police_station || '',
+                    tehsil: '', // Not in backend model, keep empty
                     address: branch.address || '',
+                    areaCovered: '', // Not in backend model, keep empty
+                    addressType: '', // Not in backend model, keep empty
                     openDays: branch.open_days || '',
                     dailyStartTime: branch.daily_start_time || '',
                     dailyEndTime: branch.daily_end_time || '',
@@ -380,40 +342,69 @@ export class EditBranchComponent implements OnInit {
                     branchCode: branch.branch_code || ''
                 };
 
-                // Only set country if we found it
-                if (country) {
-                    formValues.country = country.id;
-                }
-
-                console.log('Patching form with values:', formValues);
-
-                // Patch form with all values at once, without emitting events
+                // Patch all basic fields immediately (without location fields)
+                console.log('Patching form with basic values:', formValues);
+                console.log('Coordinator ID to set:', coordinatorId);
+                console.log('Established date to set:', establishedDate);
+                
                 try {
-                    this.branchForm.patchValue(formValues, { emitEvent: false });
-
-                    // Verify each control was set
-                    Object.keys(formValues).forEach(key => {
-                        const control = this.branchForm.get(key);
-                        if (control) {
-                            const value = control.value;
-                            console.log(`Control "${key}": set to "${value}", expected "${formValues[key]}"`);
-                            if (value !== formValues[key] && formValues[key] !== '') {
-                                console.warn(`Control "${key}" value mismatch!`);
-                            }
-                        } else {
-                            console.warn(`Control "${key}" not found in form!`);
+                    // Use setValue for all fields to ensure they're properly set
+                    // This ensures the form recognizes the values even if they're empty strings
+                    this.branchForm.patchValue({
+                        name: formValues.name || '',
+                        email: formValues.email || '',
+                        contactNumber: formValues.contactNumber || '',
+                        coordinator: coordinatorValue,
+                        establishedOn: establishedDate || '',
+                        ashramArea: formValues.ashramArea !== null && formValues.ashramArea !== undefined ? formValues.ashramArea : 0,
+                        pincode: formValues.pincode || '',
+                        postOffice: formValues.postOffice || '',
+                        thana: formValues.thana || '',
+                        address: formValues.address || '',
+                        openDays: formValues.openDays || '',
+                        dailyStartTime: formValues.dailyStartTime || '',
+                        dailyEndTime: formValues.dailyEndTime || '',
+                        branchCode: formValues.branchCode || '',
+                        regionId: formValues.regionId || '',
+                        status: formValues.status !== undefined ? formValues.status : true,
+                        ncr: formValues.ncr !== undefined ? formValues.ncr : false
+                    }, { emitEvent: false });
+                    
+                    // Force update for critical fields to ensure they're set
+                    setTimeout(() => {
+                        if (formValues.name) {
+                            this.branchForm.get('name')?.setValue(formValues.name, { emitEvent: false });
                         }
-                    });
+                        if (formValues.email) {
+                            this.branchForm.get('email')?.setValue(formValues.email, { emitEvent: false });
+                        }
+                        if (formValues.contactNumber) {
+                            this.branchForm.get('contactNumber')?.setValue(formValues.contactNumber, { emitEvent: false });
+                        }
+                        if (coordinatorValue) {
+                            this.branchForm.get('coordinator')?.setValue(coordinatorValue, { emitEvent: false });
+                        }
+                        if (establishedDate) {
+                            this.branchForm.get('establishedOn')?.setValue(establishedDate, { emitEvent: false });
+                        }
+                        if (formValues.ashramArea !== undefined && formValues.ashramArea !== null) {
+                            this.branchForm.get('ashramArea')?.setValue(formValues.ashramArea, { emitEvent: false });
+                        }
+                        this.cdr.detectChanges();
+                    }, 100);
+                    
+                    this.cdr.detectChanges();
+                    
+                    // Verify critical fields were set
+                    console.log('Form after patch - name:', this.branchForm.get('name')?.value);
+                    console.log('Form after patch - email:', this.branchForm.get('email')?.value);
+                    console.log('Form after patch - contactNumber:', this.branchForm.get('contactNumber')?.value);
+                    console.log('Form after patch - coordinator:', this.branchForm.get('coordinator')?.value);
+                    console.log('Form after patch - establishedOn:', this.branchForm.get('establishedOn')?.value);
+                    console.log('Form after patch - ashramArea:', this.branchForm.get('ashramArea')?.value);
                 } catch (error) {
                     console.error('Error patching form:', error);
                 }
-
-                // Verify the patch worked
-                console.log('Form values after patch:', this.branchForm.value);
-
-                // Force change detection
-                this.cdr.detectChanges();
-                this.updateCompletion();
 
                 // Load infrastructure data
                 this.loadBranchInfrastructure();
@@ -421,24 +412,120 @@ export class EditBranchComponent implements OnInit {
                 // Load members for this branch
                 this.loadBranchMembers();
 
-                // If country is found, load states and location data
-                if (country) {
+                // Now handle location fields (country -> state -> city)
+                if (countryIdToUse) {
+                    // Load states for the country
                     this.loadingStates = true;
-                    this.locationService.getStatesByCountry(country.id).subscribe({
+                    this.locationService.getStatesByCountry(countryIdToUse).subscribe({
                         next: (states) => {
                             this.stateList = states;
                             this.loadingStates = false;
-                            this.setLocationValues(branch, country.id);
+                            
+                            // Patch form with country
+                            this.branchForm.patchValue({ country: countryIdToUse }, { emitEvent: false });
+                            this.cdr.detectChanges();
+                            
+                            // Now set state and city
+                            this.setLocationValues(branch, countryIdToUse, coordinatorId, establishedDate);
                         },
                         error: (error) => {
                             console.error('Error loading states:', error);
                             this.loadingStates = false;
+                            
+                            // If state exists in branch data, try to set it directly
+                            if (branch.state && branch.state.id) {
+                                // Add the state to stateList if not already there
+                                const existingState = this.stateList.find(s => s.id === branch.state.id);
+                                if (!existingState && branch.state.name) {
+                                    this.stateList.push({ 
+                                        id: branch.state.id, 
+                                        name: branch.state.name, 
+                                        country_id: branch.state.country_id 
+                                    });
+                                }
+                                
+                                // Set country if we have it
+                                if (countryIdToUse) {
+                                    this.branchForm.patchValue({ country: countryIdToUse }, { emitEvent: false });
+                                }
+                                
+                                this.branchForm.patchValue({ state: branch.state.id }, { emitEvent: false });
+                                
+                                // Try to load cities for this state
+                                this.loadingCities = true;
+                                this.locationService.getCitiesByState(branch.state.id).subscribe({
+                                    next: (cities) => {
+                                        this.cityList = cities;
+                                        if (branch.city && branch.city.id) {
+                                            this.branchForm.patchValue({ city: branch.city.id }, { emitEvent: false });
+                                        }
+                                        this.loadingCities = false;
+                                        this.loadingBranch = false;
+                                        this.cdr.detectChanges();
+                                        this.updateCompletion();
+                                    },
+                                    error: (err) => {
+                                        console.error('Error loading cities:', err);
+                                        this.loadingCities = false;
+                                        this.loadingBranch = false;
+                                        this.cdr.detectChanges();
+                                        this.updateCompletion();
+                                    }
+                                });
+                            } else {
+                                this.loadingBranch = false;
+                                this.cdr.detectChanges();
+                                this.updateCompletion();
+                            }
+                        }
+                    });
+                } else if (branch.state && branch.state.id) {
+                    // If we have state but no country, try to load state and city directly
+                    // Add the state to stateList if not already there
+                    const existingState = this.stateList.find(s => s.id === branch.state.id);
+                    if (!existingState && branch.state.name) {
+                        this.stateList.push({ 
+                            id: branch.state.id, 
+                            name: branch.state.name, 
+                            country_id: branch.state.country_id 
+                        });
+                    }
+                    
+                    // Try to set country from state if available
+                    if (branch.state.country_id) {
+                        const countryFromState = this.countryList.find(c => c.id === branch.state.country_id);
+                        if (countryFromState) {
+                            this.branchForm.patchValue({ country: countryFromState.id }, { emitEvent: false });
+                        }
+                    }
+                    
+                    this.branchForm.patchValue({ state: branch.state.id }, { emitEvent: false });
+                    
+                    this.loadingCities = true;
+                    this.locationService.getCitiesByState(branch.state.id).subscribe({
+                        next: (cities) => {
+                            this.cityList = cities;
+                            if (branch.city && branch.city.id) {
+                                this.branchForm.patchValue({ city: branch.city.id }, { emitEvent: false });
+                            }
+                            this.loadingCities = false;
                             this.loadingBranch = false;
+                            this.cdr.detectChanges();
+                            this.updateCompletion();
+                        },
+                        error: (err) => {
+                            console.error('Error loading cities:', err);
+                            this.loadingCities = false;
+                            this.loadingBranch = false;
+                            this.cdr.detectChanges();
+                            this.updateCompletion();
                         }
                     });
                 } else {
-                    // If no country, just mark loading as complete
+                    // No location data available
                     this.loadingBranch = false;
+                    this.cdr.detectChanges();
+                    this.updateCompletion();
                 }
             },
             error: (error) => {
@@ -454,9 +541,9 @@ export class EditBranchComponent implements OnInit {
     }
 
     /**
-     * Set location values (state, city, district) after they're loaded
+     * Set location values (state, city) after they're loaded
      */
-    setLocationValues(branch: Branch, countryId: number) {
+    setLocationValues(branch: Branch, countryId: number, coordinatorId?: number | null, establishedDate?: string) {
         console.log('Setting location values. Branch state:', branch.state, 'state_id:', branch.state_id, 'Available states:', this.stateList.length);
 
         // Find state by name or ID (branch.state is an object with name property)
@@ -469,51 +556,12 @@ export class EditBranchComponent implements OnInit {
 
         if (state) {
             console.log('Found state:', state);
+            
+            // Patch state value
             this.branchForm.patchValue({ state: state.id }, { emitEvent: false });
+            this.cdr.detectChanges();
 
-            let districtsLoaded = false;
-            let citiesLoaded = false;
-
-            const checkComplete = () => {
-                if (districtsLoaded && citiesLoaded) {
-                    this.loadingBranch = false;
-                    console.log('Branch data loading complete. Final form values:', JSON.stringify(this.branchForm.value, null, 2));
-                }
-            };
-
-            // Load districts and cities for this state
-            this.loadingDistricts = true;
-            this.locationService.getDistrictsByStateAndCountry(state.id, countryId).subscribe({
-                next: (districts) => {
-                    this.districtOptions = districts;
-                    console.log('Districts loaded:', districts.length, 'Branch district:', branch.district, 'district_id:', branch.district_id);
-
-                    // branch.district is an object with name property
-                    const district = districts.find(d => {
-                        if (branch.district && branch.district.name) {
-                            return d.name === branch.district.name || d.id === branch.district.id;
-                        }
-                        return d.id === branch.district_id;
-                    });
-
-                    if (district) {
-                        console.log('Found district:', district);
-                        this.branchForm.patchValue({ districts: district.id }, { emitEvent: false });
-                    } else {
-                        console.warn('District not found');
-                    }
-                    this.loadingDistricts = false;
-                    districtsLoaded = true;
-                    checkComplete();
-                },
-                error: (error) => {
-                    console.error('Error loading districts:', error);
-                    this.loadingDistricts = false;
-                    districtsLoaded = true;
-                    checkComplete();
-                }
-            });
-
+            // Load cities for this state
             this.loadingCities = true;
             this.locationService.getCitiesByState(state.id).subscribe({
                 next: (cities) => {
@@ -532,30 +580,103 @@ export class EditBranchComponent implements OnInit {
                         console.log('Found city:', city);
                         this.branchForm.patchValue({ city: city.id }, { emitEvent: false });
                     } else {
-                        console.warn('City not found');
+                        console.warn('City not found. Available cities:', cities.map(c => ({ id: c.id, name: c.name })));
+                        // If city_id exists but not found in list, try to set it anyway
+                        if (branch.city_id) {
+                            this.branchForm.patchValue({ city: branch.city_id }, { emitEvent: false });
+                        }
                     }
+                    
                     this.loadingCities = false;
-                    citiesLoaded = true;
-                    checkComplete();
+                    this.loadingBranch = false;
+                    this.cdr.detectChanges();
+                    this.updateCompletion();
+                    
+                    // Final verification
+                    console.log('Branch data loading complete.');
+                    console.log('Final form values:', {
+                        name: this.branchForm.get('name')?.value,
+                        email: this.branchForm.get('email')?.value,
+                        contactNumber: this.branchForm.get('contactNumber')?.value,
+                        coordinator: this.branchForm.get('coordinator')?.value,
+                        country: this.branchForm.get('country')?.value,
+                        state: this.branchForm.get('state')?.value,
+                        city: this.branchForm.get('city')?.value,
+                        establishedOn: this.branchForm.get('establishedOn')?.value,
+                        ashramArea: this.branchForm.get('ashramArea')?.value,
+                        pincode: this.branchForm.get('pincode')?.value,
+                        postOffice: this.branchForm.get('postOffice')?.value,
+                        address: this.branchForm.get('address')?.value
+                    });
                 },
                 error: (error) => {
                     console.error('Error loading cities:', error);
                     this.loadingCities = false;
-                    citiesLoaded = true;
-                    checkComplete();
+                    this.loadingBranch = false;
+                    this.cdr.detectChanges();
+                    this.updateCompletion();
                 }
             });
         } else {
-            this.loadingBranch = false;
             console.warn('State not found for branch. Available states:', this.stateList.map(s => ({ id: s.id, name: s.name })));
+            // If state_id exists but not found in list, try to add it
+            if (branch.state_id && branch.state && branch.state.name) {
+                this.stateList.push({ 
+                    id: branch.state.id, 
+                    name: branch.state.name, 
+                    country_id: branch.state.country_id 
+                });
+                this.branchForm.patchValue({ state: branch.state.id }, { emitEvent: false });
+                this.cdr.detectChanges();
+                
+                // Try to load cities
+                this.loadingCities = true;
+                this.locationService.getCitiesByState(branch.state.id).subscribe({
+                    next: (cities) => {
+                        this.cityList = cities;
+                        if (branch.city && branch.city.id) {
+                            this.branchForm.patchValue({ city: branch.city.id }, { emitEvent: false });
+                        }
+                        this.loadingCities = false;
+                        this.loadingBranch = false;
+                        this.cdr.detectChanges();
+                        this.updateCompletion();
+                    },
+                    error: (err) => {
+                        console.error('Error loading cities:', err);
+                        this.loadingCities = false;
+                        this.loadingBranch = false;
+                        this.cdr.detectChanges();
+                        this.updateCompletion();
+                    }
+                });
+            } else {
+                this.loadingBranch = false;
+                this.cdr.detectChanges();
+                this.updateCompletion();
+            }
         }
     }
 
     /**
-     * Find coordinator ID by name
+     * Find coordinator ID by name (with case-insensitive fallback)
      */
     findCoordinatorId(name: string): number | null {
-        const coordinator = this.coordinatorsList.find(c => c.name === name);
+        if (!name) return null;
+        
+        // Try exact match first
+        let coordinator = this.coordinatorsList.find(c => c.name === name);
+        if (coordinator) return coordinator.id;
+        
+        // Try case-insensitive match
+        coordinator = this.coordinatorsList.find(c => c.name.toLowerCase() === name.toLowerCase());
+        if (coordinator) return coordinator.id;
+        
+        // Try partial match (contains)
+        coordinator = this.coordinatorsList.find(c => 
+            c.name.toLowerCase().includes(name.toLowerCase()) || 
+            name.toLowerCase().includes(c.name.toLowerCase())
+        );
         return coordinator ? coordinator.id : null;
     }
 
@@ -588,84 +709,16 @@ export class EditBranchComponent implements OnInit {
         return this.branchForm.get('members') as FormArray;
     }
 
-    get childBranches(): FormArray {
-        return this.branchForm.get('childBranches') as FormArray;
-    }
-
-    addChildBranch() {
-        this.childBranches.push(this.fb.group({
-            id: [null], // Will be set when branch is selected
-            name: ['', Validators.required],
-            address: ['', Validators.required]
-        }));
-
-        // Watch for name changes to update id
-        const lastIndex = this.childBranches.length - 1;
-        this.childBranches.at(lastIndex).get('name')?.valueChanges.subscribe(selectedBranchId => {
-            if (selectedBranchId) {
-                const selectedBranch = this.childBranchesList.find(b => b.id.toString() === selectedBranchId.toString());
-                if (selectedBranch) {
-                    this.childBranches.at(lastIndex).patchValue({
-                        id: selectedBranch.id,
-                        address: selectedBranch.address || ''
-                    }, { emitEvent: false });
-                }
-            }
-        });
-    }
-
-    removeChildBranch(index: number) {
-        const childControl = this.childBranches.at(index);
-        const childId = childControl.get('id')?.value;
-
-        if (childId) {
-            // Existing child branch - confirm deletion
-            this.confirmationDialog.confirmDelete({
-                title: 'Delete Child Branch',
-                text: 'Are you sure you want to delete this child branch? This action cannot be undone and will remove all associated data.',
-                successTitle: 'Child Branch Deleted',
-                successText: 'Child branch deleted successfully',
-                showSuccessMessage: false
-            }).then((result) => {
-                if (result.value) {
-                    // Delete child branch using new service
-                    this.childBranchService.deleteChildBranch(childId).subscribe({
-                        next: () => {
-                            this.childBranches.removeAt(index);
-                            this.messageService.add({
-                                severity: 'success',
-                                summary: 'Success',
-                                detail: 'Child branch deleted successfully',
-                                life: 3000
-                            });
-                        },
-                        error: (error) => {
-                            console.error('Error deleting child branch:', error);
-                            this.messageService.add({
-                                severity: 'error',
-                                summary: 'Error',
-                                detail: 'Failed to delete child branch. Please try again.',
-                                life: 5000
-                            });
-                        }
-                    });
-                }
-            });
-        } else {
-            // New child branch - just remove from form
-            this.childBranches.removeAt(index);
-        }
-    }
 
     addMember() {
         const memberType = this.branchForm.get('memberType')?.value || 'samarpit';
-        const name = this.branchForm.get('name')?.value || '';
-        const role = this.branchForm.get('role')?.value || '';
-        const responsibility = this.branchForm.get('responsibility')?.value || '';
-        const age = this.branchForm.get('age')?.value || '';
-        const dateOfSamarpan = this.branchForm.get('dateOfSamarpan')?.value || '';
-        const qualification = this.branchForm.get('qualification')?.value || '';
-        const dateOfBirth = this.branchForm.get('dateOfBirth')?.value || '';
+        const name = this.branchForm.get('memberName')?.value || '';
+        const role = this.branchForm.get('memberRole')?.value || '';
+        const responsibility = this.branchForm.get('memberResponsibility')?.value || '';
+        const age = this.branchForm.get('memberAge')?.value || '';
+        const dateOfSamarpan = this.branchForm.get('memberDateOfSamarpan')?.value || '';
+        const qualification = this.branchForm.get('memberQualification')?.value || '';
+        const dateOfBirth = this.branchForm.get('memberDateOfBirth')?.value || '';
         
         // Validate required fields
         if (!name || !role) {
@@ -692,13 +745,13 @@ export class EditBranchComponent implements OnInit {
         
         // Clear the input fields after adding
         this.branchForm.patchValue({
-            name: '',
-            role: '',
-            responsibility: '',
-            age: '',
-            dateOfSamarpan: '',
-            qualification: '',
-            dateOfBirth: ''
+            memberName: '',
+            memberRole: '',
+            memberResponsibility: '',
+            memberAge: '',
+            memberDateOfSamarpan: '',
+            memberQualification: '',
+            memberDateOfBirth: ''
         });
     }
 
@@ -785,13 +838,11 @@ export class EditBranchComponent implements OnInit {
             const countryId = formValue.country;
             const stateId = formValue.state;
             const cityId = formValue.city;
-            const districtId = formValue.districts;
             const coordinatorId = formValue.coordinator;
 
             const country = this.countryList.find(c => c.id == countryId || c.id === Number(countryId));
             const state = this.stateList.find(s => s.id == stateId || s.id === Number(stateId));
             const city = this.cityList.find(c => c.id == cityId || c.id === Number(cityId));
-            const district = this.districtOptions.find(d => d.id == districtId || d.id === Number(districtId));
             const coordinator = this.coordinatorsList.find(c => c.id == coordinatorId || c.id === Number(coordinatorId));
 
             // Get current user for updated_by
@@ -812,18 +863,17 @@ export class EditBranchComponent implements OnInit {
             // Prepare API payload (exclude id, created_on, created_by as they cannot be updated per backend validation)
             // The id is passed in the URL path, not in the request body
             const branchData: any = {
+                name: formValue.name || '',
+                email: formValue.email || '',
+                contact_number: formValue.contactNumber || '',
                 aashram_area: parseFloat(formValue.ashramArea) || 0,
                 address: formValue.address || '',
                 city_id: city?.id || null,
-                contact_number: '', // Not in form, set empty
                 coordinator_name: coordinator?.name || '',
                 country_id: country?.id || null,
                 daily_end_time: formValue.dailyEndTime || '',
                 daily_start_time: formValue.dailyStartTime || '',
-                district_id: district?.id || null,
-                email: this.branchEmail || '',
                 established_on: establishedOn || '',
-                name: this.branchName || '',
                 open_days: formValue.openDays || '',
                 pincode: formValue.pincode || '',
                 police_station: formValue.thana || '',
@@ -842,117 +892,23 @@ export class EditBranchComponent implements OnInit {
             delete branchData.created_on;
             delete branchData.created_by;
 
-            // Update branch via API (child branches are handled separately)
+            // Update branch via API
             this.locationService.updateBranch(this.branchId, branchData).subscribe({
                 next: (response) => {
                     console.log('Branch updated successfully:', response);
 
-                    // Handle child branches creation/update using new ChildBranchService
-                    const coordinator = this.coordinatorsList.find(c => c.id.toString() === formValue.coordinator);
-                    const coordinatorName = coordinator?.name || formValue.coordinator || '';
-
-                    // Process child branches if any exist
-                    if (this.childBranches.length > 0) {
-                        const childBranchOperations: any[] = [];
-
-                        this.childBranches.controls.forEach(control => {
-                            const childData = control.value;
-                            const childBranchId = childData.id ? parseInt(childData.id, 10) : null;
-
-                            // Prepare child branch payload with coordinator inherited from parent
-                            const childBranchPayload: ChildBranchPayload = {
-                                parent_branch_id: this.branchId!,
-                                name: childData.name || '',
-                                contact_number: childData.contact_number || '',
-                                coordinator_name: coordinatorName, // Inherit from parent
-                                email: childData.email || '',
-                                established_on: childData.established_on || '',
-                                aashram_area: childData.aashram_area || 0,
-                                country_id: childData.country_id || null,
-                                state_id: childData.state_id || null,
-                                district_id: childData.district_id || null,
-                                city_id: childData.city_id || null,
-                                address: childData.address || '',
-                                pincode: childData.pincode || '',
-                                post_office: childData.post_office || '',
-                                police_station: childData.police_station || '',
-                                open_days: childData.open_days || '',
-                                daily_start_time: childData.daily_start_time || '',
-                                daily_end_time: childData.daily_end_time || '',
-                                status: childData.status !== undefined ? childData.status : true,
-                                ncr: childData.ncr !== undefined ? childData.ncr : false,
-                                region_id: childData.region_id || null,
-                                branch_code: childData.branch_code || ''
-                            };
-
-                            if (childBranchId) {
-                                // Update existing child branch
-                                childBranchOperations.push(
-                                    this.childBranchService.updateChildBranch(childBranchId, childBranchPayload)
-                                );
-                            } else {
-                                // Create new child branch
-                                childBranchOperations.push(
-                                    this.childBranchService.createChildBranch(childBranchPayload)
-                                );
-                            }
+                    // Save members after branch update
+                    this.saveOrUpdateMembers(() => {
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Success',
+                            detail: 'Branch and members updated successfully!'
                         });
-
-                        // Execute all child branch operations
-                        if (childBranchOperations.length > 0) {
-                            forkJoin(childBranchOperations).subscribe({
-                                next: () => {
-                                    console.log('Child branches processed successfully');
-                                    this.saveOrUpdateMembers(() => {
-                                        this.messageService.add({
-                                            severity: 'success',
-                                            summary: 'Success',
-                                            detail: 'Branch, child branches, and members updated successfully!'
-                                        });
-                                        this.isSubmitting = false;
-                                        setTimeout(() => {
-                                            this.router.navigate(['/branch']);
-                                        }, 1500);
-                                    });
-                                },
-                                error: (error) => {
-                                    console.error('Error processing child branches:', error);
-                                    this.messageService.add({
-                                        severity: 'error',
-                                        summary: 'Error',
-                                        detail: 'Branch updated but failed to process child branches. Please try again.'
-                                    });
-                                    this.isSubmitting = false;
-                                }
-                            });
-                        } else {
-                            // No child branches to process, just save members
-                            this.saveOrUpdateMembers(() => {
-                                this.messageService.add({
-                                    severity: 'success',
-                                    summary: 'Success',
-                                    detail: 'Branch and members updated successfully!'
-                                });
-                                this.isSubmitting = false;
-                                setTimeout(() => {
-                                    this.router.navigate(['/branch']);
-                                }, 1500);
-                            });
-                        }
-                    } else {
-                        // Not a parent branch, just save members
-                        this.saveOrUpdateMembers(() => {
-                            this.messageService.add({
-                                severity: 'success',
-                                summary: 'Success',
-                                detail: 'Branch and members updated successfully!'
-                            });
-                            this.isSubmitting = false;
-                            setTimeout(() => {
-                                this.router.navigate(['/branch']);
-                            }, 1500);
-                        });
-                    }
+                        this.isSubmitting = false;
+                        setTimeout(() => {
+                            this.router.navigate(['/branch']);
+                        }, 1500);
+                    });
                 },
                 error: (error) => {
                     console.error('Error updating branch:', error);
@@ -992,7 +948,30 @@ export class EditBranchComponent implements OnInit {
         } else {
             // Mark all fields as touched to show validation errors
             Object.keys(this.branchForm.controls).forEach(key => {
-                this.branchForm.get(key)?.markAsTouched();
+                const control = this.branchForm.get(key);
+                if (control) {
+                    control.markAsTouched();
+                    // If it's a FormArray, mark all nested controls as touched
+                    if (control instanceof FormArray) {
+                        control.controls.forEach(nestedControl => {
+                            if (nestedControl instanceof FormGroup) {
+                                Object.keys(nestedControl.controls).forEach(nestedKey => {
+                                    nestedControl.get(nestedKey)?.markAsTouched();
+                                });
+                            } else {
+                                nestedControl.markAsTouched();
+                            }
+                        });
+                    }
+                }
+            });
+            
+            // Show validation error message
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Validation Error',
+                detail: 'Please fill all required fields correctly',
+                life: 3000
             });
         }
     }
@@ -1016,23 +995,6 @@ export class EditBranchComponent implements OnInit {
         });
     }
 
-    /**
-     * Load districts by state ID and country ID
-     */
-    loadDistricts(stateId: number, countryId: number) {
-        this.loadingDistricts = true;
-        this.districtOptions = [];
-        this.locationService.getDistrictsByStateAndCountry(stateId, countryId).subscribe({
-            next: (districts) => {
-                this.districtOptions = districts;
-                this.loadingDistricts = false;
-            },
-            error: (error) => {
-                console.error('Error loading districts:', error);
-                this.loadingDistricts = false;
-            }
-        });
-    }
 
     /**
      * Load cities by state ID

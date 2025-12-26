@@ -185,7 +185,7 @@
       </div>
 
       <div class="row">
-        <div class="col-md-12 mb-3">
+        <div class="col-md-6 mb-3">
           <label class="form-label">Spiritual Orator</label>
           <ng-select formControlName="spiritualOrator"
             [items]="orators"
@@ -195,6 +195,18 @@
             [clearable]="true"
             [placeholder]="loadingOrators ? 'Loading...' : 'Select Spiritual Orator'"
             [disabled]="loadingOrators">
+          </ng-select>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Branch</label>
+          <ng-select formControlName="branchId"
+            [items]="branches"
+            bindLabel="name"
+            bindValue="id"
+            [searchable]="true"
+            [clearable]="true"
+            [placeholder]="loadingBranches ? 'Loading...' : 'Select Branch'"
+            [disabled]="loadingBranches">
           </ng-select>
         </div>
       </div>
@@ -303,11 +315,14 @@
             placeholder="Select Prachar Areas">
           </ng-select>
         </div>
+      </div>
+      <div class="row">
         <div class="col-md-6 mb-3">
           <label class="form-label">Area covered</label>
           <input type="text" class="form-control" formControlName="areaCovered" placeholder="0.00 Sq km">
         </div>
       </div>
+      
     </div>
     <!-- Donations -->
     <!-- <div class="common-stepper">
@@ -471,7 +486,8 @@
   <div class="common-stepper">
     <h6 class="mt-4">List of Event Media ({{ eventMediaList.length }})</h6>
     <div class="event-table-container mt-3">
-      <div class="table-responsive">
+      <div class="scroll-table-wrapper">
+        <div class="table-responsive">
         <table class="table table-bordered align-middle">
         <thead>
           <tr>
@@ -487,22 +503,27 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let media of eventMediaList; let i = index">
-            <td><button class="btn btn-danger btn-sm" (click)="removeEventMedia(i)">Remove</button></td>
-            <td>{{ media.mediaCoverageType }}</td>
-            <td>{{ media.companyName }}</td>
-            <td>{{ media.companyEmail }}</td>
-            <td>{{ media.companyWebsite }}</td>
-            <td>{{ media.gender }}</td>
-            <td>{{ media.designation }}</td>
-            <td>{{ media.contact }}</td>
-            <td>{{ media.referencePersonName }}</td>
-          </tr>
-          <tr *ngIf="eventMediaList.length === 0">
-            <td colspan="9" class="text-center text-muted">No event media added yet. Click "Add Media Details" to add.</td>
-          </tr>
+          <ng-container *ngIf="eventMediaList.length > 0; else emptyEventMedia">
+            <tr *ngFor="let media of eventMediaList; let i = index">
+              <td><button class="btn btn-danger btn-sm" (click)="removeEventMedia(i)">Remove</button></td>
+              <td>{{ media.mediaCoverageType }}</td>
+              <td>{{ media.companyName }}</td>
+              <td>{{ media.companyEmail }}</td>
+              <td>{{ media.companyWebsite }}</td>
+              <td>{{ media.gender }}</td>
+              <td>{{ media.designation }}</td>
+              <td>{{ media.contact }}</td>
+              <td>{{ media.referencePersonName }}</td>
+            </tr>
+          </ng-container>
+          <ng-template #emptyEventMedia>
+            <tr>
+              <td colspan="9" class="text-center text-muted">No event media added yet. Click "Add Media Details" to add.</td>
+            </tr>
+          </ng-template>
         </tbody>
         </table>
+        </div>
       </div>
     </div>
   </div>
@@ -517,7 +538,8 @@
     </div>
     <h6 class="mt-4">List of Promotional Materials ({{ getValidMaterialTypesCount() }})</h6>
     <div class="event-table-container mt-3">
-      <div class="table-responsive">
+      <div class="scroll-table-wrapper">
+        <div class="table-responsive">
         <table class="table table-bordered align-middle">
         <thead>
           <tr>
@@ -529,18 +551,23 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let material of getValidMaterialTypes(); let i = index">
-            <td><button class="btn btn-danger btn-sm" (click)="removeMaterialTypeByValidIndex(i)">Remove</button></td>
-            <td>{{ material.materialType }}</td>
-            <td>{{ material.quantity }}</td>
-            <td>{{ material.size }}</td>
-            <td>{{ material.customHeight }} x {{ material.customWidth }} inch</td>
-          </tr>
-          <tr *ngIf="getValidMaterialTypesCount() === 0">
-            <td colspan="5" class="text-center text-muted">No promotional materials added yet. Click "Add Material Type" to add.</td>
-          </tr>
+          <ng-container *ngIf="getValidMaterialTypesCount() > 0; else emptyPromotionalMaterials">
+            <tr *ngFor="let material of getValidMaterialTypes(); let i = index">
+              <td><button class="btn btn-danger btn-sm" (click)="removeMaterialTypeByValidIndex(i)">Remove</button></td>
+              <td>{{ material.materialType }}</td>
+              <td>{{ material.quantity }}</td>
+              <td>{{ material.size }}</td>
+              <td>{{ material.customHeight }} x {{ material.customWidth }} inch</td>
+            </tr>
+          </ng-container>
+          <ng-template #emptyPromotionalMaterials>
+            <tr>
+              <td colspan="5" class="text-center text-muted">No promotional materials added yet. Click "Add Material Type" to add.</td>
+            </tr>
+          </ng-template>
         </tbody>
         </table>
+        </div>
       </div>
     </div>
   </div>
@@ -598,7 +625,8 @@
   <div class="common-stepper">
     <h6 class="mt-4">List of Special Guests ({{ specialGuestList.length }})</h6>
     <div class="event-table-container mt-3">
-      <div class="table-responsive">
+      <div class="scroll-table-wrapper">
+        <div class="table-responsive">
         <table class="table table-bordered align-middle">
         <thead>
           <tr>
@@ -615,23 +643,28 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let guest of specialGuestList; let i = index">
-            <td><button class="btn btn-danger btn-sm" (click)="removeSpecialGuest(i)">Remove</button></td>
-            <td>{{ guest.firstName }} {{ guest.lastName }} ({{ guest.personalNumber }})</td>
-            <td>{{ guest.gender }}</td>
-            <td>{{ guest.designation }}</td>
-            <td>{{ guest.organization }}</td>
-            <td>{{ guest.email }}</td>
-            <td>{{ guest.city }}, {{ guest.state }}</td>
-            <td>{{ guest.personalNumber }}</td>
-            <td>{{ guest.contactPerson }} ({{ guest.contactPersonNumber }})</td>
-            <td>{{ guest.referencePersonName }} ({{ guest.referenceVolunteerId }})</td>
-          </tr>
-          <tr *ngIf="specialGuestList.length === 0">
-            <td colspan="10" class="text-center text-muted">No special guests added yet. Click "Add Special Guest" to add.</td>
-          </tr>
+          <ng-container *ngIf="specialGuestList.length > 0; else emptySpecialGuests">
+            <tr *ngFor="let guest of specialGuestList; let i = index">
+              <td><button class="btn btn-danger btn-sm" (click)="removeSpecialGuest(i)">Remove</button></td>
+              <td>{{ guest.firstName }} {{ guest.lastName }} ({{ guest.personalNumber }})</td>
+              <td>{{ guest.gender }}</td>
+              <td>{{ guest.designation }}</td>
+              <td>{{ guest.organization }}</td>
+              <td>{{ guest.email }}</td>
+              <td>{{ guest.city }}, {{ guest.state }}</td>
+              <td>{{ guest.personalNumber }}</td>
+              <td>{{ guest.contactPerson }} ({{ guest.contactPersonNumber }})</td>
+              <td>{{ guest.referencePersonName }} ({{ guest.referenceVolunteerId }})</td>
+            </tr>
+          </ng-container>
+          <ng-template #emptySpecialGuests>
+            <tr>
+              <td colspan="10" class="text-center text-muted">No special guests added yet. Click "Add Special Guest" to add.</td>
+            </tr>
+          </ng-template>
         </tbody>
         </table>
+        </div>
       </div>
     </div>
   </div>
@@ -662,7 +695,8 @@
   <div class="common-stepper">
     <h6 class="mt-4">List of Volunteers ({{ volunteerList.length }})</h6>
     <div class="event-table-container mt-3">
-      <div class="table-responsive">
+      <div class="scroll-table-wrapper">
+        <div class="table-responsive">
         <table class="table table-bordered align-middle">
         <thead>
           <tr>
@@ -674,20 +708,25 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let vol of volunteerList; let i = index">
-            <td>
-              <button class="btn btn-danger btn-sm" (click)="removeVolunteer(i)">Remove</button>
-            </td>
-            <td>{{ vol.name }}</td>
-            <td>{{ vol.contact }}</td>
-            <td>{{ vol.days }}</td>
-            <td>{{ vol.seva }}</td>
-          </tr>
-          <tr *ngIf="volunteerList.length === 0">
-            <td colspan="5" class="text-center text-muted">No volunteers added yet. Click "Add Volunteer" to add.</td>
-          </tr>
+          <ng-container *ngIf="volunteerList.length > 0; else emptyVolunteers">
+            <tr *ngFor="let vol of volunteerList; let i = index">
+              <td>
+                <button class="btn btn-danger btn-sm" (click)="removeVolunteer(i)">Remove</button>
+              </td>
+              <td>{{ vol.name }}</td>
+              <td>{{ vol.contact }}</td>
+              <td>{{ vol.days }}</td>
+              <td>{{ vol.seva }}</td>
+            </tr>
+          </ng-container>
+          <ng-template #emptyVolunteers>
+            <tr>
+              <td colspan="5" class="text-center text-muted">No volunteers added yet. Click "Add Volunteer" to add.</td>
+            </tr>
+          </ng-template>
         </tbody>
         </table>
+        </div>
       </div>
     </div>
   </div>

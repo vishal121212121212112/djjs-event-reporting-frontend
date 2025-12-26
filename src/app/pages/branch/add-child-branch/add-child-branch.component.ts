@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core'
 import { FormBuilder, FormGroup, Validators } from '@angular/forms'
-import { LocationService, Country, State, District, City, Coordinator, Branch } from 'src/app/core/services/location.service'
+import { LocationService, Country, State, City, Coordinator, Branch } from 'src/app/core/services/location.service'
 import { ChildBranchService, ChildBranchPayload } from 'src/app/core/services/child-branch.service'
 import { TokenStorageService } from 'src/app/core/services/token-storage.service'
 import { Router, ActivatedRoute } from '@angular/router'
@@ -29,12 +29,10 @@ export class AddChildBranchComponent implements OnInit {
     countryList: Country[] = [];
     stateList: State[] = [];
     cityList: City[] = [];
-    districtOptions: District[] = [];
 
     // Loading states
     loadingCountries = false;
     loadingStates = false;
-    loadingDistricts = false;
     loadingCities = false;
     loadingParentBranch = false;
 
@@ -93,7 +91,6 @@ export class AddChildBranchComponent implements OnInit {
             state: ['', Validators.required],
             city: ['', Validators.required],
             address: ['', Validators.required],
-            districts: ['', Validators.required],
             openDays: [''],
             dailyStartTime: [''],
             dailyEndTime: [''],
@@ -119,25 +116,14 @@ export class AddChildBranchComponent implements OnInit {
             } else {
                 this.stateList = [];
                 this.cityList = [];
-                this.districtOptions = [];
-            }
-            // When country changes, reload districts if state is already selected
-            const stateId = this.childBranchForm.get('state')?.value;
-            if (stateId && countryId) {
-                this.loadDistricts(stateId, countryId);
             }
         });
 
         this.childBranchForm.get('state')?.valueChanges.subscribe(stateId => {
             if (stateId) {
-                const countryId = this.childBranchForm.get('country')?.value;
                 this.loadCities(stateId);
-                if (countryId) {
-                    this.loadDistricts(stateId, countryId);
-                }
             } else {
                 this.cityList = [];
-                this.districtOptions = [];
             }
         });
 
@@ -230,25 +216,12 @@ export class AddChildBranchComponent implements OnInit {
         });
     }
 
-    loadDistricts(stateId: number, countryId: number) {
-        this.loadingDistricts = true;
-        this.locationService.getDistrictsByStateAndCountry(stateId, countryId).subscribe({
-            next: (districts) => {
-                this.districtOptions = districts;
-                this.loadingDistricts = false;
-            },
-            error: (error) => {
-                console.error('Error loading districts:', error);
-                this.loadingDistricts = false;
-            }
-        });
-    }
 
     updateCompletion() {
         const requiredFields = [
             'name', 'email', 'contactNumber', 'coordinator',
             'establishedOn', 'ashramArea', 'country', 'pincode',
-            'postOffice', 'state', 'city', 'address', 'districts'
+            'postOffice', 'state', 'city', 'address'
         ];
 
         let filledFields = 0;
@@ -298,7 +271,6 @@ export class AddChildBranchComponent implements OnInit {
             aashram_area: parseFloat(formValue.ashramArea) || 0,
             country_id: parseInt(formValue.country),
             state_id: parseInt(formValue.state),
-            district_id: parseInt(formValue.districts),
             city_id: parseInt(formValue.city),
             address: formValue.address,
             pincode: formValue.pincode,

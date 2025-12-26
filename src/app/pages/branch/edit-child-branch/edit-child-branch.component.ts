@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core'
 import { FormBuilder, FormGroup, Validators } from '@angular/forms'
-import { LocationService, Country, State, District, City, Branch } from 'src/app/core/services/location.service'
+import { LocationService, Country, State, City, Branch } from 'src/app/core/services/location.service'
 import { ChildBranchService, ChildBranch, ChildBranchPayload } from 'src/app/core/services/child-branch.service'
 import { Router, ActivatedRoute } from '@angular/router'
 import { MessageService } from 'primeng/api'
@@ -21,7 +21,6 @@ export class EditChildBranchComponent implements OnInit {
     countryList: Country[] = [];
     stateList: State[] = [];
     cityList: City[] = [];
-    districtOptions: District[] = [];
 
     // Loading states
     loading = false;
@@ -65,7 +64,6 @@ export class EditChildBranchComponent implements OnInit {
             state: ['', Validators.required],
             city: ['', Validators.required],
             address: ['', Validators.required],
-            districts: ['', Validators.required],
             openDays: [''],
             dailyStartTime: [''],
             dailyEndTime: [''],
@@ -87,20 +85,11 @@ export class EditChildBranchComponent implements OnInit {
             if (countryId) {
                 this.loadStates(countryId);
             }
-            // When country changes, reload districts if state is already selected
-            const stateId = this.childBranchForm.get('state')?.value;
-            if (stateId && countryId) {
-                this.loadDistricts(stateId, countryId);
-            }
         });
 
         this.childBranchForm.get('state')?.valueChanges.subscribe(stateId => {
             if (stateId) {
-                const countryId = this.childBranchForm.get('country')?.value;
                 this.loadCities(stateId);
-                if (countryId) {
-                    this.loadDistricts(stateId, countryId);
-                }
             }
         });
     }
@@ -129,7 +118,6 @@ export class EditChildBranchComponent implements OnInit {
                     this.loadStates(childBranch.country_id);
                     if (childBranch.state_id) {
                         this.loadCities(childBranch.state_id);
-                        this.loadDistricts(childBranch.state_id, childBranch.country_id);
                     }
                 }
 
@@ -149,7 +137,6 @@ export class EditChildBranchComponent implements OnInit {
                     country: childBranch.country_id || '',
                     state: childBranch.state_id || '',
                     city: childBranch.city_id || '',
-                    districts: childBranch.district_id || '',
                     address: childBranch.address || '',
                     pincode: childBranch.pincode || '',
                     postOffice: childBranch.post_office || '',
@@ -190,15 +177,10 @@ export class EditChildBranchComponent implements OnInit {
 
     loadCities(stateId: number) {
         this.locationService.getCitiesByState(stateId).subscribe({
-            next: (cities) => this.cityList = cities,
+            next: (cities) => {
+                this.cityList = cities;
+            },
             error: (error) => console.error('Error loading cities:', error)
-        });
-    }
-
-    loadDistricts(stateId: number, countryId: number) {
-        this.locationService.getDistrictsByStateAndCountry(stateId, countryId).subscribe({
-            next: (districts) => this.districtOptions = districts,
-            error: (error) => console.error('Error loading districts:', error)
         });
     }
 
@@ -221,7 +203,6 @@ export class EditChildBranchComponent implements OnInit {
             aashram_area: parseFloat(formValue.ashramArea) || 0,
             country_id: parseInt(formValue.country),
             state_id: parseInt(formValue.state),
-            district_id: parseInt(formValue.districts),
             city_id: parseInt(formValue.city),
             address: formValue.address,
             pincode: formValue.pincode,
@@ -230,9 +211,6 @@ export class EditChildBranchComponent implements OnInit {
             open_days: formValue.openDays || '',
             daily_start_time: formValue.dailyStartTime || '',
             daily_end_time: formValue.dailyEndTime || '',
-            status: formValue.status !== undefined ? formValue.status : true,
-            ncr: formValue.ncr !== undefined ? formValue.ncr : false,
-            region_id: formValue.regionId ? parseInt(formValue.regionId) : undefined,
             branch_code: formValue.branchCode || ''
         };
 

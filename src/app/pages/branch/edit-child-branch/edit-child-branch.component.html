@@ -33,6 +33,10 @@
         <h5 class="mb-3">Child Branch Details</h5>
         <div class="row g-3">
           <div class="col-md-4">
+            <label class="form-label">Branch Code</label>
+            <input class="form-control" formControlName="branchCode" />
+          </div>
+          <div class="col-md-4">
             <label class="form-label">Branch Name <span class="text-danger">*</span></label>
             <input class="form-control" formControlName="name" />
           </div>
@@ -40,12 +44,12 @@
             <label class="form-label">Email <span class="text-danger">*</span></label>
             <input type="email" class="form-control" formControlName="email" />
           </div>
+        </div>
+        <div class="row g-3 mt-1">
           <div class="col-md-4">
             <label class="form-label">Contact Number <span class="text-danger">*</span></label>
             <input type="tel" class="form-control" formControlName="contactNumber" />
           </div>
-        </div>
-        <div class="row g-3 mt-1">
           <div class="col-md-4">
             <label class="form-label">Established on <span class="text-danger">*</span></label>
             <input type="date" class="form-control" formControlName="establishedOn" />
@@ -78,13 +82,6 @@
             <select class="form-select" formControlName="state">
               <option value="">Select</option>
               <option *ngFor="let s of stateList" [value]="s.id">{{s.name}}</option>
-            </select>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Districts <span class="text-danger">*</span></label>
-            <select class="form-select" formControlName="districts">
-              <option value="">Select</option>
-              <option *ngFor="let d of districtOptions" [value]="d.id">{{d.name}}</option>
             </select>
           </div>
           <div class="col-md-3">
@@ -134,28 +131,6 @@
           <div class="col-md-4">
             <label class="form-label">Daily end time</label>
             <input type="time" class="form-control" formControlName="dailyEndTime" />
-          </div>
-        </div>
-        <div class="row g-3 mt-3">
-          <div class="col-md-3">
-            <label class="form-label">Branch Code</label>
-            <input class="form-control" formControlName="branchCode" />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Region ID</label>
-            <input type="number" class="form-control" formControlName="regionId" />
-          </div>
-          <div class="col-md-3">
-            <div class="form-check form-switch mt-4">
-              <input class="form-check-input" type="checkbox" formControlName="status" id="statusSwitch">
-              <label class="form-check-label" for="statusSwitch">Status (Active)</label>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="form-check form-switch mt-4">
-              <input class="form-check-input" type="checkbox" formControlName="ncr" id="ncrSwitch">
-              <label class="form-check-label" for="ncrSwitch">NCR</label>
-            </div>
           </div>
         </div>
       </div>

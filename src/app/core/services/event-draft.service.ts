@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from 'src/environments/environment';
+import { ApiClientService } from './api-client.service';
 import { TokenStorageService } from './token-storage.service';
 
 export interface DraftSaveRequest {
@@ -30,11 +29,10 @@ export interface DraftData {
   providedIn: 'root'
 })
 export class EventDraftService {
-  private apiBaseUrl = environment.apiBaseUrl;
   private readonly DRAFT_ID_STORAGE_PREFIX = 'event_draft_id_';
 
   constructor(
-    private http: HttpClient,
+    private apiClient: ApiClientService,
     private tokenStorage: TokenStorageService
   ) { }
 
@@ -54,7 +52,7 @@ export class EventDraftService {
    * @param payload Draft save request payload
    */
   saveDraft(payload: DraftSaveRequest): Observable<DraftSaveResponse> {
-    return this.http.post<DraftSaveResponse>(`${this.apiBaseUrl}/api/events/draft`, payload);
+    return this.apiClient.safePost<DraftSaveResponse>('/events/draft', payload);
   }
 
   /**
@@ -62,7 +60,7 @@ export class EventDraftService {
    * @param draftId Draft ID
    */
   getDraft(draftId: string | number): Observable<DraftData> {
-    return this.http.get<DraftData>(`${this.apiBaseUrl}/api/events/draft/${draftId}`);
+    return this.apiClient.safeGet<DraftData>(`/events/draft/${draftId}`);
   }
 
   /**
@@ -70,7 +68,7 @@ export class EventDraftService {
    * Used to restore draft after logout/login
    */
   getLatestDraft(): Observable<DraftData> {
-    return this.http.get<DraftData>(`${this.apiBaseUrl}/api/events/draft/latest`);
+    return this.apiClient.safeGet<DraftData>('/events/draft/latest');
   }
 
   /**

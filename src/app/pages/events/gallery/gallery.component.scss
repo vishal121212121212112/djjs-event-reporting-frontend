@@ -98,6 +98,26 @@
   align-items: flex-end;
   min-width: fit-content;
   margin-left: auto;
+
+  .btn-primary {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    border: none;
+    color: white;
+    font-weight: 500;
+    transition: all 0.15s ease-in-out;
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #e55a2b, #e0851a);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+    }
+
+    &:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  }
 }
 
 /* Thumbnail with overlay */
@@ -119,6 +139,11 @@
   opacity: 0;
   transition: opacity 0.3s;
   z-index: 10;
+  pointer-events: none; /* Allow clicks to pass through when invisible */
+}
+
+.thumbnail-overlay button {
+  pointer-events: auto; /* Buttons should still be clickable */
 }
 
 .thumbnail:hover .thumbnail-overlay {

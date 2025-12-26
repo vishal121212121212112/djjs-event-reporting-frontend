@@ -262,6 +262,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { LocationService, Country, State, District, City } from 'src/app/core/services/location.service';
+import { BranchOptionsService } from 'src/app/core/services/branch-options.service';
 import { EventMasterDataService, EventType, EventCategory, PromotionMaterialType, Orator, EventSubCategory, Theme } from 'src/app/core/services/event-master-data.service';
 import { EventDraftService } from 'src/app/core/services/event-draft.service';
 import { EventApiService, EventDetails, EventWithRelatedData, SpecialGuest, Volunteer, EventMedia } from 'src/app/core/services/event-api.service';
@@ -273,6 +274,14 @@ import { MediaPromotionModalComponent } from './media-promotion-modal.component'
 import { PromotionalMaterialModalComponent } from './promotional-material-modal.component';
 import { SpecialGuestsModalComponent } from './special-guests-modal.component';
 import { VolunteersModalComponent } from './volunteers-modal.component';
+import { 
+  isDuplicate, 
+  getSpecialGuestKey, 
+  getVolunteerKey, 
+  getEventMediaKey, 
+  getPromotionalMaterialKey,
+  removeDuplicates
+} from 'src/app/shared/utils/dedupe.util';
 
 @Component({
   selector: 'app-add-event',
@@ -600,6 +609,8 @@ export class AddEventComponent implements OnInit, OnDestroy {
   filteredStates: State[] = [];
   filteredDistricts: District[] = [];
   filteredCities: City[] = [];
+  branches: Array<{ id: number; name: string; isChildBranch: boolean }> = [];
+  loadingBranches: boolean = false;
   loadingCities = false;
   addressTypes = ['Residential', 'Commercial', 'Temple', 'Community Center', 'Other'];
   donationTypeOptions = ['Cash', 'In-kind', 'Bank Transfer', 'Cheque'];
@@ -627,7 +638,8 @@ export class AddEventComponent implements OnInit, OnDestroy {
     private eventApiService: EventApiService,
     private toastService: ToastService,
     public validationSettings: ValidationSettingsService,
-    private modalService: BsModalService
+    private modalService: BsModalService,
+    private branchOptionsService: BranchOptionsService
   ) { }
 
   ngOnInit(): void {
@@ -650,6 +662,7 @@ export class AddEventComponent implements OnInit, OnDestroy {
     this.setupStateChangeListener();
     this.setupFormValueChanges();
     this.setupAutoSave();
+    this.loadBranches();
 
     // Load countries first, then load draft (draft needs countries list to be populated)
     this.loadCountriesAndThenDraft();
@@ -723,6 +736,8 @@ export class AddEventComponent implements OnInit, OnDestroy {
       estimatedAmount: [''],
       akhandGyan: [''],
       sellAmount: [''],
+      // Branch selection (optional)
+      branchId: [''],
       // Beneficiaries fields
       beneficiariesMen: [0],
       beneficiariesWomen: [0],
@@ -1302,6 +1317,21 @@ export class AddEventComponent implements OnInit, OnDestroy {
   /**
    * Load countries from API
    */
+  loadBranches(): void {
+    this.loadingBranches = true;
+    this.branchOptionsService.getAllBranchesCached().subscribe({
+      next: (branches) => {
+        this.branches = branches;
+        this.loadingBranches = false;
+      },
+      error: (error) => {
+        console.error('Error loading branches:', error);
+        this.branches = [];
+        this.loadingBranches = false;
+      }
+    });
+  }
+
   loadCountries(): void {
     this.locationService.getCountries().subscribe({
       next: (countries) => {
@@ -2089,7 +2119,7 @@ export class AddEventComponent implements OnInit, OnDestroy {
   addSpecialGuest(): void {
     // Collect data from form
     const formValue = this.specialGuestsForm.value;
-    this.specialGuests.push({
+    const newGuest = {
       gender: formValue.guestGender || '',
       prefix: formValue.guestPrefix || '',
       firstName: formValue.guestFirstName || '',
@@ -2106,7 +2136,15 @@ export class AddEventComponent implements OnInit, OnDestroy {
       referenceBranchId: formValue.guestReferenceBranchId || '',
       referenceVolunteerId: formValue.guestReferenceVolunteerId || '',
       referencePersonName: formValue.guestReferencePersonName || ''
-    });
+    };
+
+    // Check for duplicates
+    if (isDuplicate(newGuest, this.specialGuests, getSpecialGuestKey)) {
+      this.toastService.warning('This special guest is already added. Please check the phone number or name.', 'Duplicate Entry');
+      return;
+    }
+
+    this.specialGuests.push(newGuest);
 
     // Clear form after adding
     this.specialGuestsForm.reset();
@@ -2132,7 +2170,7 @@ export class AddEventComponent implements OnInit, OnDestroy {
   addVolunteer(): void {
     // Collect data from form
     const formValue = this.volunteersForm.value;
-    this.volunteers.push({
+    const newVolunteer = {
       branchId: formValue.volBranchId || '',
       searchMember: formValue.volSearchMember || '',
       name: formValue.volName || '',
@@ -2140,7 +2178,15 @@ export class AddEventComponent implements OnInit, OnDestroy {
       days: formValue.volDays || 0,
       seva: formValue.volSeva || '',
       mentionSeva: formValue.volMentionSeva || ''
-    });
+    };
+
+    // Check for duplicates
+    if (isDuplicate(newVolunteer, this.volunteers, getVolunteerKey)) {
+      this.toastService.warning('This volunteer is already added. Please check the name, contact, or branch.', 'Duplicate Entry');
+      return;
+    }
+
+    this.volunteers.push(newVolunteer);
 
     // Save form values before resetting for draft
     const formDataForDraft = { ...formValue };
@@ -2291,6 +2337,12 @@ export class AddEventComponent implements OnInit, OnDestroy {
       referenceVolunteerId: (formValue.referenceVolunteerId || '').trim(),
       referencePersonName: (formValue.referencePersonName || '').trim()
     };
+
+    // Check for duplicates
+    if (isDuplicate(eventMedia, this.eventMediaList, getEventMediaKey)) {
+      this.toastService.warning('This event media entry is already added. Please check the company name, website, or filename.', 'Duplicate Entry');
+      return;
+    }
     
     this.eventMediaList.push(eventMedia);
 
@@ -3119,7 +3171,9 @@ export class AddEventComponent implements OnInit, OnDestroy {
         city: generalDetails.city || '',
         pincode: generalDetails.pincode || '',
         postOffice: generalDetails.postOffice || '',
-        address: generalDetails.address || ''
+        address: generalDetails.address || '',
+        // Branch ID: Optional field, included in API payload if backend supports it
+        branchId: generalDetails.branchId || null
       },
       involvedParticipants: {
         // Read from generalDetailsForm since these fields are in step 1
@@ -3256,6 +3310,45 @@ export class AddEventComponent implements OnInit, OnDestroy {
             return;
           }
         }
+      }
+
+      // Pre-submit duplicate check and auto-dedupe
+      const duplicatesFound: string[] = [];
+      const originalSpecialGuestsCount = this.specialGuests.length;
+      const originalVolunteersCount = this.volunteers.length;
+      const originalMediaCount = this.eventMediaList.length;
+      const originalMaterialsCount = this.getValidMaterialTypes().length;
+
+      // Dedupe special guests
+      this.specialGuests = removeDuplicates(this.specialGuests, getSpecialGuestKey);
+      if (this.specialGuests.length < originalSpecialGuestsCount) {
+        duplicatesFound.push(`${originalSpecialGuestsCount - this.specialGuests.length} duplicate special guest(s)`);
+      }
+
+      // Dedupe volunteers
+      this.volunteers = removeDuplicates(this.volunteers, getVolunteerKey);
+      if (this.volunteers.length < originalVolunteersCount) {
+        duplicatesFound.push(`${originalVolunteersCount - this.volunteers.length} duplicate volunteer(s)`);
+      }
+
+      // Dedupe event media
+      this.eventMediaList = removeDuplicates(this.eventMediaList, getEventMediaKey);
+      if (this.eventMediaList.length < originalMediaCount) {
+        duplicatesFound.push(`${originalMediaCount - this.eventMediaList.length} duplicate event media entry/entries`);
+      }
+
+      // Dedupe promotional materials
+      const validMaterials = this.getValidMaterialTypes();
+      const dedupedMaterials = removeDuplicates(validMaterials, (m) => getPromotionalMaterialKey(m));
+      if (dedupedMaterials.length < originalMaterialsCount) {
+        // Update materialTypes array
+        this.materialTypes = dedupedMaterials;
+        duplicatesFound.push(`${originalMaterialsCount - dedupedMaterials.length} duplicate promotional material(s)`);
+      }
+
+      // Show message if duplicates were found and removed
+      if (duplicatesFound.length > 0) {
+        this.toastService.info(`Removed ${duplicatesFound.join(', ')}. Keeping first occurrence of each.`, 'Duplicates Removed');
       }
 
       try {

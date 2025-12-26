@@ -3,6 +3,8 @@ import { ActivatedRoute } from '@angular/router';
 import { EventApiService } from 'src/app/core/services/event-api.service';
 import { MessageService } from 'primeng/api';
 import { ConfirmationDialogService } from 'src/app/core/services/confirmation-dialog.service';
+import { ModalPortalService } from 'src/app/core/services/modal-portal.service';
+import { GalleryImagePreviewComponent } from './gallery-image-preview.component';
 
 interface GalleryItem {
   type: 'image' | 'video' | 'audio' | 'file';
@@ -29,7 +31,9 @@ export class GalleryComponent implements OnInit, OnDestroy {
   selectedType = 'All';
   selectedCategory = 'All';
   selectedItem: GalleryItem | null = null;
-  isPopupOpen = false;
+  private previewModalInstance: any = null;
+  private activePreviewId: number | null = null; // Track which item is currently being previewed
+  private isOpeningModal = false; // Guard to prevent double-open
   eventId: number | null = null;
   loading = false;
   uploading = false;
@@ -50,7 +54,8 @@ export class GalleryComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private eventApiService: EventApiService,
     private messageService: MessageService,
-    private confirmationDialog: ConfirmationDialogService
+    private confirmationDialog: ConfirmationDialogService,
+    private modalPortalService: ModalPortalService
   ) { }
 
   ngOnInit(): void {
@@ -157,8 +162,19 @@ export class GalleryComponent implements OnInit, OnDestroy {
           // URLs are lazy-loaded and cached to avoid preloading all URLs
           let url = media.url || media.file_url || '';
 
+          // Validate URL completeness - presigned URLs should be long (typically 500-1000 chars)
+          if (url && url.length < 100) {
+            console.warn(`WARNING: URL for media ID ${media.id} appears truncated (length: ${url.length}):`, url.substring(0, 100));
+          }
+
+          // Check if URL appears truncated (ends with incomplete query parameter)
+          if (url && url.includes('?') && !url.includes('X-Amz-Signature') && !url.includes('Signature=')) {
+            console.error(`ERROR: Presigned URL for media ID ${media.id} appears truncated or invalid:`, url);
+            // Don't clear URL - let it fail gracefully so we can see the error
+          }
+
           // CRITICAL: Runtime assertion - reject raw S3 URLs
-          if (url && url.includes('.amazonaws.com/') && !url.includes('X-Amz-') && !url.includes('Signature=')) {
+          if (url && url.includes('.amazonaws.com/') && !url.includes('X-Amz-') && !url.includes('Signature=') && !url.includes('?')) {
             console.error(`SECURITY ERROR: Raw S3 URL detected for media ID ${media.id}:`, url);
             console.error('This URL will NOT be rendered. Backend must return presigned URLs only.');
             url = ''; // Clear URL to prevent rendering
@@ -431,16 +447,162 @@ export class GalleryComponent implements OnInit, OnDestroy {
     this.selectedCategory = category;
   }
 
-  openPopup(item: GalleryItem) {
+  openPopup(item: GalleryItem): void {
+    console.log('openPopup called for item:', item);
+    
+    // Guard: Prevent double-open
+    if (this.isOpeningModal) {
+      console.warn('Modal is already being opened, ignoring duplicate call');
+      return;
+    }
+    
+    // Guard: If same item is already open, don't reopen
+    if (this.activePreviewId === item.id && this.previewModalInstance) {
+      console.log('Item already open in modal, skipping');
+      return;
+    }
+    
+    this.isOpeningModal = true;
     this.selectedItem = item;
-    this.isPopupOpen = true;
-    // Don't prevent body scroll - let sidebar/navbar remain functional
-    // Only prevent scroll in main content if needed
+    this.activePreviewId = item.id || null;
+    
+    // Get filtered items for navigation
+    const filteredItems = this.getFilteredItems();
+    const currentIndex = filteredItems.findIndex(i => i.id === item.id);
+    // Ensure activeIndex is always valid (0 if not found)
+    const activeIndex = currentIndex >= 0 ? currentIndex : 0;
+    
+    console.log('Opening modal - activeIndex:', activeIndex, 'total items:', filteredItems.length);
+    
+    // Use stable modal ID based on media ID to prevent conflicts
+    const modalId = item.id ? `gallery-preview-${item.id}` : `gallery-preview-${Date.now()}`;
+    
+    // Close existing modal if open (different item)
+    if (this.previewModalInstance && this.activePreviewId !== item.id) {
+      this.previewModalInstance.close();
+      this.previewModalInstance = null;
+      this.activePreviewId = null;
+    }
+    
+    // Open modal using ModalPortalService
+    try {
+      console.log('Opening modal with id:', modalId);
+      this.previewModalInstance = this.modalPortalService.openComponent(
+        GalleryImagePreviewComponent,
+        {
+          id: modalId,
+          size: 'xl',
+          centered: true,
+          backdrop: true,
+          keyboard: true,
+          scrollable: false, // Body handles its own scrolling
+          showCloseButton: false, // We have custom close in component
+          closeOnBackdropClick: true,
+          data: {
+            // Pass primitive values instead of object references
+            mediaId: item.id || undefined,
+            items: filteredItems,
+            currentIndex: activeIndex, // Always ensure valid index (0 or found index)
+            activeIndex: activeIndex, // Explicitly set activeIndex
+            // Keep item for backward compatibility and callbacks
+            item: item,
+            onDownload: (item: GalleryItem) => this.downloadItem(item, new Event('click')),
+            onDelete: (item: GalleryItem) => this.deleteItem(item, new Event('click')),
+            onClose: () => this.closePopup(),
+            onNavigate: (index: number) => this.navigateToItem(filteredItems, index)
+          }
+        }
+      );
+      console.log('Modal instance created:', this.previewModalInstance);
+      
+      // Set activeIndex on component instance if available
+      if (this.previewModalInstance?.componentInstance) {
+        this.previewModalInstance.componentInstance.activeIndex = activeIndex;
+        this.previewModalInstance.componentInstance.currentIndex = activeIndex;
+      }
+    } catch (error) {
+      console.error('Error opening modal:', error);
+      this.isOpeningModal = false;
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to open image preview. Please try again.',
+        life: 3000
+      });
+      return;
+    }
+    
+    // Reset guard after modal is opened
+    setTimeout(() => {
+      this.isOpeningModal = false;
+    }, 100);
+  }
+
+  /**
+   * Get image URL from cache or fetch it
+   */
+  async getImageUrl(mediaId: number): Promise<string | null> {
+    // Check cache first
+    const cached = this.urlCache.get(mediaId);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.url;
+    }
+    
+    // If not in cache, try to get from API (this would need to be implemented)
+    // For now, return null and let the component handle it
+    return null;
+  }
+
+  /**
+   * Get filtered items based on current type and category filters
+   */
+  getFilteredItems(): GalleryItem[] {
+    return this.items.filter(item => {
+      const typeMatch = this.selectedType === 'All' || item.type === this.selectedType.toLowerCase();
+      const categoryMatch = this.selectedCategory === 'All' || item.category === this.selectedCategory;
+      return typeMatch && categoryMatch;
+    });
+  }
+
+  /**
+   * Preload image to improve loading performance
+   */
+  preloadImage(url: string): void {
+    const img = new Image();
+    img.src = url;
+  }
+
+  /**
+   * Navigate to a different item in the gallery
+   * Updates the existing modal instead of closing/reopening
+   */
+  navigateToItem(items: GalleryItem[], index: number): void {
+    if (index < 0 || index >= items.length) {
+      return;
+    }
+    
+    const newItem = items[index];
+    if (!newItem) {
+      return;
+    }
+    
+    // Update the selected item
+    this.selectedItem = newItem;
+    this.activePreviewId = newItem.id || null;
+    
+    // The preview component will handle loading the new item
+    // We don't need to reopen the modal - just update the data
+    // The component's navigateToItem method will handle it
   }
 
   closePopup() {
-    this.isPopupOpen = false;
+    if (this.previewModalInstance) {
+      this.previewModalInstance.close();
+      this.previewModalInstance = null;
+    }
     this.selectedItem = null;
+    this.activePreviewId = null;
+    this.isOpeningModal = false;
   }
 
   /**

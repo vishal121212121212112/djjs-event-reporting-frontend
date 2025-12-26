@@ -981,7 +981,7 @@ export class EventsListComponent implements OnInit, AfterViewChecked, OnDestroy 
       city: event.city || '',
       spiritualOrator: event.spiritual_orator || '',
       language: event.language || '',
-      branch: event.branch || '',
+      branch: event.branch?.name || '',
       beneficiaries: {
         total: (event.beneficiary_men || 0) + (event.beneficiary_women || 0) + (event.beneficiary_child || 0),
         men: event.beneficiary_men || 0,

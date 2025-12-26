@@ -1,0 +1,390 @@
+//
+// Scrollable Utilities
+// Reusable CSS utilities for fixed-height scrollable sections
+// Use these classes to wrap table/grid content for internal scrolling
+//
+
+// ==========================================
+// Base Scroll Area Utility
+// ==========================================
+.scroll-area {
+  overflow: auto;
+  max-height: var(--scroll-area-h, 420px);
+  width: 100%;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  position: relative;
+
+  // Custom scrollbar styling
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
+
+  // Responsive height adjustments
+  @media (max-width: 767px) {
+    max-height: var(--scroll-area-h-mobile, 60vh);
+  }
+
+  @media (min-width: 768px) and (max-width: 1023px) {
+    max-height: var(--scroll-area-h-tablet, 300px);
+  }
+
+  @media (min-width: 1024px) {
+    max-height: var(--scroll-area-h-desktop, 420px);
+  }
+}
+
+// Size variants
+.scroll-area--sm {
+  --scroll-area-h: 280px;
+  --scroll-area-h-mobile: 50vh;
+  --scroll-area-h-tablet: 250px;
+  --scroll-area-h-desktop: 280px;
+}
+
+.scroll-area--md {
+  --scroll-area-h: 420px;
+  --scroll-area-h-mobile: 60vh;
+  --scroll-area-h-tablet: 300px;
+  --scroll-area-h-desktop: 420px;
+}
+
+.scroll-area--lg {
+  --scroll-area-h: 600px;
+  --scroll-area-h-mobile: 70vh;
+  --scroll-area-h-tablet: 400px;
+  --scroll-area-h-desktop: 600px;
+}
+
+// ==========================================
+// Table-Specific Scroll Container
+// ==========================================
+.table-scroll {
+  overflow: auto;
+  max-height: var(--table-scroll-h, 420px);
+  width: 100%;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  position: relative;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  background-color: #fff;
+
+  // Ensure table doesn't force page overflow
+  table {
+    width: 100%;
+    margin-bottom: 0;
+    min-width: 800px; // Minimum width for horizontal scroll on mobile
+
+    // Sticky table headers
+    thead {
+      background-color: #f8f9fa;
+
+      th {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+        font-weight: 600;
+        color: #495057;
+        padding: 12px 8px;
+        font-size: 12px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+        background-clip: padding-box;
+      }
+    }
+
+    tbody {
+      tr {
+        background-color: #fff;
+
+        &:hover {
+          background-color: #f8f9fa;
+        }
+      }
+    }
+  }
+
+  // Custom scrollbar styling
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
+
+  // Responsive height adjustments
+  @media (max-width: 767px) {
+    max-height: var(--table-scroll-h-mobile, 50vh);
+  }
+
+  @media (min-width: 768px) and (max-width: 991px) {
+    max-height: var(--table-scroll-h-tablet, 55vh);
+  }
+
+  @media (min-width: 992px) {
+    max-height: var(--table-scroll-h-desktop, 60vh);
+  }
+}
+
+// Table scroll size variants
+.table-scroll--sm {
+  --table-scroll-h: 280px;
+  --table-scroll-h-mobile: 50vh;
+  --table-scroll-h-tablet: 55vh;
+  --table-scroll-h-desktop: 60vh;
+}
+
+.table-scroll--md {
+  --table-scroll-h: 420px;
+  --table-scroll-h-mobile: 50vh;
+  --table-scroll-h-tablet: 55vh;
+  --table-scroll-h-desktop: 60vh;
+}
+
+.table-scroll--lg {
+  --table-scroll-h: 600px;
+  --table-scroll-h-mobile: 70vh;
+  --table-scroll-h-tablet: 400px;
+  --table-scroll-h-desktop: 600px;
+}
+
+// ==========================================
+// Empty State Handling
+// ==========================================
+.scroll-area:empty,
+.table-scroll:empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+// ==========================================
+// PrimeNG Table Compatibility
+// ==========================================
+// When using PrimeNG p-table with scrollable="true",
+// ensure the wrapper doesn't conflict
+.p-table-wrapper {
+  .table-scroll {
+    border: none;
+    background-color: transparent;
+
+    // PrimeNG handles its own scrolling, so remove our max-height
+    // when PrimeNG scrollable is enabled
+    &:has(p-table[scrollable="true"]) {
+      max-height: none;
+      overflow: visible;
+    }
+  }
+}
+
+// ==========================================
+// Card Body Scroll Container
+// ==========================================
+// For tables inside card bodies
+.card-body {
+  .table-scroll {
+    margin: 0;
+    border: none;
+    border-radius: 0;
+  }
+}
+
+// ==========================================
+// Modal/Drawer Scroll Container
+// ==========================================
+// For tables inside modals or drawers
+.modal-body,
+.drawer-content {
+  .table-scroll {
+    max-height: 50vh; // Smaller height in modals
+
+    @media (max-width: 767px) {
+      max-height: 40vh;
+    }
+  }
+}
+
+// ==========================================
+// Table-Responsive Wrapper (for Bootstrap tables)
+// ==========================================
+// Make .table-responsive scrollable with fixed height
+// Verification checklist:
+// ✅ Fixed height container (min-height ensures visibility even when empty)
+// ✅ Internal scrolling (vertical + horizontal)
+// ✅ Sticky headers
+// ✅ Empty state maintains height
+// ✅ Prevents page-level horizontal overflow
+.scroll-table-wrapper {
+  overflow-x: auto;
+  overflow-y: auto;
+  min-height: 300px; // Ensures container is visible even when empty
+  max-height: 60vh;
+  width: 100%;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  position: relative;
+
+  // Responsive height adjustments
+  @media (max-width: 767px) {
+    min-height: 250px;
+    max-height: 50vh;
+  }
+
+  @media (min-width: 768px) and (max-width: 991px) {
+    min-height: 280px;
+    max-height: 55vh;
+  }
+
+  @media (min-width: 992px) {
+    min-height: 300px;
+    max-height: 60vh;
+  }
+
+  // Ensure table doesn't force page overflow
+  .table-responsive {
+    margin-bottom: 0;
+    overflow-x: visible;
+    overflow-y: visible;
+    min-height: 100%; // Fill wrapper height
+
+    table {
+      margin-bottom: 0;
+    }
+  }
+
+  // Sticky table headers when scrolling
+  .table-responsive {
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background-color: #f8f9fa;
+
+      th {
+        background-color: #f8f9fa;
+        box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 0;
+      }
+    }
+  }
+
+  // Empty state block that fills the wrapper height
+  .scroll-table-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    padding: 2rem;
+    text-align: center;
+    color: #6c757d;
+
+    @media (max-width: 767px) {
+      min-height: 250px;
+      padding: 1.5rem;
+    }
+  }
+
+  // Custom scrollbar styling
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
+}
+
+// Generic scroll panel for any content
+.scroll-panel {
+  overflow-y: auto;
+  overflow-x: auto;
+  min-height: 300px; // Ensures container is visible even when empty
+  max-height: 60vh;
+  width: 100%;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  position: relative;
+
+  // Responsive height adjustments
+  @media (max-width: 767px) {
+    min-height: 250px;
+    max-height: 50vh;
+  }
+
+  @media (min-width: 768px) and (max-width: 991px) {
+    min-height: 280px;
+    max-height: 55vh;
+  }
+
+  @media (min-width: 992px) {
+    min-height: 300px;
+    max-height: 60vh;
+  }
+
+  // Custom scrollbar styling
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
+}
+

@@ -23,9 +23,10 @@
       <div 
         class="modal-dialog"
         [ngClass]="getModalDialogClasses(modal.config)"
-        [attr.role]="'document'">
+        [attr.role]="'document'"
+        (click)="$event.stopPropagation()">
         
-        <div class="modal-content">
+        <div class="modal-content" (click)="$event.stopPropagation()">
           <!-- Header -->
           <div class="modal-header" *ngIf="modal.config.header || modal.config.showCloseButton !== false">
             <h5 class="modal-title" [attr.id]="modal.id + '-title'">
@@ -52,8 +53,8 @@
             <ng-container *ngIf="modal.templateRef">
               <ng-container *ngTemplateOutlet="modal.templateRef"></ng-container>
             </ng-container>
-            <ng-container *ngIf="modal.componentRef">
-              <ng-container *ngComponentOutlet="modal.componentRef?.componentType"></ng-container>
+            <ng-container *ngIf="modal.componentType">
+              <ng-container [ngComponentOutlet]="modal.componentType" [ngComponentOutletInjector]="getComponentInjector(modal)"></ng-container>
             </ng-container>
           </div>
 

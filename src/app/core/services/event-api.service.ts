@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
-import { environment } from 'src/environments/environment';
+import { map, catchError, switchMap } from 'rxjs/operators';
+import { ApiClientService } from './api-client.service';
+import { ApiConfigService } from './api-config.service';
 
 export interface EventDetails {
   id: number;
@@ -16,8 +17,6 @@ export interface EventDetails {
   daily_end_time?: string;
   spiritual_orator?: string;
   language?: string;
-  branch?: string;
-  branch_id?: number;
   country?: string;
   state?: string;
   city?: string;
@@ -44,6 +43,11 @@ export interface EventDetails {
     id: number;
     name: string;
     event_type_id: number;
+  };
+  branch_id?: number;
+  branch?: {
+    id: number;
+    name: string;
   };
   special_guests_count?: number;
   volunteers_count?: number;
@@ -128,44 +132,44 @@ export interface EventWithRelatedData {
   providedIn: 'root'
 })
 export class EventApiService {
-  private apiBaseUrl = environment.apiBaseUrl;
-  private membersApiUrl = environment.membersApiUrl;
-  private membersApiToken = environment.membersApiToken;
-
-  constructor(private http: HttpClient) { }
+  // Keep HttpClient for special cases:
+  // - Members API (different base URL/token)
+  // - File uploads (FormData)
+  // - Blob downloads (responseType: 'blob')
+  constructor(
+    private apiClient: ApiClientService,
+    private apiConfig: ApiConfigService,
+    private http: HttpClient // Still needed for special cases
+  ) { }
 
   /**
    * Get all events, optionally filtered by status
    * @param status Optional status filter: 'complete' or 'incomplete'
    */
   getEvents(status?: 'complete' | 'incomplete'): Observable<EventDetails[]> {
-    let params = new HttpParams();
-    if (status) {
-      params = params.set('status', status);
-    }
-    return this.http.get<EventDetails[]>(`${this.apiBaseUrl}/api/events`, { params });
+    const params = status ? { status } : undefined;
+    return this.apiClient.safeGet<EventDetails[]>('/events', params);
   }
 
   /**
    * Get event by ID with related data (special guests, volunteers, media)
    */
   getEventById(eventId: number): Observable<EventWithRelatedData> {
-    return this.http.get<EventWithRelatedData>(`${this.apiBaseUrl}/api/events/${eventId}`);
+    return this.apiClient.safeGet<EventWithRelatedData>(`/events/${eventId}`);
   }
 
   /**
    * Update event status
    */
   updateEventStatus(eventId: number, status: 'complete' | 'incomplete'): Observable<any> {
-    return this.http.patch(`${this.apiBaseUrl}/api/events/${eventId}/status`, { status });
+    return this.apiClient.safePatch(`/events/${eventId}/status`, { status });
   }
 
   /**
    * Search events
    */
   searchEvents(searchTerm: string): Observable<EventDetails[]> {
-    const params = new HttpParams().set('search', searchTerm);
-    return this.http.get<EventDetails[]>(`${this.apiBaseUrl}/api/events/search`, { params });
+    return this.apiClient.safeGet<EventDetails[]>('/events/search', { search: searchTerm });
   }
 
   /**
@@ -176,7 +180,7 @@ export class EventApiService {
   createEvent(eventData: any, status: 'complete' | 'incomplete' = 'incomplete'): Observable<EventDetails> {
     // If status is not already in eventData, add it
     const payload = eventData.status ? eventData : { ...eventData, status };
-    return this.http.post<EventDetails>(`${this.apiBaseUrl}/api/events`, payload);
+    return this.apiClient.safePost<EventDetails>('/events', payload);
   }
 
   /**
@@ -190,7 +194,7 @@ export class EventApiService {
     if (status) {
       payload.status = status;
     }
-    return this.http.put<EventDetails>(`${this.apiBaseUrl}/api/events/${eventId}`, payload);
+    return this.apiClient.safePut<EventDetails>(`/events/${eventId}`, payload);
   }
 
   /**
@@ -198,15 +202,17 @@ export class EventApiService {
    * @param eventId Event ID to delete
    */
   deleteEvent(eventId: number): Observable<any> {
-    return this.http.delete(`${this.apiBaseUrl}/api/events/${eventId}`);
+    return this.apiClient.safeDelete(`/events/${eventId}`);
   }
 
   /**
    * Download event data as PDF
    * @param eventId Event ID to download
+   * Note: Uses HttpClient directly for blob response type
    */
   downloadEvent(eventId: number): Observable<Blob> {
-    return this.http.get(`${this.apiBaseUrl}/api/events/${eventId}/download`, {
+    const url = this.apiConfig.buildApiUrl(`/events/${eventId}/download`);
+    return this.http.get(url, {
       responseType: 'blob',
       headers: {
         'Accept': 'application/pdf'
@@ -220,9 +226,9 @@ export class EventApiService {
    */
   getEventMedia(eventId?: number): Observable<any> {
     if (eventId) {
-      return this.http.get(`${this.apiBaseUrl}/api/event-media/event/${eventId}`);
+      return this.apiClient.safeGet(`/event-media/event/${eventId}`);
     } else {
-      return this.http.get(`${this.apiBaseUrl}/api/event-media`);
+      return this.apiClient.safeGet('/event-media');
     }
   }
 
@@ -231,7 +237,7 @@ export class EventApiService {
    * @param mediaId Media ID to delete
    */
   deleteEventMedia(mediaId: number): Observable<any> {
-    return this.http.delete(`${this.apiBaseUrl}/api/event-media/${mediaId}`);
+    return this.apiClient.safeDelete(`/event-media/${mediaId}`);
   }
 
   /**
@@ -239,7 +245,34 @@ export class EventApiService {
    * @param mediaId Media ID
    */
   getDownloadUrl(mediaId: number): Observable<any> {
-    return this.http.get(`${this.apiBaseUrl}/api/files/${mediaId}/download`);
+    return this.apiClient.safeGet(`/files/${mediaId}/download`);
+  }
+
+  /**
+   * Get file as Blob (for authenticated image preview)
+   * First gets presigned URL, then fetches the blob from that URL
+   * @param mediaId Media ID
+   */
+  getFileBlob(mediaId: number): Observable<Blob> {
+    // First get the presigned URL
+    return this.getDownloadUrl(mediaId).pipe(
+      map((response: any) => {
+        const presignedUrl = response.download_url || response.data?.download_url;
+        if (!presignedUrl) {
+          throw new Error('No download URL available');
+        }
+        return presignedUrl;
+      }),
+      // Then fetch the blob from the presigned URL using HttpClient (with auth if needed)
+      // If presigned URL is public, this will work. If it requires auth, we need to fetch with headers
+      switchMap((presignedUrl: string) => {
+        // Use HttpClient to fetch blob - if URL requires auth, interceptor will add it
+        return this.http.get(presignedUrl, {
+          responseType: 'blob' as const,
+          observe: 'body'
+        });
+      })
+    );
   }
 
   /**
@@ -248,6 +281,7 @@ export class EventApiService {
    * @param eventId Event ID
    * @param mediaId Optional media ID (for updating existing media)
    * @param category File category (Event Photos, Video Coverage, Testimonials, Press Release)
+   * Note: Uses HttpClient directly for FormData
    */
   uploadFile(file: File, eventId: number, mediaId?: number, category?: string): Observable<any> {
     const formData = new FormData();
@@ -259,7 +293,8 @@ export class EventApiService {
     if (category) {
       formData.append('category', category);
     }
-    return this.http.post(`${this.apiBaseUrl}/api/files/upload`, formData);
+    const url = this.apiConfig.buildApiUrl('/files/upload');
+    return this.http.post(url, formData);
   }
 
   /**
@@ -267,6 +302,7 @@ export class EventApiService {
    * @param files Array of files to upload
    * @param eventId Event ID
    * @param category File category (Event Photos, Video Coverage, Testimonials, Press Release)
+   * Note: Uses HttpClient directly for FormData
    */
   uploadMultipleFiles(files: File[], eventId: number, category?: string): Observable<any> {
     const formData = new FormData();
@@ -281,7 +317,8 @@ export class EventApiService {
       formData.append('category', category);
     }
 
-    return this.http.post(`${this.apiBaseUrl}/api/files/upload-multiple`, formData);
+    const url = this.apiConfig.buildApiUrl('/files/upload-multiple');
+    return this.http.post(url, formData);
   }
 
   /**
@@ -291,11 +328,11 @@ export class EventApiService {
    * @param deleteRecord Whether to delete the media record (default: true)
    */
   deleteFile(mediaId: number, eventId?: number, deleteRecord: boolean = true): Observable<any> {
-    let params = new HttpParams().set('delete_record', deleteRecord.toString());
+    const params: any = { delete_record: deleteRecord.toString() };
     if (eventId) {
-      params = params.set('event_id', eventId.toString());
+      params.event_id = eventId.toString();
     }
-    return this.http.delete(`${this.apiBaseUrl}/api/files/${mediaId}`, { params });
+    return this.apiClient.safeDelete(`/files/${mediaId}`, { params });
   }
 
   /**
@@ -311,7 +348,7 @@ export class EventApiService {
 
     // Prepare headers with bearer token
     const headers = new HttpHeaders({
-      'Authorization': `Bearer ${this.membersApiToken}`,
+      'Authorization': `Bearer ${this.apiConfig.getMembersApiToken()}`,
       'Content-Type': 'application/json'
     });
 
@@ -338,8 +375,9 @@ export class EventApiService {
 
     console.log('[EventApiService] Searching volunteers:', { searchTerm, branchCode, requestBody });
 
-    // Call external members API
-    return this.http.post<any>(`${this.membersApiUrl}/volunteers`, requestBody, { headers }).pipe(
+    // Call external members API (uses different base URL and token)
+    const membersApiUrl = this.apiConfig.buildMembersApiUrl('/volunteers');
+    return this.http.post<any>(membersApiUrl, requestBody, { headers }).pipe(
       map((response: any) => {
         console.log('[EventApiService] Raw API response:', response);
         

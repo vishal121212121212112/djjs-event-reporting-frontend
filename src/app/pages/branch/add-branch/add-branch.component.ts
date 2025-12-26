@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core'
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms'
-import { LocationService, BranchPayload, Country, State, District, City, Coordinator } from 'src/app/core/services/location.service'
+import { LocationService, BranchPayload, Country, State, City, Coordinator } from 'src/app/core/services/location.service'
 import { TokenStorageService } from 'src/app/core/services/token-storage.service'
 import { Router } from '@angular/router'
 import { MessageService } from 'primeng/api'
@@ -23,13 +23,11 @@ export class AddBranchComponent implements OnInit {
     countryList: Country[] = [];
     stateList: State[] = [];
     cityList: City[] = [];
-    districtOptions: District[] = [];
     coordinatorsList: Coordinator[] = [];
 
     // Loading states
     loadingCountries = false;
     loadingStates = false;
-    loadingDistricts = false;
     loadingCities = false;
     loadingCoordinators = false;
 
@@ -65,7 +63,6 @@ export class AddBranchComponent implements OnInit {
             state: ['', Validators.required],
             city: ['', Validators.required],
             address: ['', Validators.required],
-            districts: ['', Validators.required],
             areaCovered: [''],
             infrastructure: this.fb.array([
                 this.fb.group({
@@ -99,21 +96,18 @@ export class AddBranchComponent implements OnInit {
             } else {
                 this.stateList = [];
                 this.cityList = [];
-                this.districtOptions = [];
             }
-            this.branchForm.patchValue({ state: '', city: '', districts: '' });
+            this.branchForm.patchValue({ state: '', city: '' });
         });
 
         this.branchForm.get('state')?.valueChanges.subscribe(stateId => {
             const countryId = this.branchForm.get('country')?.value;
             if (stateId && countryId) {
-                this.loadDistricts(stateId, countryId);
                 this.loadCities(stateId);
             } else {
                 this.cityList = [];
-                this.districtOptions = [];
             }
-            this.branchForm.patchValue({ city: '', districts: '' });
+            this.branchForm.patchValue({ city: '' });
         });
 
         // Watch form changes
@@ -181,13 +175,11 @@ export class AddBranchComponent implements OnInit {
             const countryId = formValue.country;
             const stateId = formValue.state;
             const cityId = formValue.city;
-            const districtId = formValue.districts;
             const coordinatorId = formValue.coordinator;
 
             const country = this.countryList.find(c => c.id == countryId || c.id === Number(countryId));
             const state = this.stateList.find(s => s.id == stateId || s.id === Number(stateId));
             const city = this.cityList.find(c => c.id == cityId || c.id === Number(cityId));
-            const district = this.districtOptions.find(d => d.id == districtId || d.id === Number(districtId));
             const coordinator = this.coordinatorsList.find(c => c.id == coordinatorId || c.id === Number(coordinatorId));
 
             // Get current user for created_by and updated_by
@@ -217,7 +209,6 @@ export class AddBranchComponent implements OnInit {
                 created_on: currentTimestamp,
                 daily_end_time: formValue.dailyEndTime || '',
                 daily_start_time: formValue.dailyStartTime || '',
-                district_id: district?.id || null,
                 email: formValue.email || '',
                 established_on: establishedOn || '',
                 id: 0, // Will be set by backend
@@ -339,23 +330,6 @@ export class AddBranchComponent implements OnInit {
         });
     }
 
-    /**
-     * Load districts by state ID and country ID
-     */
-    loadDistricts(stateId: number, countryId: number) {
-        this.loadingDistricts = true;
-        this.districtOptions = [];
-        this.locationService.getDistrictsByStateAndCountry(stateId, countryId).subscribe({
-            next: (districts) => {
-                this.districtOptions = districts;
-                this.loadingDistricts = false;
-            },
-            error: (error) => {
-                console.error('Error loading districts:', error);
-                this.loadingDistricts = false;
-            }
-        });
-    }
 
     /**
      * Load cities by state ID

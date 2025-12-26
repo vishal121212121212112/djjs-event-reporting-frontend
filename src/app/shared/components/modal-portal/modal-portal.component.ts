@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewContainerRef, ChangeDetectorRef, OnDestroy, ElementRef, QueryList, ViewChildren } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewContainerRef, ChangeDetectorRef, OnDestroy, ElementRef, QueryList, ViewChildren, Injector } from '@angular/core';
 import { ModalPortalService, ModalInstance } from '../../../core/services/modal-portal.service';
 import { FocusManagerService } from '../../../core/services/focus-manager.service';
 import { Subject } from 'rxjs';
@@ -35,6 +35,16 @@ export class ModalPortalComponent implements OnInit, AfterViewInit, OnDestroy {
     // Subscribe to modal changes
     this.updateModals();
     
+    // TEMPORARY: Add click logger for debugging
+    this.setupClickLogger();
+    
+    // Listen for modal open events to update UI
+    this.modalService.onModalOpened()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.updateModals();
+      });
+
     // Listen for modal close events to update UI
     this.modalService.onModalClosed()
       .pipe(takeUntil(this.destroy$))
@@ -49,6 +59,41 @@ export class ModalPortalComponent implements OnInit, AfterViewInit, OnDestroy {
           this.lastFocusedModalId = null;
         }
       });
+  }
+
+  /**
+   * TEMPORARY: Setup click logger to debug click events
+   */
+  private clickLogger?: (event: MouseEvent) => void;
+  
+  private setupClickLogger(): void {
+    this.clickLogger = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      const path = event.composedPath();
+      
+      console.log('🔍 Click Debug:', {
+        target: target.tagName + (target.className ? '.' + target.className.split(' ').join('.') : ''),
+        targetId: target.id,
+        pointerEvents: window.getComputedStyle(target).pointerEvents,
+        zIndex: window.getComputedStyle(target).zIndex,
+        path: Array.from(path).slice(0, 5).map((el: any) => 
+          el.tagName + (el.className ? '.' + el.className.split(' ').slice(0, 2).join('.') : '')
+        ),
+        isModal: target.closest('.modal'),
+        isBackdrop: target.closest('.modal-backdrop'),
+        isModalContent: target.closest('.modal-content'),
+        isButton: target.tagName === 'BUTTON' || target.closest('button')
+      });
+    };
+    
+    document.addEventListener('click', this.clickLogger, true);
+  }
+  
+  private removeClickLogger(): void {
+    if (this.clickLogger) {
+      document.removeEventListener('click', this.clickLogger, true);
+      this.clickLogger = undefined;
+    }
   }
 
   ngAfterViewInit(): void {
@@ -67,6 +112,7 @@ export class ModalPortalComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.cleanupFocusTrap();
+    this.removeClickLogger();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -254,6 +300,19 @@ export class ModalPortalComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
+   * Get injector for component with modal data
+   */
+  getComponentInjector(modal: ModalInstance): Injector {
+    return Injector.create({
+      providers: [
+        { provide: 'MODAL_DATA', useValue: modal.config.data || {} },
+        { provide: 'MODAL_CONFIG', useValue: modal.config }
+      ],
+      parent: this.viewContainerRef.injector
+    });
+  }
+
+  /**
    * Handle backdrop click - only close topmost modal
    */
   onBackdropClick(event: MouseEvent): void {
@@ -275,17 +334,22 @@ export class ModalPortalComponent implements OnInit, AfterViewInit, OnDestroy {
    * Handle modal container click (to prevent backdrop click when clicking modal content)
    */
   onModalClick(event: MouseEvent, modal: ModalInstance): void {
-    // Stop propagation to prevent backdrop click
-    event.stopPropagation();
+    const target = event.target as HTMLElement;
     
     // If clicking the modal element itself (not content), treat as backdrop click
-    const target = event.target as HTMLElement;
     if (target.classList.contains('modal') && modal.config.closeOnBackdropClick !== false) {
       // Check if click is inside overlay
       if (!this.isClickInsideOverlay(target)) {
         this.closeModal(modal.id);
       }
+      // Stop propagation for backdrop clicks
+      event.stopPropagation();
+      return;
     }
+    
+    // For clicks inside modal-content, allow them to propagate normally
+    // Don't stop propagation here - let buttons handle their own clicks
+    // Only stop if we're actually closing the modal
   }
 
   /**

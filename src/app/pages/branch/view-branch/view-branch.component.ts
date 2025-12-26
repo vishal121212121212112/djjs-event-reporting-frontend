@@ -140,7 +140,6 @@ export class ViewBranchComponent implements OnInit {
     if (this.branch.aashram_area) filledFields++;
     if (this.branch.country?.name) filledFields++;
     if (this.branch.state?.name) filledFields++;
-    if (this.branch.district?.name) filledFields++;
     if (this.branch.city?.name) filledFields++;
     if (this.branch.address) filledFields++;
     if (this.branch.pincode) filledFields++;

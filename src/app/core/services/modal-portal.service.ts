@@ -1,4 +1,4 @@
-import { Injectable, ComponentRef, ViewContainerRef, TemplateRef, Type, Injector } from '@angular/core';
+import { Injectable, ComponentRef, ViewContainerRef, TemplateRef, Type, Injector, inject } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 import { ScrollLockService } from './scroll-lock.service';
 import { FocusManagerService } from './focus-manager.service';
@@ -21,6 +21,7 @@ export interface ModalConfig {
 export interface ModalInstance {
   id: string;
   componentRef?: ComponentRef<any>;
+  componentType?: Type<any>; // Store component type for template rendering
   templateRef?: TemplateRef<any>;
   config: ModalConfig;
   close: () => void;
@@ -35,6 +36,7 @@ export class ModalPortalService {
   private modalContainer?: ViewContainerRef;
   private activeModals: Map<string, ModalInstance> = new Map();
   private modalClosed$ = new Subject<string>();
+  private modalOpened$ = new Subject<string>();
 
   constructor(
     private scrollLockService: ScrollLockService,
@@ -117,18 +119,9 @@ export class ModalPortalService {
       this.close(modalId);
     }
 
-    const componentRef = this.modalContainer.createComponent(component, {
-      injector: injector
-    });
-
-    // Pass config data to component if it has an input
-    if (config.data && componentRef.instance && 'data' in componentRef.instance) {
-      (componentRef.instance as any).data = config.data;
-    }
-
     const modalInstance: ModalInstance = {
       id: modalId,
-      componentRef,
+      componentType: component, // Store component type for template rendering
       config: {
         size: 'md',
         centered: true,
@@ -151,6 +144,10 @@ export class ModalPortalService {
 
     // Lock scroll using reference-counted service (supports multiple modals)
     this.scrollLockService.lockScroll('modal');
+
+    // Notify container to render modal
+    this.notifyContainer();
+    this.modalOpened$.next(modalId);
 
     return modalInstance;
   }
@@ -218,6 +215,13 @@ export class ModalPortalService {
    */
   onModalClosed(): Observable<string> {
     return this.modalClosed$.asObservable();
+  }
+
+  /**
+   * Observable for modal open events
+   */
+  onModalOpened(): Observable<string> {
+    return this.modalOpened$.asObservable();
   }
 
   /**
