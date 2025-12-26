@@ -7,6 +7,7 @@ import { WidgetModule } from './widget/widget.module';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FormModule } from '../pages/form/form.module';
 import { PaginationComponent } from './components/pagination/pagination.component';
+import { TableOverflowDirective } from './directives/table-overflow.directive';
 
 @NgModule({
   declarations: [PaginationComponent],
@@ -15,7 +16,8 @@ import { PaginationComponent } from './components/pagination/pagination.componen
     UIModule,
     WidgetModule ,
     ReactiveFormsModule ,
-    FormModule
+    FormModule,
+    TableOverflowDirective // Standalone directive
   ],
   exports :[
     CommonModule,
@@ -23,7 +25,8 @@ import { PaginationComponent } from './components/pagination/pagination.componen
     WidgetModule ,
     ReactiveFormsModule ,
     FormModule,
-    PaginationComponent
+    PaginationComponent,
+    TableOverflowDirective // Export for use in other modules
   ]
 })
 

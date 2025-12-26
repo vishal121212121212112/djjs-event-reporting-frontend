@@ -3,13 +3,14 @@
   <div 
     class="modal-backdrop fade show" 
     *ngIf="hasActiveModals()"
-    (click)="onBackdropClick()"
+    (click)="onBackdropClick($event)"
     [attr.aria-hidden]="!hasActiveModals()">
   </div>
 
   <!-- Modals -->
   <ng-container *ngFor="let modal of activeModals">
     <div 
+      #modalElement
       class="modal fade show d-block" 
       [attr.id]="modal.id"
       [attr.data-modal-id]="modal.id"
@@ -17,8 +18,7 @@
       [attr.aria-labelledby]="modal.id + '-title'"
       role="dialog"
       tabindex="-1"
-      (click)="onModalClick($event, modal)"
-      (keydown.escape)="onEscapeKey(modal)">
+      (click)="onModalClick($event, modal)">
       
       <div 
         class="modal-dialog"
@@ -66,5 +66,6 @@
     </div>
   </ng-container>
 </div>
+
 
 

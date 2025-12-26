@@ -3,7 +3,7 @@
 // 
 
 .page-title-box {
-    padding-bottom: $grid-gutter-width;
+    padding-bottom: $grid-gutter-width; // 24px - already uses spacing scale
 
     .breadcrumb {
         background-color: transparent;
@@ -13,6 +13,6 @@
     h4 {
         text-transform: uppercase;
         font-weight: 600;
-        font-size: 16px !important;
+        font-size: 1rem !important; // Phase 4: Standardized to 16px (1rem) from 16px (consistent)
     }
 }

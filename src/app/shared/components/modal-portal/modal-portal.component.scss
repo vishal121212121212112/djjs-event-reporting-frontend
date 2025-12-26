@@ -14,6 +14,73 @@
 
 .modal-portal-container .modal-backdrop {
   pointer-events: auto;
+  z-index: var(--zindex-modal-backdrop, 10990);
 }
+
+// Standardized modal dialog sizing and responsive behavior
+.modal-portal-container .modal-dialog {
+  max-width: 95vw;
+  margin: 1.75rem auto;
+  
+  // Responsive breakpoints
+  @media (max-width: 960px) {
+    max-width: 90vw;
+    margin: 1rem auto;
+  }
+  
+  @media (max-width: 640px) {
+    max-width: 95vw;
+    margin: 0.5rem auto;
+  }
+}
+
+// Standardized modal content with max height and overflow
+.modal-portal-container .modal-content {
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  
+  @media (max-width: 640px) {
+    max-height: 90vh;
+  }
+}
+
+// Scrollable modal body
+.modal-portal-container .modal-body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1 1 auto;
+  
+  // Smooth scrolling
+  -webkit-overflow-scrolling: touch;
+  
+  // Custom scrollbar styling (optional)
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+    
+    &:hover {
+      background: #555;
+    }
+  }
+}
+
+// Ensure modals are not draggable/resizable by default
+.modal-portal-container .modal-dialog {
+  // Prevent dragging (if any drag libraries are used)
+  user-select: none;
+  
+  // Ensure proper positioning
+  position: relative;
+}
+
 
 

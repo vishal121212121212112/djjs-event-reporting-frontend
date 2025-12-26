@@ -316,15 +316,33 @@
   }
 }
 
-// Scrollable Table Container
+// Scrollable Table Container - Responsive with Sticky Headers
 .table-container-scrollable {
   width: 100%;
-  max-height: 400px;
   overflow-y: auto;
   overflow-x: auto;
   border: 1px solid #dee2e6;
   border-radius: 6px;
   background-color: #fff;
+  position: relative;
+
+  // Desktop: Fixed height (350-400px)
+  @media (min-width: 1024px) {
+    max-height: 400px;
+    height: 400px;
+  }
+
+  // Tablet: Reduced height (250-300px)
+  @media (min-width: 768px) and (max-width: 1023px) {
+    max-height: 300px;
+    height: 300px;
+  }
+
+  // Mobile: Adaptive height (max-height: 60vh)
+  @media (max-width: 767px) {
+    max-height: 60vh;
+    height: auto;
+  }
 
   .table-responsive {
     margin-bottom: 0;
@@ -334,6 +352,36 @@
       margin-bottom: 0;
       width: 100%;
       min-width: 800px; // Ensure table has minimum width for horizontal scroll
+
+      // Sticky table headers
+      thead {
+        background-color: #f8f9fa;
+
+        th {
+          background-color: #f8f9fa;
+          border-color: #dee2e6;
+          font-weight: 600;
+          color: #495057;
+          padding: 12px 8px;
+          font-size: 12px;
+          position: sticky;
+          top: 0;
+          z-index: 10;
+          box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+          // Ensure background covers content when scrolling
+          background-clip: padding-box;
+        }
+      }
+
+      tbody {
+        tr {
+          background-color: #fff;
+
+          &:hover {
+            background-color: #f8f9fa;
+          }
+        }
+      }
     }
   }
 
@@ -356,6 +404,11 @@
       background: #a8a8a8;
     }
   }
+}
+
+// Reusable responsive table container class (for future use)
+.responsive-table-container {
+  @extend .table-container-scrollable;
 }
 
 // Input Group Styles

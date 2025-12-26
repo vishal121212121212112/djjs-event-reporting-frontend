@@ -1,11 +1,12 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 @Component({
   selector: 'app-transaction',
   templateUrl: './transaction.component.html',
-  styleUrls: ['./transaction.component.scss']
+  styleUrls: ['./transaction.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush // Performance: Input component, safe for OnPush
 })
 export class TransactionComponent implements OnInit {
 

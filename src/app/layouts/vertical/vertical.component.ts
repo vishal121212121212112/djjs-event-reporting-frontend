@@ -1,7 +1,10 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, DestroyRef, inject } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { EventService } from '../../core/services/event.service';
+import { BreakpointService } from '../../core/services/breakpoint.service';
+import { ScrollLockService } from '../../core/services/scroll-lock.service';
 
 // import { SIDEBAR_TYPE } from "../layouts.model";
 
@@ -14,12 +17,23 @@ import { EventService } from '../../core/services/event.service';
 /**
  * Vertical component
  */
-export class VerticalComponent implements OnInit, AfterViewInit {
+export class VerticalComponent implements OnInit, AfterViewInit, OnDestroy {
 
   isCondensed: any = false;
   sidebartype: string;
+  private isMobileViewport: boolean = false;
+  private destroyRef = inject(DestroyRef);
+  
+  // Phase 4 Final Polish: Sidebar state is the single source of truth
+  // All DOM classes are applied based on this state, not vice versa
+  isSidebarOpen: boolean = false;
 
-  constructor(private router: Router, private eventService: EventService) {
+  constructor(
+    private router: Router, 
+    private eventService: EventService,
+    private breakpointService: BreakpointService,
+    private scrollLockService: ScrollLockService
+  ) {
     this.router.events.forEach((event) => {
       if (event instanceof NavigationEnd) {
         // Close sidebar on navigation (mobile only)
@@ -36,30 +50,37 @@ export class VerticalComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * Close mobile sidebar
+   * Phase 4 Final Polish: Apply DOM classes based on isSidebarOpen state
+   * This ensures isSidebarOpen is the single source of truth
+   * Uses ScrollLockService for reference-counted scroll locking
    */
-  private closeMobileSidebar() {
-    if (window.innerWidth <= 992) {
+  private applySidebarState() {
+    if (this.isMobileViewport && this.isSidebarOpen) {
+      // Open sidebar - lock scroll using reference-counted service
+      this.scrollLockService.lockScroll('sidebar');
+      document.body.classList.add('sidebar-enable');
+    } else {
+      // Close sidebar (mobile) or ensure closed (desktop) - unlock scroll
+      this.scrollLockService.unlockScroll('sidebar');
       document.body.classList.remove('sidebar-enable');
-      // Restore body styles
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.height = '';
-      // Restore page-content scrolling
-      const pageContent = document.querySelector('.page-content') as HTMLElement;
-      if (pageContent) {
-        pageContent.style.overflow = '';
-      }
     }
   }
 
   /**
+   * Close mobile sidebar
+   * Phase 4 Final Polish: Update state first, then apply DOM changes
+   */
+  private closeMobileSidebar() {
+    this.isSidebarOpen = false;
+    this.applySidebarState();
+  }
+
+  /**
    * Handle click outside sidebar
+   * Phase 4 Final Polish: Check state instead of DOM class
    */
   private handleOutsideClick(e: Event) {
-    const isMobile = window.innerWidth <= 992;
-    if (!isMobile || !document.body.classList.contains('sidebar-enable')) {
+    if (!this.isMobileViewport || !this.isSidebarOpen) {
       return;
     }
 
@@ -90,6 +111,22 @@ export class VerticalComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     document.body.setAttribute('data-layout', 'vertical');
+    
+    // Subscribe to breakpoint changes for reactive mobile detection
+    // Uses takeUntilDestroyed for automatic cleanup (safer than manual subscription)
+    this.breakpointService.isMobile$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(isMobile => {
+        this.isMobileViewport = isMobile;
+        
+        // Phase 4 Final Polish: Update state first, then apply DOM changes
+        if (!isMobile) {
+          // On desktop, sidebar is never "open" in mobile sense
+          this.isSidebarOpen = false;
+        }
+        // Apply DOM changes based on new state
+        this.applySidebarState();
+      });
   }
 
   isMobile() {
@@ -98,6 +135,10 @@ export class VerticalComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
+  }
+
+  ngOnDestroy() {
+    // No manual cleanup needed - takeUntilDestroyed handles it automatically
   }
 
   /**
@@ -109,40 +150,20 @@ export class VerticalComponent implements OnInit, AfterViewInit {
 
   /**
    * On mobile toggle button clicked
+   * Phase 4 Final Polish: Update state first, then apply DOM changes
    */
   onToggleMobileMenu() {
-    const isMobile = window.innerWidth <= 992;
-
-    if (isMobile) {
-      // Mobile behavior - toggle sidebar overlay
-      const isOpen = document.body.classList.contains('sidebar-enable');
-
-      if (isOpen) {
-        this.closeMobileSidebar();
-      } else {
-        // Open sidebar
-        document.body.classList.add('sidebar-enable');
-        // Prevent body scrolling
-        document.body.style.overflow = 'hidden';
-        document.body.style.position = 'fixed';
-        document.body.style.width = '100%';
-        document.body.style.height = '100%';
-        // Prevent page-content scrolling
-        const pageContent = document.querySelector('.page-content') as HTMLElement;
-        if (pageContent) {
-          pageContent.style.overflow = 'hidden';
-        }
-      }
+    if (this.isMobileViewport) {
+      // Mobile behavior - toggle sidebar state
+      this.isSidebarOpen = !this.isSidebarOpen;
+      this.applySidebarState();
     } else {
-      // Desktop behavior - toggle collapsed state
+      // Desktop behavior - toggle collapsed state (not related to mobile sidebar state)
       this.isCondensed = !this.isCondensed;
       document.body.classList.toggle('vertical-collpsed');
-      document.body.classList.remove('sidebar-enable');
-      // Restore body styles on desktop
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.height = '';
+      // Ensure mobile sidebar state is false on desktop
+      this.isSidebarOpen = false;
+      this.applySidebarState();
     }
   }
 }

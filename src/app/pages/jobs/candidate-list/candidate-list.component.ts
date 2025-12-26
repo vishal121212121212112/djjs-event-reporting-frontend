@@ -1,20 +1,23 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, OnDestroy } from '@angular/core';
 // store
 import { Store } from '@ngrx/store';
 import { fetchCandidatelistData } from 'src/app/store/Candidate/candidate.actions';
 import { selectData } from 'src/app/store/Candidate/candidate-selector';
 import { cloneDeep } from 'lodash';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-candidate-list',
   templateUrl: './candidate-list.component.html',
-  styleUrls: ['./candidate-list.component.scss']
+  styleUrls: ['./candidate-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush // Performance: Only check when inputs change
 })
 
 /**
  * Candidate List Component
+ * Uses OnPush for better performance with large lists
  */
-export class CandidateListComponent implements OnInit {
+export class CandidateListComponent implements OnInit, OnDestroy {
 
   breadCrumbItems: Array<{}>;
   lists: any;
@@ -22,8 +25,12 @@ export class CandidateListComponent implements OnInit {
   term: any;
   searchterm: any
   public isCollapsed: boolean = true;
+  private subscription?: Subscription;
 
-  constructor(public store: Store) { }
+  constructor(
+    public store: Store,
+    private cdr: ChangeDetectorRef // Required for OnPush manual detection
+  ) { }
 
   ngOnInit(): void {
     this.breadCrumbItems = [{ label: 'Jobs' }, { label: 'Candidate List', active: true }];
@@ -32,45 +39,61 @@ export class CandidateListComponent implements OnInit {
    * fetches data
    */
     this.store.dispatch(fetchCandidatelistData());
-    this.store.select(selectData).subscribe(data => {
-      this.lists = data;
-      this.alllists = cloneDeep(data)
-      this.lists = this.alllists.slice(0, 8)
+    this.subscription = this.store.select(selectData).subscribe(data => {
+      // Create new array references for OnPush (immutable updates)
+      this.lists = data ? [...data].slice(0, 8) : [];
+      this.alllists = cloneDeep(data);
+      this.cdr.markForCheck(); // Trigger change detection for OnPush
     });
+  }
+
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
   // filter status
   taskFilter() {
     var status = (document.getElementById("idType") as HTMLInputElement).value;
     if (status) {
-      this.lists = this.alllists.filter((data: any) => {
+      // Create new array reference for OnPush (immutable update)
+      this.lists = [...this.alllists].filter((data: any) => {
         return data.type === status;
       });
     }
     else {
-      this.lists = this.alllists
+      // Create new array reference for OnPush
+      this.lists = [...this.alllists];
     }
+    this.cdr.markForCheck(); // Trigger change detection
   }
   // search term
   searchTerm() {
     if (this.term) {
-      this.lists = this.alllists.filter((el: any) => {
+      // Create new array reference for OnPush (immutable update)
+      this.lists = [...this.alllists].filter((el: any) => {
         return el.name.toLowerCase().includes(this.term.toLowerCase())
       });
     } else {
-      this.lists = this.alllists
+      // Create new array reference for OnPush
+      this.lists = [...this.alllists];
     }
+    this.cdr.markForCheck(); // Trigger change detection
   }
 
   // location
   Location() {
     if (this.searchterm) {
-      this.lists = this.alllists.filter((el: any) => {
+      // Create new array reference for OnPush (immutable update)
+      this.lists = [...this.alllists].filter((el: any) => {
         return el.location.toLowerCase().includes(this.searchterm.toLowerCase())
       });
     } else {
-      this.lists = this.alllists
+      // Create new array reference for OnPush
+      this.lists = [...this.alllists];
     }
+    this.cdr.markForCheck(); // Trigger change detection
   }
   /**
    * Active Toggle navbar

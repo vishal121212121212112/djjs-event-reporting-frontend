@@ -1,6 +1,8 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, DestroyRef, inject } from '@angular/core';
 // import { TOPBAR } from "../layouts.model";
 import { EventService } from '../../core/services/event.service';
+import { BreakpointService } from '../../core/services/breakpoint.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-horizontal',
@@ -11,12 +13,17 @@ import { EventService } from '../../core/services/event.service';
 /**
  * Horizontal-layout component
  */
-export class HorizontalComponent implements OnInit, AfterViewInit {
+export class HorizontalComponent implements OnInit, AfterViewInit, OnDestroy {
 
   topbar: string;
   isCondensed: boolean;
+  private isMobile: boolean = false;
+  private destroyRef = inject(DestroyRef);
 
-  constructor(private eventService: EventService) { }
+  constructor(
+    private eventService: EventService,
+    private breakpointService: BreakpointService
+  ) { }
 
   ngOnInit() {
 
@@ -34,9 +41,28 @@ export class HorizontalComponent implements OnInit, AfterViewInit {
     document.body.removeAttribute('data-sidebar-small');
 
     this.changeTopbar(this.topbar);
+    
+    // Subscribe to breakpoint changes for reactive mobile detection
+    // Uses takeUntilDestroyed for automatic cleanup (safer than manual subscription)
+    this.breakpointService.isMobile$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(isMobile => {
+        this.isMobile = isMobile;
+        
+        // If resizing from mobile to desktop, ensure sidebar state is correct
+        if (!isMobile) {
+          // On desktop, remove mobile sidebar state
+          document.body.classList.remove('sidebar-enable');
+          document.body.style.overflow = '';
+        }
+      });
   }
 
   ngAfterViewInit() {
+  }
+
+  ngOnDestroy() {
+    // No manual cleanup needed - takeUntilDestroyed handles it automatically
   }
 
   /**
@@ -64,12 +90,11 @@ export class HorizontalComponent implements OnInit, AfterViewInit {
   }
 
   /**
- * On mobile toggle button clicked
- */
+   * On mobile toggle button clicked
+   * Uses BreakpointService instead of hardcoded window.innerWidth check
+   */
   onToggleMobileMenu() {
-    const isMobile = window.innerWidth <= 992;
-
-    if (isMobile) {
+    if (this.isMobile) {
       // Mobile behavior - toggle sidebar overlay
       document.body.classList.toggle('sidebar-enable');
       // Prevent body scroll when sidebar is open

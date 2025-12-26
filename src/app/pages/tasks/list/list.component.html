@@ -68,7 +68,7 @@
           <div class="table-responsive">
             <table class="table table-nowrap align-middle mb-0">
               <tbody>
-                @for(list of upcomingTasks;track $index){
+                @for(list of upcomingTasks;track list.index){
                 <tr>
                   <td style="width: 40px;">
                     <div class="form-check font-size-16">
@@ -116,7 +116,7 @@
           <div class="table-responsive">
             <table class="table table-nowrap align-middle mb-0">
               <tbody>
-                @for(progresstask of inprogressTasks;track $index){
+                @for(progresstask of inprogressTasks;track progresstask.index){
                 <tr>
                   <td style="width: 40px;">
                     <div class="form-check font-size-16">
@@ -162,7 +162,7 @@
           <div class="table-responsive">
             <table class="table table-nowrap align-middle mb-0">
               <tbody>
-                @for(completetask of completedTasks;track $index){
+                @for(completetask of completedTasks;track completetask.index){
                 <tr>
                   <td style="width: 40px;">
                     <div class="form-check font-size-16">

@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter, Inject } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, Inject } from '@angular/core';
 import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { DOCUMENT } from '@angular/common';
 import { AuthenticationService } from '../../core/services/auth.service';
@@ -56,6 +56,9 @@ export class TopbarComponent implements OnInit {
   ];
 
   openMobileMenu: boolean;
+
+  // Phase 4: Receive sidebar state for aria-expanded
+  @Input() isSidebarOpen: boolean = false;
 
   @Output() settingsButtonClicked = new EventEmitter();
   @Output() mobileMenuButtonClicked = new EventEmitter();

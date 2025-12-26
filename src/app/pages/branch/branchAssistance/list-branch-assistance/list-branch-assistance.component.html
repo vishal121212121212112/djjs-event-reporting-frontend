@@ -61,11 +61,26 @@
               <td>{{ user.created_by || '-' }}</td>
               <td>{{ user.updated_by || '-' }}</td>
               <td>
-                <div class="d-flex gap-1">
-                  <p-button type="button" icon="pi pi-pencil" size="small" severity="secondary" (onClick)="editUser(user.id)"
-                    pTooltip="Edit User" tooltipPosition="top"></p-button>
-                  <p-button type="button" icon="pi pi-trash" size="small" severity="danger" (onClick)="deleteUser(user.id)"
-                    pTooltip="Delete User" tooltipPosition="top"></p-button>
+                <div class="d-flex gap-1 table-actions">
+                  <!-- Phase 4 Final Polish: Improved ARIA labels with human-readable names -->
+                  <p-button 
+                    type="button" 
+                    icon="pi pi-pencil" 
+                    size="small" 
+                    severity="secondary" 
+                    (onClick)="editUser(user.id)"
+                    pTooltip="Edit User" 
+                    tooltipPosition="top"
+                    [attr.aria-label]="'Edit ' + (user.name || user.email || 'user ' + user.id)"></p-button>
+                  <p-button 
+                    type="button" 
+                    icon="pi pi-trash" 
+                    size="small" 
+                    severity="danger" 
+                    (onClick)="deleteUser(user.id)"
+                    pTooltip="Delete User" 
+                    tooltipPosition="top"
+                    [attr.aria-label]="'Delete ' + (user.name || user.email || 'user ' + user.id)"></p-button>
                 </div>
               </td>
             </tr>

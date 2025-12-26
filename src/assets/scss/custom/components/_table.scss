@@ -84,12 +84,12 @@
     // Responsive table cell padding
     th,
     td {
-        padding: 0.75rem;
+        padding: 0.75rem; // Phase 4: Standardized to 12px (0.75rem)
         vertical-align: middle;
 
         @media (max-width: 576px) {
-            padding: 0.5rem;
-            font-size: 0.875rem;
+            padding: 0.5rem; // Phase 4: Standardized to 8px (0.5rem)
+            font-size: 0.875rem; // 14px - consistent
         }
     }
 
@@ -105,8 +105,10 @@
 // Responsive table wrapper
 .table-responsive {
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+    overscroll-behavior-x: contain; // Prevent horizontal scroll chaining
+    overscroll-behavior-y: auto;
     border-radius: 0.375rem;
+    position: relative; // For fade gradient positioning
 
     &::-webkit-scrollbar {
         height: 8px;
@@ -131,8 +133,73 @@
         display: block;
         width: 100%;
         overflow-x: auto;
+        overflow-y: visible;
         -webkit-overflow-scrolling: touch;
+        
+        // Add subtle fade gradient on right edge to hint horizontal scrolling
+        // Only visible when content overflows AND user hasn't scrolled to end
+        &::after {
+            content: '';
+            position: sticky;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.1));
+            pointer-events: none; // Critical: prevent fade from blocking clicks
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1;
+        }
+        
+        // Show fade ONLY when:
+        // 1. Content overflows (.has-overflow class from directive)
+        // 2. User hasn't scrolled to end (not .is-scrolled-end)
+        &.has-overflow:not(.is-scrolled-end)::after {
+            opacity: 1;
+        }
+        
+        // Hide fade when user scrolls to end or hovers (they're aware)
+        &.is-scrolled-end::after,
+        &:hover::after {
+            opacity: 0;
+        }
+        
+        // Add padding-right when overflow exists to keep last column readable under fade
+        // Only apply when fade is visible (has-overflow and not scrolled-end)
+        &.has-overflow:not(.is-scrolled-end) {
+            padding-right: 20px; // Space for fade gradient (30px width, but 20px is enough)
+        }
     }
+    
+    // Small screens: Add hint text (optional, can be removed if too intrusive)
+    @media (max-width: 576px) {
+        &::before {
+            content: 'Swipe to scroll →';
+            position: absolute;
+            top: -24px;
+            right: 0;
+            font-size: 0.75rem;
+            color: var(--#{$prefix}secondary-color);
+            opacity: 0.6;
+            pointer-events: none;
+            z-index: 2;
+            white-space: nowrap;
+            display: none;
+        }
+        
+        // Show hint only when content overflows (directive adds .has-overflow)
+        &.has-overflow:not(.is-scrolled-end)::before {
+            display: block;
+            animation: fadeInOut 3s ease-in-out infinite;
+        }
+    }
+}
+
+// Fade animation for scroll hint
+@keyframes fadeInOut {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
 }
 
 // Table actions (buttons in cells)

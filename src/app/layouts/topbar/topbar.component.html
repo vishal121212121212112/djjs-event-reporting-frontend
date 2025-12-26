@@ -13,8 +13,17 @@
         </a>
       </div>
 
-      <button type="button" class="btn btn-sm px-3 font-size-16 header-item" [ngClass]="{ 'd-none': theme === 'horizontal' }" id="vertical-menu-btn" (click)="toggleMobileMenu($event)">
-        <i class="fa fa-fw fa-bars"></i>
+      <!-- Phase 4: Added ARIA attributes for accessibility -->
+      <button 
+        type="button" 
+        class="btn btn-sm px-3 font-size-16 header-item" 
+        [ngClass]="{ 'd-none': theme === 'horizontal' }" 
+        id="vertical-menu-btn" 
+        (click)="toggleMobileMenu($event)"
+        [attr.aria-label]="'Toggle navigation menu'"
+        [attr.aria-expanded]="isSidebarOpen"
+        [attr.aria-controls]="'sidebar-menu'">
+        <i class="fa fa-fw fa-bars" aria-hidden="true"></i>
       </button>
 
       <!-- Breadcrumbs -->
@@ -166,16 +175,28 @@
 
 
 
+      <!-- Phase 4: Added ARIA label for icon-only button -->
       <div class="dropdown d-none d-lg-inline-block ms-1">
-        <button type="button" class="btn header-item noti-icon waves-effect" data-bs-toggle="fullscreen" (click)="fullscreen()">
-          <i class="bx bx-fullscreen"></i>
+        <button 
+          type="button" 
+          class="btn header-item noti-icon waves-effect" 
+          data-bs-toggle="fullscreen" 
+          (click)="fullscreen()"
+          aria-label="Toggle fullscreen">
+          <i class="bx bx-fullscreen" aria-hidden="true"></i>
         </button>
       </div>
 
+      <!-- Phase 4: Added ARIA label for icon-only button -->
       <div class="dropdown d-inline-block" dropdown>
-        <button type="button" class="btn header-item noti-icon" id="page-header-notifications-dropdown" dropdownToggle>
-          <i class="bx bx-bell bx-tada"></i>
-          <span class="badge bg-danger rounded-pill">0</span>
+        <button 
+          type="button" 
+          class="btn header-item noti-icon" 
+          id="page-header-notifications-dropdown" 
+          dropdownToggle
+          aria-label="Notifications">
+          <i class="bx bx-bell bx-tada" aria-hidden="true"></i>
+          <span class="badge bg-danger rounded-pill" aria-label="0 unread notifications">0</span>
         </button>
         <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0" aria-labelledby="page-header-notifications-dropdown" *dropdownMenu>
           <div class="p-3">

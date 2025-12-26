@@ -1,6 +1,7 @@
 import { Injectable, ComponentRef, ViewContainerRef, TemplateRef, Type, Injector } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 import { ScrollLockService } from './scroll-lock.service';
+import { FocusManagerService } from './focus-manager.service';
 
 export interface ModalConfig {
   id?: string;
@@ -35,7 +36,10 @@ export class ModalPortalService {
   private activeModals: Map<string, ModalInstance> = new Map();
   private modalClosed$ = new Subject<string>();
 
-  constructor(private scrollLockService: ScrollLockService) {}
+  constructor(
+    private scrollLockService: ScrollLockService,
+    private focusManager: FocusManagerService
+  ) {}
 
   /**
    * Set the modal container (called by ModalPortalComponent)
@@ -80,10 +84,13 @@ export class ModalPortalService {
 
     this.activeModals.set(modalId, modalInstance);
 
-    // Lock scroll when first modal opens
+    // Store active element before opening (only for first modal)
     if (this.activeModals.size === 1) {
-      this.scrollLockService.lockScroll();
+      this.focusManager.storeActiveElement();
     }
+
+    // Lock scroll using reference-counted service (supports multiple modals)
+    this.scrollLockService.lockScroll('modal');
 
     // Notify container to render modal
     this.notifyContainer();
@@ -137,10 +144,13 @@ export class ModalPortalService {
 
     this.activeModals.set(modalId, modalInstance);
 
-    // Lock scroll when first modal opens
+    // Store active element before opening (only for first modal)
     if (this.activeModals.size === 1) {
-      this.scrollLockService.lockScroll();
+      this.focusManager.storeActiveElement();
     }
+
+    // Lock scroll using reference-counted service (supports multiple modals)
+    this.scrollLockService.lockScroll('modal');
 
     return modalInstance;
   }
@@ -162,9 +172,12 @@ export class ModalPortalService {
     this.activeModals.delete(modalId);
     this.modalClosed$.next(modalId);
 
-    // Unlock scroll when last modal closes
+    // Unlock scroll using reference-counted service
+    this.scrollLockService.unlockScroll('modal');
+
+    // Restore focus when last modal closes (handled by component, but clear here if needed)
     if (this.activeModals.size === 0) {
-      this.scrollLockService.unlockScroll();
+      // Focus restoration is handled by ModalPortalComponent
     }
 
     // Notify container to update

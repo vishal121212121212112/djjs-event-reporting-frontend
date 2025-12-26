@@ -18,7 +18,7 @@
       </tr>
     </thead>
     <tbody>
-      @for(data of transactions;track $index){
+      @for(data of transactions;track data.id || data.index){
       <tr>
         <td>
           <div class="form-check font-size-16">

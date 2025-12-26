@@ -1,13 +1,15 @@
-import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, Input, OnChanges, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, Input, OnChanges, OnDestroy, HostListener, DestroyRef, inject } from '@angular/core';
 import MetisMenu from 'metismenujs';
 import { EventService } from '../../core/services/event.service';
 import { Router, NavigationEnd } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { HttpClient } from '@angular/common/http';
 
 import { MENU } from './menu';
 import { MenuItem } from './menu.model';
 import { TranslateService } from '@ngx-translate/core';
+import { BreakpointService } from '../../core/services/breakpoint.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -28,14 +30,23 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   @ViewChild('sideMenu') sideMenu: ElementRef;
   private resizeListener: () => void;
+  private isMobile: boolean = false;
+  private destroyRef = inject(DestroyRef);
 
-  constructor(private eventService: EventService, private router: Router, public translate: TranslateService, private http: HttpClient) {
+  constructor(
+    private eventService: EventService, 
+    private router: Router, 
+    public translate: TranslateService, 
+    private http: HttpClient,
+    private breakpointService: BreakpointService
+  ) {
     router.events.forEach((event) => {
       if (event instanceof NavigationEnd) {
         this._activateMenuDropdown();
         this._scrollElement();
         // Close sidebar on mobile after navigation
-        if (window.innerWidth <= 992) {
+        // Uses BreakpointService - will be set in ngOnInit
+        if (this.isMobile) {
           this.closeMobileSidebar();
         }
       }
@@ -50,11 +61,14 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   /**
    * Handle window resize - close sidebar on mobile when switching to desktop
+   * Note: This is now handled reactively via BreakpointService subscription
+   * Keeping @HostListener for backwards compatibility, but it's redundant
    */
   @HostListener('window:resize', ['$event'])
   handleResize() {
-    // If window is resized to desktop size, ensure sidebar is properly displayed
-    if (window.innerWidth > 992) {
+    // BreakpointService subscription handles this reactively
+    // This listener is kept for safety but BreakpointService is the primary handler
+    if (!this.isMobile) {
       document.body.classList.remove('sidebar-enable');
       document.body.style.overflow = '';
       document.body.style.position = '';
@@ -79,13 +93,15 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     if (typeof window !== 'undefined' && this.resizeListener) {
       window.removeEventListener('resize', this.resizeListener);
     }
+    // No manual subscription cleanup needed - takeUntilDestroyed handles it automatically
   }
 
   /**
    * Handle menu item click - close sidebar on mobile
+   * Uses BreakpointService instead of hardcoded window.innerWidth check
    */
   onMenuItemClick() {
-    if (window.innerWidth <= 992) {
+    if (this.isMobile) {
       // Small delay to allow navigation to start
       setTimeout(() => {
         this.closeMobileSidebar();
@@ -96,6 +112,24 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   ngOnInit() {
     this.initialize();
     this._scrollElement();
+    
+    // Subscribe to breakpoint changes for reactive mobile detection
+    // Uses takeUntilDestroyed for automatic cleanup (safer than manual subscription)
+    this.breakpointService.isMobile$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(isMobile => {
+        this.isMobile = isMobile;
+        
+        // If resizing from mobile to desktop, ensure sidebar state is correct
+        if (!isMobile) {
+          // On desktop, remove mobile sidebar state
+          document.body.classList.remove('sidebar-enable');
+          document.body.style.overflow = '';
+          document.body.style.position = '';
+          document.body.style.width = '';
+          document.body.style.height = '';
+        }
+      });
   }
 
   ngAfterViewInit() {

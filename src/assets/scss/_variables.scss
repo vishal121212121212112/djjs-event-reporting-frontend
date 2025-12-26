@@ -478,12 +478,21 @@ $gradient: linear-gradient(180deg, rgba($white, .15), rgba($white, 0));
 $spacer: 1rem;
 $spacers: (
   0: 0,
-  1: $spacer * .25,
-  2: $spacer * .5,
-  3: $spacer,
-  4: $spacer * 1.5,
-  5: $spacer * 3,
+  1: $spacer * .25,  // 4px (0.25rem)
+  2: $spacer * .5,   // 8px (0.5rem)
+  3: $spacer,        // 16px (1rem)
+  4: $spacer * 1.5,  // 24px (1.5rem)
+  5: $spacer * 3,    // 48px (3rem)
 );
+
+// Extended spacing scale for consistency (Phase 4)
+// These values align with common design patterns and Bootstrap's base
+$spacing-xs: 0.25rem;  // 4px
+$spacing-sm: 0.5rem;   // 8px
+$spacing-md: 0.75rem;  // 12px
+$spacing-base: 1rem;   // 16px
+$spacing-lg: 1.5rem;   // 24px
+$spacing-xl: 2rem;     // 32px
 
 $negative-spacers: if($enable-negative-margins, negativify-map($spacers), null);
 // scss-docs-end spacer-variables-maps
@@ -684,9 +693,11 @@ $font-family-code:            var(--#{$prefix}font-monospace);
 // $font-size-root effects the value of `rem`, which is used for as well font sizes, paddings and margins
 // $font-size-base effects the font size of the body text
 $font-size-root:              null;
-$font-size-base:              0.8125rem;
-$font-size-sm:                $font-size-base * .875;
-$font-size-lg:                $font-size-base * 1.25;
+// Phase 4 Hardening: Changed to 14px (0.875rem) for better readability with Bootstrap + PrimeNG
+// 13px was too small and could make PrimeNG controls look cramped
+$font-size-base:              0.875rem;   // 14px - better readability (Phase 4 Hardening: changed from 13px)
+$font-size-sm:                0.75rem;    // 12px - for dense/secondary text (Phase 4 Hardening: kept at 12px)
+$font-size-lg:                1rem;       // 16px - for emphasis (Phase 4 Hardening: kept at 16px)
 
 $font-weight-lighter:         lighter;
 $font-weight-light:           300;

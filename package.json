@@ -10,7 +10,8 @@
     "e2e": "ng e2e",
     "build-prod": "node --max_old_space_size=8000 ./node_modules/@angular/cli/bin/ng build",
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run"
+    "cypress:run": "cypress run",
+    "check:breakpoints": "node scripts/check-breakpoints.js"
   },
   "private": true,
   "dependencies": {

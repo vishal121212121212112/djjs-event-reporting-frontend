@@ -22,7 +22,7 @@
 
 .card-title {
   font-size: 15px;
-  margin: 0 0 7px 0;
+  margin: 0 0 0.5rem 0; // Phase 4: Standardized to 8px (0.5rem) from 7px
   font-weight: $font-weight-semibold;
   color: var(--#{$prefix}emphasis-color);
 
@@ -34,10 +34,10 @@
 
 .card-title-desc {
   color: var(--#{$prefix}secondary-color);
-  margin-bottom: 24px;
+  margin-bottom: 1.5rem; // Phase 4: Standardized to 24px (1.5rem) - matches existing value
 
   @media (max-width: 576px) {
     font-size: 0.8125rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1rem; // Phase 4: Standardized to 16px (1rem)
   }
 }

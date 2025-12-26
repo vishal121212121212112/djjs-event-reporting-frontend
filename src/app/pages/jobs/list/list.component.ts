@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Observable, Subscription } from 'rxjs';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 
@@ -12,12 +12,14 @@ import { selectData } from 'src/app/store/Job/job-selector';
   selector: 'app-list',
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush // Performance: Only check when inputs change
 })
 
 /**
  * List Component
+ * Uses OnPush for better performance with large lists
  */
-export class ListComponent implements OnInit {
+export class ListComponent implements OnInit, OnDestroy {
   searchTerm: any;
   modalRef?: BsModalRef;
   page: any = 1;
@@ -34,11 +36,14 @@ export class ListComponent implements OnInit {
   currentPage: any;
   joblist: any;
   searchResults: any;
+  private subscription?: Subscription;
+
   constructor(
     private modalService: BsModalService,
     private formBuilder: UntypedFormBuilder,
     public store: Store,
-    private confirmationDialog: ConfirmationDialogService
+    private confirmationDialog: ConfirmationDialogService,
+    private cdr: ChangeDetectorRef // Required for OnPush manual detection
   ) {
   }
 
@@ -61,11 +66,18 @@ export class ListComponent implements OnInit {
 
     // store data
     this.store.dispatch(fetchJoblistData());
-    this.store.select(selectData).subscribe(data => {
-      this.lists = data
-      this.joblist = data;
-      this.lists = this.joblist.slice(0, 8)
+    this.subscription = this.store.select(selectData).subscribe(data => {
+      // Create new array references for OnPush (immutable updates)
+      this.joblist = data ? [...data] : [];
+      this.lists = this.joblist.slice(0, 8);
+      this.cdr.markForCheck(); // Trigger change detection for OnPush
     });
+  }
+
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
   /**
@@ -78,7 +90,9 @@ export class ListComponent implements OnInit {
 
   // The master checkbox will check/ uncheck all items
   checkUncheckAll(ev: any) {
-    this.lists.forEach((x: { state: any; }) => x.state = ev.target.checked)
+    // Create new array with updated items for OnPush (immutable update)
+    this.lists = this.lists.map((x: { state: any; }) => ({ ...x, state: ev.target.checked }));
+    this.cdr.markForCheck(); // Trigger change detection
   }
 
   // Delete Data
@@ -154,54 +168,65 @@ export class ListComponent implements OnInit {
 
   // Search Data
   performSearch(): void {
-    this.searchResults = this.joblist.filter((item: any) => {
+    // Create new array references for OnPush (immutable updates)
+    this.searchResults = [...this.joblist].filter((item: any) => {
       return item.name.toLowerCase().includes(this.searchTerm.toLowerCase())
         || item.status.toLowerCase().includes(this.searchTerm.toLowerCase())
         || item.type.toLowerCase().includes(this.searchTerm.toLowerCase())
         || item.date.toLowerCase().includes(this.searchTerm.toLowerCase())
 
     })
-    this.lists = this.searchResults.slice(0, 8)
+    this.lists = this.searchResults.slice(0, 8);
+    this.cdr.markForCheck(); // Trigger change detection
   }
   // pagination
   pageChanged(event: any) {
     const startItem = (event.page - 1) * event.itemsPerPage;
     this.endItem = event.page * event.itemsPerPage;
-    this.lists = this.joblist.slice(startItem, this.endItem)
+    // Create new array reference for OnPush (immutable update)
+    this.lists = [...this.joblist].slice(startItem, this.endItem);
+    this.cdr.markForCheck(); // Trigger change detection
   }
 
   // fiter job
   searchJob() {
     if (this.term) {
-      this.lists = this.joblist.filter((data: any) => {
+      // Create new array reference for OnPush (immutable update)
+      this.lists = [...this.joblist].filter((data: any) => {
         return data.title.toLowerCase().includes(this.term.toLowerCase())
       })
     } else {
-      this.lists = this.joblist
+      // Create new array reference for OnPush
+      this.lists = [...this.joblist];
     }
-
+    this.cdr.markForCheck(); // Trigger change detection
   }
 
   selectstatus() {
     var status = (document.getElementById('idStatus') as HTMLInputElement).value;
     if (status) {
-      this.lists = this.joblist.filter((es: any) => {
+      // Create new array reference for OnPush (immutable update)
+      this.lists = [...this.joblist].filter((es: any) => {
         return es.status === status
       })
     } else {
-      this.lists = this.joblist
+      // Create new array reference for OnPush
+      this.lists = [...this.joblist];
     }
-
+    this.cdr.markForCheck(); // Trigger change detection
   }
 
   selectType() {
     var type = (document.getElementById('idType') as HTMLInputElement).value;
     if (type) {
-      this.lists = this.joblist.filter((es: any) => {
+      // Create new array reference for OnPush (immutable update)
+      this.lists = [...this.joblist].filter((es: any) => {
         return es.type === type
       })
     } else {
-      this.lists = this.joblist
+      // Create new array reference for OnPush
+      this.lists = [...this.joblist];
     }
+    this.cdr.markForCheck(); // Trigger change detection
   }
 }

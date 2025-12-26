@@ -1,6 +1,9 @@
 <div id="layout-wrapper">
 
-  <app-topbar (settingsButtonClicked)="onSettingsButtonClicked()" (mobileMenuButtonClicked)="onToggleMobileMenu()">
+  <app-topbar 
+    [isSidebarOpen]="isSidebarOpen"
+    (settingsButtonClicked)="onSettingsButtonClicked()" 
+    (mobileMenuButtonClicked)="onToggleMobileMenu()">
   </app-topbar>
 
   <app-sidebar></app-sidebar>

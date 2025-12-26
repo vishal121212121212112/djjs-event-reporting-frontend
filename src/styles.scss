@@ -10,6 +10,74 @@
 // The components will use their built-in styles
 @import "primeicons/primeicons.css";
 
+// ============================================
+// Z-INDEX STANDARDS (Modal/Dialog Layering)
+// ============================================
+// Standardized z-index values to ensure proper layering:
+// - Base content: 1-100
+// - Header/Navbar: 1000-1999
+// - Sidebar: 2000-2999
+// - Dropdowns/Overlays: 3000-3999
+// - Modals/Backdrops: 10000-10999
+// - Toast/Notifications: 11000+
+//
+// PrimeNG components should use these values via CSS variables or baseZIndex prop
+:root {
+  --zindex-base: 1;
+  --zindex-header: 1000;
+  --zindex-sidebar: 2000;
+  --zindex-dropdown: 3000;
+  --zindex-overlay: 4000;
+  --zindex-modal-backdrop: 11000;
+  --zindex-modal: 11010;
+  --zindex-toast: 12000;
+  --zindex-tooltip: 13000;
+}
+
+// PrimeNG Dialog/Modal z-index (ensure it's above header/sidebar)
+:host ::ng-deep .p-dialog,
+.p-dialog {
+  z-index: var(--zindex-modal, 11010) !important;
+}
+
+:host ::ng-deep .p-dialog-mask,
+.p-dialog-mask {
+  z-index: var(--zindex-modal-backdrop, 11000) !important;
+}
+
+// PrimeNG Dropdown/Calendar/OverlayPanel z-index (above content, below modals)
+:host ::ng-deep .p-dropdown-panel,
+:host ::ng-deep .p-calendar-panel,
+:host ::ng-deep .p-overlaypanel,
+:host ::ng-deep .p-menu,
+.p-dropdown-panel,
+.p-calendar-panel,
+.p-overlaypanel,
+.p-menu {
+  z-index: var(--zindex-dropdown, 3000) !important;
+}
+
+// PrimeNG Toast z-index (above modal)
+:host ::ng-deep .p-toast,
+.p-toast {
+  z-index: var(--zindex-toast, 12000) !important;
+}
+
+// PrimeNG Tooltip z-index (above everything)
+:host ::ng-deep .p-tooltip,
+.p-tooltip {
+  z-index: var(--zindex-tooltip, 13000) !important;
+}
+
+// Ensure PrimeNG overlays are appended to body (prevents clipping)
+:host ::ng-deep .p-dropdown-panel,
+:host ::ng-deep .p-calendar-panel,
+:host ::ng-deep .p-overlaypanel,
+:host ::ng-deep .p-menu {
+  // PrimeNG should handle appendTo="body" via component props
+  // This ensures they're not clipped by parent overflow
+}
+
 // Global tooltip overrides for PrimeNG
 .p-tooltip {
   .p-tooltip-text {
@@ -185,10 +253,8 @@ dropzone>.dropzone.dz-wrapper {
 }
 
 // CRITICAL: Ensure modal portal styles take precedence over Bootstrap defaults
-.modal-portal-container .modal-dialog {
-  // All styles handled in _modal-portal.scss
-  // This ensures Bootstrap defaults don't override our custom positioning
-}
+// All styles handled in _modal-portal.scss
+// This ensures Bootstrap defaults don't override our custom positioning
 
 .slick-dots {
   margin-top: 20px;
@@ -222,6 +288,69 @@ dropzone>.dropzone.dz-wrapper {
 }
 
 // ==========================================
+// Phase 4 Hardening: Global Focus-Visible Styles (Accessibility)
+// ==========================================
+
+// Ensure all interactive elements have visible focus indicators for keyboard navigation
+// Uses :focus-visible to only show focus ring when navigating with keyboard (not mouse)
+// Phase 4 Hardening: Added @supports fallback for browsers without :focus-visible support
+
+// Modern browsers with :focus-visible support
+@supports selector(:focus-visible) {
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [tabindex]:not([tabindex="-1"]) {
+    &:focus-visible {
+      outline: 2px solid var(--bs-primary, #0d6efd);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+    }
+
+    // Hide outline for mouse clicks
+    &:focus:not(:focus-visible) {
+      outline: none;
+      box-shadow: none;
+    }
+  }
+
+  // Phase 4 Hardening: PrimeNG components - avoid double focus rings
+  // Only add outline if PrimeNG doesn't already have focus styling
+  .p-button:focus-visible:not(.p-focus),
+  .p-dropdown:focus-visible:not(.p-focus),
+  .p-inputtext:focus-visible:not(.p-focus),
+  .p-calendar:focus-visible:not(.p-focus) {
+    outline: 2px solid var(--bs-primary, #0d6efd);
+    outline-offset: 2px;
+  }
+}
+
+// Fallback for browsers without :focus-visible support (Safari < 15.4, older browsers)
+@supports not selector(:focus-visible) {
+  a:focus,
+  button:focus,
+  input:focus,
+  select:focus,
+  textarea:focus,
+  [tabindex]:not([tabindex="-1"]):focus {
+    outline: 2px solid var(--bs-primary, #0d6efd);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+  }
+
+  // Phase 4 Hardening: PrimeNG fallback - avoid double rings
+  .p-button:focus:not(.p-focus),
+  .p-dropdown:focus:not(.p-focus),
+  .p-inputtext:focus:not(.p-focus),
+  .p-calendar:focus:not(.p-focus) {
+    outline: 2px solid var(--bs-primary, #0d6efd);
+    outline-offset: 2px;
+  }
+}
+
+// ==========================================
 // Global Smooth Transitions & Animations
 // ==========================================
 
@@ -239,6 +368,21 @@ body {
   transition: all 0.3s ease-in-out;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+}
+
+// Phase 4 Scroll Lock Hardening: CSS class for scroll locking (iOS/Safari safe)
+// This class is applied when sidebar is open on mobile to prevent background scrolling
+// Inline styles handle position/top, this class handles overflow and touch behavior
+body.scroll-locked {
+  overflow: hidden !important;
+  // Prevent iOS bounce scrolling
+  -webkit-overflow-scrolling: auto;
+  touch-action: none;
+  
+  // Prevent page-content from scrolling (using class instead of inline styles)
+  .page-content {
+    overflow: hidden !important;
+  }
 }
 
 // Smooth transitions for all interactive elements
@@ -304,10 +448,8 @@ textarea,
     transition-duration: 0.1s;
   }
 
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(85, 110, 230, 0.25);
-  }
+  // Phase 4 Hardening: Enhanced focus-visible for keyboard navigation
+  // Handled by global focus-visible styles above (no duplication needed)
 }
 
 // Smooth input focus effects
@@ -315,10 +457,21 @@ textarea,
 .form-select {
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 
-  &:focus {
-    border-color: #ff9800;
-    box-shadow: 0 0 0 0.2rem rgba(85, 110, 230, 0.15);
+  // Phase 4 Hardening: Enhanced focus-visible for keyboard navigation
+  // Border and box-shadow handled here, outline handled by global focus-visible styles
+  &:focus-visible {
+    border-color: var(--bs-primary, #0d6efd);
+    box-shadow: 0 0 0 0.2rem rgba(85, 110, 230, 0.25);
     transform: translateZ(0);
+  }
+
+  // Legacy focus for browsers without :focus-visible support
+  @supports not selector(:focus-visible) {
+    &:focus {
+      border-color: var(--bs-primary, #0d6efd);
+      box-shadow: 0 0 0 0.2rem rgba(85, 110, 230, 0.25);
+      transform: translateZ(0);
+    }
   }
 }
 
@@ -516,19 +669,53 @@ img {
   -webkit-animation: tada 4s ease infinite !important;
 }
 
-// Touch-friendly tap targets (minimum 44x44px)
-@media (max-width: 768px) {
-
-  a,
-  button,
-  .btn,
-  .dropdown-toggle {
+// Phase 4 Hardening: Touch-friendly tap targets (minimum 44x44px on mobile)
+// Refined to target specific icon-only controls without inflating dense tables
+@media (max-width: 992px) {
+  // Icon-only buttons (specific selectors to avoid affecting all buttons)
+  .btn-icon,
+  .header-item:not(.btn-lg):not(.btn-sm),
+  .noti-icon:not(.btn-lg):not(.btn-sm),
+  button.header-item:not(.btn-lg):not(.btn-sm),
+  a.header-item:not(.btn-lg):not(.btn-sm) {
     min-height: 44px;
     min-width: 44px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    padding: 0.5rem; // Ensure adequate padding
   }
+
+  // PrimeNG icon-only buttons
+  .p-button.p-button-icon-only,
+  .p-button.p-button-icon-only.p-button-sm {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  // Phase 4 Final Polish: Table action buttons only (removed td/th .btn to avoid non-action buttons)
+  // Use .table-actions wrapper or .tap-target-44 utility class for action buttons
+  .table-actions .btn,
+  // PrimeNG icon-only buttons in tables
+  .table .p-button.p-button-icon-only,
+  // Utility class for explicit action buttons (apply in templates where needed)
+  .tap-target-44 {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  // Pagination controls
+  .pagination .page-link {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  // Form controls already have min-height: 44px from responsive styles above
+  // Note: We intentionally do NOT apply to all .table .btn to avoid inflating dense tables
 }
 
 // Responsive typography
@@ -1648,14 +1835,14 @@ iframe {
 }
 
 // Prevent horizontal scroll on mobile
+// SCOPED: Applied to page-content instead of layout wrapper to avoid clipping focus rings/dropdowns
+// This is a temporary measure until all overflow sources are fixed
 @media (max-width: 576px) {
-  body {
+  // Scope overflow-x: hidden to page-content (most common overflow source)
+  // Avoids clipping focus rings, dropdowns, and other positioned elements
+  .page-content {
     overflow-x: hidden;
     width: 100%;
-    position: relative;
-  }
-
-  * {
     max-width: 100%;
   }
 
@@ -1665,6 +1852,30 @@ iframe {
     left: 0;
     right: 0;
     max-width: 100vw;
+  }
+
+  // Scoped word-breaking: Apply to likely offenders, not everything
+  // Prevents breaking table cells, buttons, and inline controls
+  .page-content,
+  .card,
+  .card-body,
+  .p-dialog,
+  .p-toast,
+  .table-responsive,
+  .form-control,
+  .form-select,
+  p,
+  span:not(.badge):not(.btn):not(.p-chip),
+  td,
+  th {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  // Utility class for intentional word-breaking
+  .text-break-anywhere {
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 }
 
