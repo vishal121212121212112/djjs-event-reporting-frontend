@@ -17,6 +17,7 @@ export class EditBranchComponent implements OnInit {
     activeMemberType: 'preacher' | 'samarpit' = 'samarpit';
     activeTab: string = 'branch';   // default tab
     branchId: number | null = null;
+    searchTerm: string = '';
 
     //Track progress
     completion = 0; // example, bind dynamically based on form fill %
@@ -816,8 +817,27 @@ export class EditBranchComponent implements OnInit {
         this.activeMemberType = type;
     }
 
+    onSearchChange(searchValue: string): void {
+        this.searchTerm = searchValue;
+    }
+
     get filteredMembers() {
-        return this.members.controls.filter(m => m.value.memberType === this.activeMemberType);
+        let filtered = this.members.controls.filter(m => m.value.memberType === this.activeMemberType);
+        
+        // Apply search term filter
+        if (this.searchTerm && this.searchTerm.trim()) {
+            const searchLower = this.searchTerm.toLowerCase().trim();
+            filtered = filtered.filter(member => {
+                const nameMatch = member.value.name?.toLowerCase().includes(searchLower) || false;
+                const roleMatch = member.value.role?.toLowerCase().includes(searchLower) || false;
+                const responsibilityMatch = member.value.responsibility?.toLowerCase().includes(searchLower) || false;
+                const qualificationMatch = member.value.qualification?.toLowerCase().includes(searchLower) || false;
+                const memberTypeMatch = member.value.memberType?.toLowerCase().includes(searchLower) || false;
+                return nameMatch || roleMatch || responsibilityMatch || qualificationMatch || memberTypeMatch;
+            });
+        }
+        
+        return filtered;
     }
 
     get preacherCount() {

@@ -7,8 +7,8 @@
 </div>
 
 
-<div class="row">
-  <div class="col-12">
+<div class="row branch-list-container">
+  <div class="col-12 branch-list-content">
     <div class="card">
       <div class="card-body">
         <!-- Search Section -->
@@ -150,27 +150,32 @@
                       (click)="editBranch(branch.id); closeActionMenu(); $event.preventDefault()"
                       title="Edit Branch">
                       <i class="pi pi-pencil"></i>
+                      <span>Edit</span>
                     </a>
                     <a class="dropdown-item" href="#"
                       (click)="addBranchMember(branch.id); closeActionMenu(); $event.preventDefault()"
                       title="Add Member">
                       <i class="pi pi-user-plus"></i>
+                      <span>Add Member</span>
                     </a>
                     <!-- <a class="dropdown-item" href="#"
                       (click)="downloadBranch(branch.id); closeActionMenu(); $event.preventDefault()"
                       title="Download Details">
                       <i class="pi pi-download"></i>
+                      <span>Download</span>
                     </a> -->
                     <!-- <a class="dropdown-item" href="#"
                       (click)="openBranchGallery(branch.id); closeActionMenu(); $event.preventDefault()"
                       title="View Gallery">
                       <i class="pi pi-images"></i>
+                      <span>Gallery</span>
                     </a> -->
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item text-danger" href="#"
                       (click)="deleteBranch(branch.id); closeActionMenu(); $event.preventDefault()"
                       title="Delete Branch">
                       <i class="pi pi-trash"></i>
+                      <span>Delete</span>
                     </a>
                   </div>
                 </div>
@@ -244,27 +249,26 @@
                                   (click)="editBranch(childBranch.id); closeActionMenu(); $event.preventDefault()"
                                   title="Edit Branch">
                                   <i class="pi pi-pencil"></i>
+                                  <span>Edit</span>
                                 </a>
                                 <a class="dropdown-item" href="#"
                                   (click)="addChildBranchMember(childBranch.id); closeActionMenu(); $event.preventDefault()"
                                   title="Add Member">
                                   <i class="pi pi-user-plus"></i>
+                                  <span>Add Member</span>
                                 </a>
                                 <!-- <a class="dropdown-item" href="#"
                                   (click)="downloadBranch(childBranch.id); closeActionMenu(); $event.preventDefault()"
                                   title="Download Details">
                                   <i class="pi pi-download"></i>
+                                  <span>Download</span>
                                 </a> -->
-                                <a class="dropdown-item" href="#"
-                                  (click)="openBranchGallery(childBranch.id); closeActionMenu(); $event.preventDefault()"
-                                  title="View Gallery">
-                                  <i class="pi pi-images"></i>
-                                </a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item text-danger" href="#"
                                   (click)="deleteBranch(childBranch.id); closeActionMenu(); $event.preventDefault()"
                                   title="Delete Branch">
                                   <i class="pi pi-trash"></i>
+                                  <span>Delete</span>
                                 </a>
                               </div>
                             </div>

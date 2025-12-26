@@ -28,6 +28,7 @@ export class BranchMembersListComponent implements OnInit {
   loading: boolean = false;
   filteredMembers: BranchMember[] = [];
   activeMemberType: 'all' | 'preacher' | 'samarpit' = 'all';
+  searchTerm: string = '';
 
   constructor(
     private locationService: LocationService,
@@ -68,7 +69,7 @@ export class BranchMembersListComponent implements OnInit {
           date_of_birth: member.date_of_birth || '',
           branch_id: member.branch_id || this.branchId || 0
         }));
-        this.filteredMembers = this.members;
+        this.applyFilters();
         this.loading = false;
         
         console.log('Members loaded:', this.members);
@@ -102,11 +103,36 @@ export class BranchMembersListComponent implements OnInit {
 
   filterByType(type: 'all' | 'preacher' | 'samarpit') {
     this.activeMemberType = type;
-    if (type === 'all') {
-      this.filteredMembers = this.members;
-    } else {
-      this.filteredMembers = this.members.filter(m => m.member_type === type);
+    this.applyFilters();
+  }
+
+  onSearchChange(searchValue: string): void {
+    this.searchTerm = searchValue;
+    this.applyFilters();
+  }
+
+  applyFilters(): void {
+    let filtered = [...this.members];
+
+    // Apply member type filter
+    if (this.activeMemberType !== 'all') {
+      filtered = filtered.filter(m => m.member_type === this.activeMemberType);
     }
+
+    // Apply search term filter
+    if (this.searchTerm && this.searchTerm.trim()) {
+      const searchLower = this.searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(member => {
+        const nameMatch = member.name?.toLowerCase().includes(searchLower) || false;
+        const roleMatch = member.branch_role?.toLowerCase().includes(searchLower) || false;
+        const responsibilityMatch = member.responsibility?.toLowerCase().includes(searchLower) || false;
+        const qualificationMatch = member.qualification?.toLowerCase().includes(searchLower) || false;
+        const memberTypeMatch = member.member_type?.toLowerCase().includes(searchLower) || false;
+        return nameMatch || roleMatch || responsibilityMatch || qualificationMatch || memberTypeMatch;
+      });
+    }
+
+    this.filteredMembers = filtered;
   }
 
   viewMember(memberId: number) {

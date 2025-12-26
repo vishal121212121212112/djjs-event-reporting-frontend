@@ -1,5 +1,5 @@
-<div class="row">
-  <div class="col-12">
+<div class="row events-list-container">
+  <div class="col-12 events-list-content">
     <!-- Page Header with Filters -->
     <div class="page-title-box">
       <div class="row align-items-center mb-1">
@@ -474,23 +474,28 @@
                       (click)="closeActionMenu()"
                       title="Edit">
                       <i class="pi pi-pencil"></i>
+                      <span>Edit</span>
                     </a>
                     <a class="dropdown-item" href="#" [routerLink]="['/events/view', event.id]" (click)="closeActionMenu()"
                       title="More details">
                       <i class="pi pi-eye"></i>
+                      <span>View</span>
                     </a>
                     <a class="dropdown-item" href="#" (click)="downloadEvent(event.id); closeActionMenu(); $event.preventDefault()"
                       title="Download">
                       <i class="pi pi-download"></i>
+                      <span>Download</span>
                     </a>
                     <a class="dropdown-item" href="#" (click)="openGallery(event); closeActionMenu(); $event.preventDefault()"
                       title="View in Gallery">
                       <i class="pi pi-images"></i>
+                      <span>Gallery</span>
                     </a>
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item text-danger" href="#" (click)="deleteEvent(event.id); closeActionMenu(); $event.preventDefault()"
                       title="Delete Event">
                       <i class="pi pi-trash"></i>
+                      <span>Delete</span>
                     </a>
                   </div>
                 </div>

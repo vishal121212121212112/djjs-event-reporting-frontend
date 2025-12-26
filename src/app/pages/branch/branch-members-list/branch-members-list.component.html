@@ -35,6 +35,22 @@
       </div>
     </div>
 
+    <!-- Search Section -->
+    <div class="mb-3">
+      <div class="form-group">
+        <label for="searchMembers" class="form-label">Search Members</label>
+        <div class="input-group">
+          <span class="input-group-text">
+            <i class="fas fa-search"></i>
+          </span>
+          <input type="text" class="form-control" id="searchMembers"
+                 placeholder="Search by name, role, responsibility, qualification, or type"
+                 [(ngModel)]="searchTerm"
+                 (input)="onSearchChange($any($event.target).value)">
+        </div>
+      </div>
+    </div>
+
     <!-- Loading State -->
     <div *ngIf="loading" class="text-center p-4">
       <div class="spinner-border text-primary" role="status">

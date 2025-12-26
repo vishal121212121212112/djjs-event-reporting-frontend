@@ -66,9 +66,6 @@ export class BranchListComponent implements OnInit, OnDestroy {
   // Action menu state
   openActionMenu: string | null = null;
 
-  // Table scrolling - responsive scrollHeight
-  scrollHeight: string = '400px';
-
   constructor(
     private router: Router,
     private locationService: LocationService,
@@ -84,9 +81,6 @@ export class BranchListComponent implements OnInit, OnDestroy {
       { label: 'Branches', active: true }
     ];
 
-    // Update scroll height for responsive table
-    this.updateScrollHeight();
-
     // Load branches from service
     this.loadBranches();
 
@@ -101,24 +95,6 @@ export class BranchListComponent implements OnInit, OnDestroy {
       });
   }
 
-  @HostListener('window:resize', ['$event'])
-  onResize(): void {
-    this.updateScrollHeight();
-  }
-
-  updateScrollHeight(): void {
-    const width = window.innerWidth;
-    if (width >= 1024) {
-      // Desktop (≥1024px)
-      this.scrollHeight = '400px';
-    } else if (width >= 768) {
-      // Tablet (768px-1023px)
-      this.scrollHeight = '300px';
-    } else {
-      // Mobile (<768px)
-      this.scrollHeight = '60vh';
-    }
-  }
 
   ngOnDestroy(): void {
     // Clean up subscription
