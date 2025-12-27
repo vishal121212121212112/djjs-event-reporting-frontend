@@ -6,9 +6,16 @@
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="mb-0">All Members ({{ members.length }})</h5>
-          <button class="btn btn-primary" (click)="openAddMemberModal()" style="background: linear-gradient(135deg, #ff6b35, #f7931e); border: none;">
-            <i class="fas fa-plus me-1"></i>Add Member
-          </button>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-success" (click)="exportMembersToExcel()" [disabled]="exporting">
+              <i class="pi pi-file-excel me-1"></i>
+              <span *ngIf="!exporting">Export to Excel</span>
+              <span *ngIf="exporting">Exporting...</span>
+            </button>
+            <button class="btn btn-primary" (click)="openAddMemberModal()" style="background: linear-gradient(135deg, #ff6b35, #f7931e); border: none;">
+              <i class="fas fa-plus me-1"></i>Add Member
+            </button>
+          </div>
         </div>
 
         <!-- Search and Filters -->

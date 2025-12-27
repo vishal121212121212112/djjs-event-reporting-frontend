@@ -127,6 +127,15 @@ export class EventsListComponent implements OnInit, AfterViewChecked, OnDestroy 
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
 
+  // Date range for export
+  exportStartDate: Date | null = null;
+  exportEndDate: Date | null = null;
+  exporting: boolean = false;
+  exportingVolunteers: boolean = false;
+  exportingSpecialGuests: boolean = false;
+  exportingMedia: boolean = false;
+  isExportModalOpen: boolean = false;
+
   // Dropdown management
   openDropdown: string | null = null;
   openActionMenu: string | null = null; // Track which action menu is open (by event id)
@@ -1666,7 +1675,7 @@ export class EventsListComponent implements OnInit, AfterViewChecked, OnDestroy 
       }
       const backdrop = document.createElement('div');
       backdrop.className = 'modal-backdrop fade show';
-      backdrop.style.zIndex = '1040';
+      backdrop.style.zIndex = '11000'; // Match global backdrop z-index
       // Add click handler to backdrop
       backdrop.addEventListener('click', () => {
         this.closeModal(modalId);
@@ -1681,7 +1690,7 @@ export class EventsListComponent implements OnInit, AfterViewChecked, OnDestroy 
       modal.style.left = '0';
       modal.style.width = '100%';
       modal.style.height = '100%';
-      modal.style.zIndex = '1050';
+      modal.style.zIndex = '11010'; // Match global modal z-index
       // Set aria-hidden to false when modal is open and focused
       modal.removeAttribute('aria-hidden');
       modal.setAttribute('aria-hidden', 'false');
@@ -1849,6 +1858,151 @@ export class EventsListComponent implements OnInit, AfterViewChecked, OnDestroy 
     });
   }
 
+  /**
+   * Open export modal
+   */
+  openExportModal(): void {
+    this.isExportModalOpen = true;
+    this.openModal('exportExcelModal');
+    // Force change detection to ensure calendar components are initialized
+    this.cdr.detectChanges();
+    // Small delay to ensure modal is fully rendered before calendar can attach
+    setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 100);
+  }
+
+  /**
+   * Close export modal
+   */
+  closeExportModal(): void {
+    this.closeModal('exportExcelModal');
+    this.isExportModalOpen = false;
+    // Reset dates
+    this.exportStartDate = null;
+    this.exportEndDate = null;
+  }
+
+  /**
+   * Set quick date range
+   */
+  setQuickDateRange(range: string): void {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // End of today
+    this.exportEndDate = new Date(today);
+
+    const startDate = new Date();
+    startDate.setHours(0, 0, 0, 0); // Start of day
+
+    switch (range) {
+      case 'lastWeek':
+        startDate.setDate(today.getDate() - 7);
+        break;
+      case 'lastMonth':
+        startDate.setMonth(today.getMonth() - 1);
+        break;
+      case 'last3Months':
+        startDate.setMonth(today.getMonth() - 3);
+        break;
+      case 'last6Months':
+        startDate.setMonth(today.getMonth() - 6);
+        break;
+      case 'lastYear':
+        startDate.setFullYear(today.getFullYear() - 1);
+        break;
+      case 'last2Years':
+        startDate.setFullYear(today.getFullYear() - 2);
+        break;
+      case 'all':
+        this.exportStartDate = null;
+        this.exportEndDate = null;
+        return;
+      default:
+        return;
+    }
+
+    this.exportStartDate = startDate;
+  }
+
+  /**
+   * Export events to Excel with date range filter
+   */
+  exportEventsToExcel(): void {
+    // Validate date range
+    if (this.exportStartDate && this.exportEndDate && this.exportStartDate > this.exportEndDate) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Start date must be before or equal to end date',
+        life: 3000
+      });
+      return;
+    }
+
+    this.exporting = true;
+    this.closeExportModal();
+
+    // Format dates as YYYY-MM-DD
+    const formatDate = (date: Date | null): string | undefined => {
+      if (!date) return undefined;
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const startDate = formatDate(this.exportStartDate);
+    const endDate = formatDate(this.exportEndDate);
+    const status = this.statusFilter !== 'all' ? this.statusFilter : undefined;
+
+    this.eventApiService.exportEventsToExcel(startDate, endDate, status).subscribe({
+      next: (blob: Blob) => {
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Generate filename
+        let filename = 'events_export';
+        if (startDate && endDate) {
+          filename = `events_${startDate}_to_${endDate}`;
+        } else if (startDate) {
+          filename = `events_from_${startDate}`;
+        } else if (endDate) {
+          filename = `events_until_${endDate}`;
+        }
+        filename += '.xlsx';
+        
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Events exported to Excel successfully',
+          life: 3000
+        });
+        this.exporting = false;
+        // Reset dates after export
+        this.exportStartDate = null;
+        this.exportEndDate = null;
+      },
+      error: (error) => {
+        console.error('Error exporting events:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: error?.error?.error || 'Failed to export events to Excel',
+          life: 5000
+        });
+        this.exporting = false;
+      }
+    });
+  }
+
   deleteEvent(eventId: string): void {
     if (!eventId) {
       this.messageService.add({
@@ -1906,6 +2060,150 @@ export class EventsListComponent implements OnInit, AfterViewChecked, OnDestroy 
       case 'testimonials': return 'Testimonials';
       default: return 'Media Content';
     }
+  }
+
+  /**
+   * Export volunteers to Excel
+   */
+  exportVolunteersToExcel(): void {
+    if (!this.selectedEvent || !this.selectedEvent.id) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'No event selected',
+        life: 3000
+      });
+      return;
+    }
+
+    this.exportingVolunteers = true;
+
+    this.eventApiService.exportVolunteersToExcel(Number(this.selectedEvent.id)).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `volunteers_event_${this.selectedEvent!.id}_${new Date().getTime()}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Volunteers exported to Excel successfully',
+          life: 3000
+        });
+        this.exportingVolunteers = false;
+      },
+      error: (error) => {
+        console.error('Error exporting volunteers:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: error?.error?.error || 'Failed to export volunteers to Excel',
+          life: 5000
+        });
+        this.exportingVolunteers = false;
+      }
+    });
+  }
+
+  /**
+   * Export special guests to Excel
+   */
+  exportSpecialGuestsToExcel(): void {
+    if (!this.selectedEvent || !this.selectedEvent.id) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'No event selected',
+        life: 3000
+      });
+      return;
+    }
+
+    this.exportingSpecialGuests = true;
+
+    this.eventApiService.exportSpecialGuestsToExcel(Number(this.selectedEvent.id)).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `special_guests_event_${this.selectedEvent!.id}_${new Date().getTime()}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Special guests exported to Excel successfully',
+          life: 3000
+        });
+        this.exportingSpecialGuests = false;
+      },
+      error: (error) => {
+        console.error('Error exporting special guests:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: error?.error?.error || 'Failed to export special guests to Excel',
+          life: 5000
+        });
+        this.exportingSpecialGuests = false;
+      }
+    });
+  }
+
+  /**
+   * Export event media to Excel
+   */
+  exportEventMediaToExcel(): void {
+    if (!this.selectedEvent || !this.selectedEvent.id) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'No event selected',
+        life: 3000
+      });
+      return;
+    }
+
+    this.exportingMedia = true;
+
+    this.eventApiService.exportEventMediaToExcel(Number(this.selectedEvent.id)).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `event_media_event_${this.selectedEvent!.id}_${new Date().getTime()}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Event media exported to Excel successfully',
+          life: 3000
+        });
+        this.exportingMedia = false;
+      },
+      error: (error) => {
+        console.error('Error exporting event media:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: error?.error?.error || 'Failed to export event media to Excel',
+          life: 5000
+        });
+        this.exportingMedia = false;
+      }
+    });
   }
 
   getMediaContentDescription(): string {

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { LocationService, Branch } from 'src/app/core/services/location.service';
@@ -71,13 +71,17 @@ export class BranchListComponent implements OnInit, OnDestroy {
   selectedBranchId: string | null = null;
   selectedBranchMembers: any[] = [];
 
+  // Export state
+  exporting: boolean = false;
+
   constructor(
     private router: Router,
     private locationService: LocationService,
     private childBranchService: ChildBranchService,
     private messageService: MessageService,
     private tokenStorage: TokenStorageService,
-    private confirmationDialog: ConfirmationDialogService
+    private confirmationDialog: ConfirmationDialogService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -932,5 +936,53 @@ export class BranchListComponent implements OnInit, OnDestroy {
     if (!target.closest('.action-menu-container')) {
       this.closeActionMenu();
     }
+  }
+
+  /**
+   * Export branches to Excel based on current filters
+   */
+  exportBranchesToExcel(): void {
+    this.exporting = true;
+
+    // Use current search filter
+    const searchTerm = this.globalFilterValue?.trim() || '';
+
+    this.locationService.exportBranchesToExcel(searchTerm).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        let filename = 'branches_export';
+        if (searchTerm) {
+          filename = `branches_${searchTerm.replace(/[^a-z0-9]/gi, '_')}`;
+        }
+        filename += '.xlsx';
+        
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Branches exported to Excel successfully',
+          life: 3000
+        });
+        this.exporting = false;
+      },
+      error: (error) => {
+        console.error('Error exporting branches:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: error?.error?.error || 'Failed to export branches to Excel',
+          life: 5000
+        });
+        this.exporting = false;
+      }
+    });
   }
 }

@@ -393,5 +393,57 @@ export class LocationService {
   getBranchInfraByBranchId(branchId: number): Observable<BranchInfra[]> {
     return this.http.get<BranchInfra[]>(`${this.apiBaseUrl}/api/branch-infra?branch_id=${branchId}`);
   }
+
+  /**
+   * Export branches to Excel with optional search filter
+   */
+  exportBranchesToExcel(search?: string): Observable<Blob> {
+    let url = `${this.apiBaseUrl}/api/branches/export`;
+    const params: string[] = [];
+
+    if (search && search.trim()) {
+      params.push(`search=${encodeURIComponent(search.trim())}`);
+    }
+
+    if (params.length > 0) {
+      url += `?${params.join('&')}`;
+    }
+
+    return this.http.get(url, {
+      responseType: 'blob',
+      headers: {
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      }
+    });
+  }
+
+  /**
+   * Export branch members to Excel with optional filters
+   */
+  exportMembersToExcel(search?: string, memberType?: string, branchType?: string): Observable<Blob> {
+    let url = `${this.apiBaseUrl}/api/branch-member/export`;
+    const params: string[] = [];
+
+    if (search && search.trim()) {
+      params.push(`search=${encodeURIComponent(search.trim())}`);
+    }
+    if (memberType && memberType !== 'all') {
+      params.push(`member_type=${encodeURIComponent(memberType)}`);
+    }
+    if (branchType && branchType !== 'all') {
+      params.push(`branch_type=${encodeURIComponent(branchType)}`);
+    }
+
+    if (params.length > 0) {
+      url += `?${params.join('&')}`;
+    }
+
+    return this.http.get(url, {
+      responseType: 'blob',
+      headers: {
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      }
+    });
+  }
 }
 

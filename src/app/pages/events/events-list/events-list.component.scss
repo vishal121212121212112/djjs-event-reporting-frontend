@@ -1351,3 +1351,113 @@ app-pagination {
   }
 }
 
+// Small calendar styling for export modal
+:host ::ng-deep {
+  .small-calendar {
+    font-size: 0.875rem;
+    
+    .p-calendar {
+      width: 100%;
+    }
+    
+    .p-datepicker {
+      font-size: 0.875rem;
+      padding: 0.5rem;
+      
+      .p-datepicker-header {
+        padding: 0.5rem;
+        
+        .p-datepicker-title {
+          font-size: 0.875rem;
+        }
+        
+        button {
+          width: 1.75rem;
+          height: 1.75rem;
+          font-size: 0.875rem;
+        }
+      }
+      
+      table {
+        font-size: 0.875rem;
+        
+        th {
+          padding: 0.25rem;
+          font-size: 0.75rem;
+        }
+        
+        td {
+          padding: 0.25rem;
+          
+          > span {
+            width: 2rem;
+            height: 2rem;
+            font-size: 0.875rem;
+          }
+        }
+      }
+    }
+    
+    .p-inputtext {
+      font-size: 0.875rem;
+      padding: 0.375rem 0.75rem;
+    }
+  }
+  
+  // Ensure calendar panel appears above modal (modal z-index is 11010)
+  .export-modal-calendar.p-datepicker-panel,
+  .p-datepicker-panel.export-modal-calendar {
+    z-index: 11020 !important;
+  }
+  
+  // Calendar in modal
+  #exportExcelModal {
+    .p-calendar {
+      position: relative;
+      width: 100%;
+      
+      .p-inputtext {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+        cursor: pointer;
+        pointer-events: auto;
+      }
+      
+      .p-datepicker-trigger {
+        cursor: pointer;
+        pointer-events: auto;
+      }
+      
+      .p-datepicker {
+        z-index: 11020 !important;
+      }
+    }
+  }
+  
+  // Override global calendar z-index for export modal calendars
+  body > .p-datepicker-panel.export-modal-calendar,
+  body > .p-datepicker.export-modal-calendar {
+    z-index: 11020 !important;
+    position: fixed !important;
+    pointer-events: auto !important;
+  }
+  
+  // Ensure modal doesn't block calendar clicks
+  #exportExcelModal.modal {
+    pointer-events: auto;
+    
+    .modal-dialog {
+      pointer-events: auto;
+    }
+    
+    .modal-content {
+      pointer-events: auto;
+      overflow: visible;
+    }
+    
+    .modal-body {
+      overflow: visible;
+    }
+  }
+}
+

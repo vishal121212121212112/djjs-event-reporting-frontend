@@ -16,6 +16,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { RippleModule } from 'primeng/ripple';
+import { CalendarModule } from 'primeng/calendar';
 import { MessageService } from 'primeng/api';
 
 import { UIModule } from '../../shared/ui/ui.module';
@@ -70,6 +71,7 @@ const DEFAULT_DROPZONE_CONFIG: DropzoneConfigInterface = {
     ToastModule,
     TooltipModule,
     RippleModule,
+    CalendarModule,
     UIModule,
     SharedModule,
     EventsRoutingModule

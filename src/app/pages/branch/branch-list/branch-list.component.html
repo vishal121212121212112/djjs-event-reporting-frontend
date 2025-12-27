@@ -1,6 +1,11 @@
 <app-page-title [title]="'Branches'" [breadcrumbItems]="breadCrumbItems"></app-page-title>
 
-<div class="d-flex justify-content-end mb-3">
+<div class="d-flex justify-content-end mb-3 gap-2">
+  <button class="btn btn-outline-success" (click)="exportBranchesToExcel()" [disabled]="exporting">
+    <i class="pi pi-file-excel me-1"></i>
+    <span *ngIf="!exporting">Export to Excel</span>
+    <span *ngIf="exporting">Exporting...</span>
+  </button>
   <button class="btn btn-primary" (click)="addBranch()">
     <i class="pi pi-plus me-2"></i> Add Branch
   </button>

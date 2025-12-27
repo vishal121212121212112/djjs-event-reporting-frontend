@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LocationService, Branch } from 'src/app/core/services/location.service';
@@ -54,13 +54,17 @@ export class AllMembersComponent implements OnInit {
   editingMember: UnifiedMember | null = null;
   isUpdating: boolean = false;
 
+  // Export state
+  exporting: boolean = false;
+
   constructor(
     private locationService: LocationService,
     private childBranchService: ChildBranchService,
     private router: Router,
     private messageService: MessageService,
     private confirmationDialog: ConfirmationDialogService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) {
     this.memberForm = this.fb.group({
       branch_id: [null], // Optional field - not mandatory
@@ -539,6 +543,62 @@ export class AllMembersComponent implements OnInit {
           life: 5000
         });
         this.isSubmitting = false;
+      }
+    });
+  }
+
+  /**
+   * Export members to Excel based on current filters
+   */
+  exportMembersToExcel(): void {
+    this.exporting = true;
+
+    // Use current filters
+    const searchTerm = this.searchTerm?.trim() || '';
+    const memberType = this.activeMemberType !== 'all' ? this.activeMemberType : undefined;
+    const branchType = this.activeBranchType !== 'all' ? this.activeBranchType : undefined;
+
+    this.locationService.exportMembersToExcel(searchTerm, memberType, branchType).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        let filename = 'members_export';
+        if (searchTerm) {
+          filename = `members_${searchTerm.replace(/[^a-z0-9]/gi, '_')}`;
+        }
+        if (memberType) {
+          filename += `_${memberType}`;
+        }
+        if (branchType) {
+          filename += `_${branchType}`;
+        }
+        filename += '.xlsx';
+        
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Members exported to Excel successfully',
+          life: 3000
+        });
+        this.exporting = false;
+      },
+      error: (error) => {
+        console.error('Error exporting members:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: error?.error?.error || 'Failed to export members to Excel',
+          life: 5000
+        });
+        this.exporting = false;
       }
     });
   }

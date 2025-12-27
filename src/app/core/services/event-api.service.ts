@@ -474,6 +474,80 @@ export class EventApiService {
   }
 
   /**
+   * Export events to Excel with date range filter
+   * @param startDate Optional start date (YYYY-MM-DD format)
+   * @param endDate Optional end date (YYYY-MM-DD format)
+   * @param status Optional status filter ('complete' or 'incomplete')
+   * Note: Uses HttpClient directly for blob response type
+   */
+  exportEventsToExcel(startDate?: string, endDate?: string, status?: 'complete' | 'incomplete'): Observable<Blob> {
+    let params = new HttpParams();
+    if (startDate) {
+      params = params.set('start_date', startDate);
+    }
+    if (endDate) {
+      params = params.set('end_date', endDate);
+    }
+    if (status) {
+      params = params.set('status', status);
+    }
+
+    const url = this.apiConfig.buildApiUrl('/events/export');
+    return this.http.get(url, {
+      params: params,
+      responseType: 'blob',
+      headers: {
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      }
+    });
+  }
+
+  /**
+   * Export volunteers to Excel by event ID
+   * @param eventId Event ID
+   * Note: Uses HttpClient directly for blob response type
+   */
+  exportVolunteersToExcel(eventId: number): Observable<Blob> {
+    const url = this.apiConfig.buildApiUrl(`/events/${eventId}/volunteers/export`);
+    return this.http.get(url, {
+      responseType: 'blob',
+      headers: {
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      }
+    });
+  }
+
+  /**
+   * Export special guests to Excel by event ID
+   * @param eventId Event ID
+   * Note: Uses HttpClient directly for blob response type
+   */
+  exportSpecialGuestsToExcel(eventId: number): Observable<Blob> {
+    const url = this.apiConfig.buildApiUrl(`/events/${eventId}/specialguests/export`);
+    return this.http.get(url, {
+      responseType: 'blob',
+      headers: {
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      }
+    });
+  }
+
+  /**
+   * Export event media to Excel by event ID
+   * @param eventId Event ID
+   * Note: Uses HttpClient directly for blob response type
+   */
+  exportEventMediaToExcel(eventId: number): Observable<Blob> {
+    const url = this.apiConfig.buildApiUrl(`/events/${eventId}/media/export`);
+    return this.http.get(url, {
+      responseType: 'blob',
+      headers: {
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      }
+    });
+  }
+
+  /**
    * Map external API volunteer object to our Volunteer interface
    */
   private mapExternalVolunteerToVolunteer(externalVol: any): Volunteer {

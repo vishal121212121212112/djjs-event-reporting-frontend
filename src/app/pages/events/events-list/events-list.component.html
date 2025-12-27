@@ -18,6 +18,11 @@
             <i class="pi pi-file-edit me-1"></i>
             View Drafts ({{ draftsCount }})
           </button>
+          <button class="btn btn-outline-success me-2" (click)="openExportModal()" [disabled]="exporting">
+            <i class="pi pi-file-excel me-1"></i>
+            <span *ngIf="!exporting">Export to Excel</span>
+            <span *ngIf="exporting">Exporting...</span>
+          </button>
           <button class="btn add-event-btn" (click)="addEvent()">
             <i class="pi pi-plus"></i>
             Add events
@@ -27,7 +32,7 @@
 
       <!-- Filter Section -->
       <div class="row mt-0">
-        <div class="col-md-3">
+        <div class="col-md-2">
           <div class="form-group mb-0">
             <label for="statusFilter" class="form-label">Status</label>
             <select class="form-select" id="statusFilter" [(ngModel)]="statusFilter" (change)="onStatusFilterChange()">
@@ -37,18 +42,7 @@
             </select>
           </div>
         </div>
-        <div class="col-md-3">
-          <div class="form-group mb-0">
-            <label for="monthFilter" class="form-label">Month</label>
-            <select class="form-select" id="monthFilter">
-              <option value="july-2025">July 2025</option>
-              <option value="june-2025">June 2025</option>
-              <option value="may-2025">May 2025</option>
-              <option value="april-2025">April 2025</option>
-            </select>
-          </div>
-        </div>
-        <div class="col-md-6">
+        <div class="col-md-10">
           <div class="form-group mb-0">
             <label for="searchFilter" class="form-label">Search</label>
             <div class="input-group">
@@ -738,6 +732,14 @@
   </div>
 
   <div class="drawer-footer">
+    <button type="button"
+            class="btn btn-outline-primary me-2"
+            (click)="exportSpecialGuestsToExcel()"
+            [disabled]="exportingSpecialGuests || !selectedEvent?.specialGuestsList || selectedEvent.specialGuestsList.length === 0">
+      <i class="pi pi-file-excel me-1"></i>
+      <span *ngIf="!exportingSpecialGuests">Export to Excel</span>
+      <span *ngIf="exportingSpecialGuests">Exporting...</span>
+    </button>
     <button type="button" class="btn btn-secondary" (click)="closeSpecialGuestsDrawer()">Close</button>
   </div>
 </div>
@@ -798,6 +800,14 @@
 
   <!-- Drawer Footer -->
   <div class="drawer-footer">
+    <button type="button"
+            class="btn btn-outline-primary me-2"
+            (click)="exportVolunteersToExcel()"
+            [disabled]="exportingVolunteers || !selectedEvent?.volunteersList || selectedEvent.volunteersList.length === 0">
+      <i class="pi pi-file-excel me-1"></i>
+      <span *ngIf="!exportingVolunteers">Export to Excel</span>
+      <span *ngIf="exportingVolunteers">Exporting...</span>
+    </button>
     <button type="button"
             class="btn btn-secondary"
             (click)="closeVolunteerDrawer()">
@@ -912,6 +922,14 @@
         </div>
       </div>
       <div class="modal-footer">
+        <button type="button"
+                class="btn btn-outline-primary me-2"
+                (click)="exportEventMediaToExcel()"
+                [disabled]="exportingMedia || !selectedEvent?.id">
+          <i class="pi pi-file-excel me-1"></i>
+          <span *ngIf="!exportingMedia">Export Media to Excel</span>
+          <span *ngIf="exportingMedia">Exporting...</span>
+        </button>
         <button type="button" class="btn btn-secondary" (click)="closeModal('moreDetailsModal')">Close</button>
       </div>
     </div>
@@ -950,6 +968,134 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" (click)="closeMediaContentModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Export to Excel Modal -->
+<div class="modal fade" id="exportExcelModal" tabindex="-1" aria-labelledby="exportExcelModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exportExcelModalLabel">
+          <i class="pi pi-file-excel me-2"></i>Export Events to Excel
+        </h5>
+        <button type="button" class="btn-close" (click)="closeExportModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Quick Date Range Selection -->
+        <div class="mb-4">
+          <label class="form-label fw-bold mb-3">Quick Date Range Selection</label>
+          <div class="row g-2">
+            <div class="col-md-4 col-sm-6">
+              <button type="button" class="btn btn-outline-secondary w-100" (click)="setQuickDateRange('lastWeek')">
+                <i class="pi pi-calendar me-1"></i>Last Week
+              </button>
+            </div>
+            <div class="col-md-4 col-sm-6">
+              <button type="button" class="btn btn-outline-secondary w-100" (click)="setQuickDateRange('lastMonth')">
+                <i class="pi pi-calendar me-1"></i>Last Month
+              </button>
+            </div>
+            <div class="col-md-4 col-sm-6">
+              <button type="button" class="btn btn-outline-secondary w-100" (click)="setQuickDateRange('last3Months')">
+                <i class="pi pi-calendar me-1"></i>Last 3 Months
+              </button>
+            </div>
+            <div class="col-md-4 col-sm-6">
+              <button type="button" class="btn btn-outline-secondary w-100" (click)="setQuickDateRange('last6Months')">
+                <i class="pi pi-calendar me-1"></i>Last 6 Months
+              </button>
+            </div>
+            <div class="col-md-4 col-sm-6">
+              <button type="button" class="btn btn-outline-secondary w-100" (click)="setQuickDateRange('lastYear')">
+                <i class="pi pi-calendar me-1"></i>Last Year
+              </button>
+            </div>
+            <div class="col-md-4 col-sm-6">
+              <button type="button" class="btn btn-outline-secondary w-100" (click)="setQuickDateRange('last2Years')">
+                <i class="pi pi-calendar me-1"></i>Last 2 Years
+              </button>
+            </div>
+            <div class="col-md-4 col-sm-6">
+              <button type="button" class="btn btn-outline-secondary w-100" (click)="setQuickDateRange('all')">
+                <i class="pi pi-calendar me-1"></i>All Events
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <hr class="my-4">
+
+        <!-- Custom Date Range Selection -->
+        <div class="mb-3">
+          <label class="form-label fw-bold mb-3">Custom Date Range</label>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="modalExportStartDate" class="form-label">From Date</label>
+              <p-calendar 
+                id="modalExportStartDate"
+                [(ngModel)]="exportStartDate" 
+                [showIcon]="true"
+                dateFormat="yy-mm-dd"
+                placeholder="Select start date"
+                [maxDate]="exportEndDate"
+                [appendTo]="'body'"
+                [baseZIndex]="11020"
+                [panelStyleClass]="'small-calendar export-modal-calendar'"
+                styleClass="w-100"
+                inputStyleClass="form-control form-control-sm"
+                [showOnFocus]="true"
+                [touchUI]="false">
+              </p-calendar>
+            </div>
+            <div class="col-md-6">
+              <label for="modalExportEndDate" class="form-label">To Date</label>
+              <p-calendar 
+                id="modalExportEndDate"
+                [(ngModel)]="exportEndDate" 
+                [showIcon]="true"
+                dateFormat="yy-mm-dd"
+                placeholder="Select end date"
+                [minDate]="exportStartDate"
+                [appendTo]="'body'"
+                [baseZIndex]="11020"
+                [panelStyleClass]="'small-calendar export-modal-calendar'"
+                styleClass="w-100"
+                inputStyleClass="form-control form-control-sm"
+                [showOnFocus]="true"
+                [touchUI]="false">
+              </p-calendar>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Date Range Display -->
+        <div class="alert alert-info mt-3">
+          <i class="pi pi-info-circle me-2"></i>
+          <strong>Selected Range:</strong>
+          <span *ngIf="exportStartDate && exportEndDate">
+            {{ exportStartDate | date:'mediumDate' }} to {{ exportEndDate | date:'mediumDate' }}
+          </span>
+          <span *ngIf="exportStartDate && !exportEndDate">
+            From {{ exportStartDate | date:'mediumDate' }}
+          </span>
+          <span *ngIf="!exportStartDate && exportEndDate">
+            Until {{ exportEndDate | date:'mediumDate' }}
+          </span>
+          <span *ngIf="!exportStartDate && !exportEndDate">
+            All Events
+          </span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeExportModal()">Cancel</button>
+        <button type="button" class="btn btn-success" (click)="exportEventsToExcel()" [disabled]="exporting">
+          <i class="pi pi-file-excel me-1"></i>
+          <span *ngIf="!exporting">Export to Excel</span>
+          <span *ngIf="exporting">Exporting...</span>
+        </button>
       </div>
     </div>
   </div>

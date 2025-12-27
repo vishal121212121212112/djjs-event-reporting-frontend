@@ -14,6 +14,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { RippleModule } from 'primeng/ripple';
+import { CalendarModule } from 'primeng/calendar';
 import { MessageService } from 'primeng/api';
 import { BranchRoutingModule } from './branch-routing.module';
 import { BranchListComponent } from './branch-list/branch-list.component';
@@ -79,7 +80,8 @@ const DEFAULT_DROPZONE_CONFIG: DropzoneConfigInterface = {
     TagModule,
     ToastModule,
     TooltipModule,
-    RippleModule
+    RippleModule,
+    CalendarModule
   ],
   providers: [
     MessageService,
